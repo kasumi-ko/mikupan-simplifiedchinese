@@ -25,7 +25,9 @@ typedef struct {
 	u_char face_stts[4];
 } EVENT_WRK;
 
-extern u_char event_stts[250];
+constexpr int EVENT_STATUS_SAVE_SIZE = 250;
+// Japanese maps use event IDs 250-252. The memory card stores the first 250 states.
+extern u_char event_stts[256];
 extern EVENT_WRK ev_wrk;
 extern int black_time;
 extern int load_file_id;

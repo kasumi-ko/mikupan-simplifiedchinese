@@ -3,6 +3,7 @@
 #include "enums.h"
 #include "mc_exec.h"
 
+#include "ingame/event/ev_main.h"
 #include "main/glob.h"
 #include "mc/mc.h"
 #include "mc/mc_acs.h"
@@ -785,6 +786,11 @@ char mcSetLoadFile(u_int *work_addr, u_char file_id)
         {
             *addr1++ = *addr0++;
         }
+    }
+
+    if (data_str == mc_gamedata_str && mc_ctrl.rw.header_flg == 0)
+    {
+        memset(event_stts + EVENT_STATUS_SAVE_SIZE, 0, sizeof(event_stts) - EVENT_STATUS_SAVE_SIZE);
     }
 
     return 0;

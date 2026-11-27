@@ -54,7 +54,7 @@
 #include "graphics/graph3d/load3d.h"
 #include "ingame/map/map_ctrl.h"
 
-u_char event_stts[250] = {0};
+u_char event_stts[256] = {0};
 EVENT_WRK ev_wrk = {0};
 
 #define PI 3.1415927f

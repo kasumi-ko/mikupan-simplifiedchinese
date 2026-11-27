@@ -455,30 +455,25 @@ body {
     font-effect: glow(1px 3px 0px 0px #c89a4668), shadow(0dp 1dp #000000e8);
 }
 
-#title-build-info {
+#title-build-info,
+#title-copyright {
     position: absolute;
-    left: 10px;
-    bottom: 8px;
+    bottom: 8dp;
     color: #b0a69a;
     font-family: MikuPanRml;
     font-size: 10dp;
-    line-height: 16px;
-    letter-spacing: 0.3px;
-    text-align: left;
+    line-height: 16dp;
     font-effect: shadow(0px 1px #000000ee);
 }
 
+#title-build-info {
+    left: 10dp;
+    text-align: left;
+}
+
 #title-copyright {
-    position: absolute;
-    right: 10px;
-    bottom: 8px;
-    color: #b0a69a;
-    font-family: MikuPanRml;
-    font-size: 10dp;
-    line-height: 16px;
-    letter-spacing: 0.3px;
+    right: 10dp;
     text-align: right;
-    font-effect: shadow(0px 1px #000000ee);
 }
 
 

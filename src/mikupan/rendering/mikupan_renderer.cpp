@@ -395,7 +395,7 @@ SDL_AppResult MikuPan_Init()
     }
 
     mikupan_render.window = SDL_CreateWindow(
-        "\u96F6\uFF5Ezero\uFF5E [MikuPan]",
+        "\u96F6\uFF5Ezero\uFF5E [MikuPan-SimplifiedChinese]",
         desired_window_width,
         desired_window_height,
         config_window_flags

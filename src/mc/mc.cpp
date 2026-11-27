@@ -33,7 +33,7 @@ MC_DATA_STR mc_gamedata_str[] = {
     MC_DATA_HOST(&map_wrk,        sizeof(map_wrk)),
     MC_DATA_HOST(&ap_wrk,         sizeof(ap_wrk)),
     MC_DATA_HOST(&ev_wrk,         sizeof(ev_wrk)),
-    MC_DATA_HOST(event_stts,      sizeof(event_stts)),
+    MC_DATA_HOST(event_stts,      EVENT_STATUS_SAVE_SIZE),
     MC_DATA_HOST(find_stts,       sizeof(find_stts)),
     MC_DATA_HOST(poss_item,       sizeof(poss_item)),
     MC_DATA_HOST(poss_file,       sizeof(poss_file)),
