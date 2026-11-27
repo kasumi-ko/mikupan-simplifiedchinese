@@ -1,0 +1,2933 @@
+# Simplified Chinese translation for MikuPan.
+msgid ""
+msgstr ""
+"Language: zh-Hans\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Game Data Required"
+msgstr "需要游戏数据"
+
+msgid "MikuPan needs the Fatal Frame disc data before it can start."
+msgstr "需要加载《零》的光盘数据才能启动 MikuPan。"
+
+msgid "Missing: %s"
+msgstr "缺少文件：%s"
+
+msgid "Select the folder that contains IMG_HD.BIN and IMG_BD.BIN."
+msgstr "请选择包含 IMG_HD.BIN 和 IMG_BD.BIN 的文件夹。"
+
+msgid "Select Folder"
+msgstr "选择文件夹"
+
+msgid "Texture Preparation Failed"
+msgstr "纹理准备失败"
+
+msgid "Preparing Textures"
+msgstr "正在准备纹理"
+
+msgid "MikuPan could not prepare the textures from the game data."
+msgstr "无法从游戏数据准备纹理。"
+
+msgid "MikuPan is preparing textures for the first launch."
+msgstr "首次启动正在准备游戏纹理。"
+
+msgid "Checking"
+msgstr "正在检查"
+
+msgid "Converting"
+msgstr "正在转换"
+
+msgid "Retry"
+msgstr "重试"
+
+msgid "New Game"
+msgstr "开始游戏"
+
+msgid "Load Game"
+msgstr "读取存档"
+
+msgid "Album"
+msgstr "相册"
+
+msgid "Settings"
+msgstr "设置"
+
+msgid "Exit Game"
+msgstr "退出游戏"
+
+msgid "Press any key"
+msgstr "按下任意键"
+
+msgid "Exit the game?"
+msgstr "退出游戏？"
+
+msgid "Yes"
+msgstr "是"
+
+msgid "No"
+msgstr "否"
+
+msgid "MODE SELECT"
+msgstr "选择模式"
+
+msgid "STORY MODE"
+msgstr "剧情模式"
+
+msgid "Story Mode"
+msgstr "剧情模式"
+
+msgid "Battle Mode"
+msgstr "战斗模式"
+
+msgid "Option"
+msgstr "选项"
+
+msgid "Sound Test"
+msgstr "声音测试"
+
+msgid "Exit"
+msgstr "退出"
+
+msgid "Chapter"
+msgstr "章节"
+
+msgid "Difficulty"
+msgstr "难度"
+
+msgid "Costume"
+msgstr "服装"
+
+msgid "Game Start"
+msgstr "开始游戏"
+
+msgid "Continue"
+msgstr "继续"
+
+msgid "Prologue"
+msgstr "序章"
+
+msgid "Night 1"
+msgstr "第一夜"
+
+msgid "Night 2"
+msgstr "第二夜"
+
+msgid "Night 3"
+msgstr "第三夜"
+
+msgid "Final Night"
+msgstr "最终夜"
+
+msgid "Normal"
+msgstr "普通"
+
+msgid "Nightmare"
+msgstr "噩梦"
+
+msgid "Special 1"
+msgstr "特殊服装 1"
+
+msgid "Special 2"
+msgstr "特殊服装 2"
+
+msgid "Special 3"
+msgstr "特殊服装 3"
+
+msgid "Regular game mode. Start from the chapter of your choice."
+msgstr "普通游戏模式。可选择起始章节。"
+
+msgid "Battle against ghosts in a series of missions."
+msgstr "挑战一系列怨灵战斗任务。"
+
+msgid "Change the game settings."
+msgstr "更改游戏设置。"
+
+msgid "Listen to music and sound effects."
+msgstr "试听音乐和音效。"
+
+msgid "Return to the title screen."
+msgstr "返回标题画面。"
+
+msgid "Choose the chapter to start from."
+msgstr "选择要开始的章节。"
+
+msgid "Choose the game difficulty."
+msgstr "选择游戏难度。"
+
+msgid "Choose Miku's costume."
+msgstr "选择深红的服装。"
+
+msgid "Start the game with these settings."
+msgstr "以当前设置开始游戏。"
+
+msgid "Return to Mode Select."
+msgstr "返回模式选择。"
+
+msgid "SAVE FILE"
+msgstr "保存存档"
+
+msgid "LOAD FILE"
+msgstr "读取存档"
+
+msgid "Back: Y / Esc"
+msgstr "返回：Y / Esc"
+
+msgid "Move: D-Pad / Stick&#160;&#160;&#160; Select: A / Enter"
+msgstr "移动：方向键 / 摇杆&#160;&#160;&#160; 确认：A / Enter"
+
+msgid "OK"
+msgstr "确定"
+
+msgid "Save Complete."
+msgstr "保存完成。"
+
+msgid "Create a new save file?"
+msgstr "创建新存档？"
+
+msgid "Replace this save?"
+msgstr "覆盖此存档？"
+
+msgid "Load this save?"
+msgstr "读取此存档？"
+
+msgid "Create a new save"
+msgstr "创建新存档"
+
+msgid "No save files found."
+msgstr "未找到存档。"
+
+msgid "Create a new save file"
+msgstr "创建新存档"
+
+msgid "No save selected"
+msgstr "未选择存档"
+
+msgid "Select a save from the list above."
+msgstr "从上方列表选择一份存档。"
+
+msgid "Create a new save or select an existing save to replace."
+msgstr "创建新存档，或选择已有存档进行覆盖。"
+
+msgid "No save files were found."
+msgstr "未找到存档。"
+
+msgid "Select a save to continue."
+msgstr "选择一份存档以继续。"
+
+msgid "Save system is not ready."
+msgstr "存档系统尚未就绪。"
+
+msgid "Could not create the save folder."
+msgstr "无法创建存档文件夹。"
+
+msgid "Could not open the save file."
+msgstr "无法打开存档文件。"
+
+msgid "Could not write the save file."
+msgstr "无法写入存档文件。"
+
+msgid "Save data updated."
+msgstr "存档数据已更新。"
+
+msgid "Load system is not ready."
+msgstr "读档系统尚未就绪。"
+
+msgid "This save file has an invalid size."
+msgstr "存档文件大小无效。"
+
+msgid "Could not read the save file."
+msgstr "无法读取存档文件。"
+
+msgid "The save file is corrupt."
+msgstr "存档文件已损坏。"
+
+msgid "Intro"
+msgstr "序章"
+
+msgid "1st Night"
+msgstr "第一夜"
+
+msgid "2nd Night"
+msgstr "第二夜"
+
+msgid "3rd Night"
+msgstr "第三夜"
+
+msgid "4th Night"
+msgstr "第四夜"
+
+msgid "Clear Data"
+msgstr "通关存档"
+
+msgid "Night"
+msgstr "夜"
+
+msgid "Room"
+msgstr "房间"
+
+msgid "Unknown date"
+msgstr "日期未知"
+
+msgid "Legacy Save"
+msgstr "旧版存档"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Clear"
+msgstr "通关"
+
+msgid "Item data unavailable"
+msgstr "无法读取物品数据"
+
+msgid "Play"
+msgstr "游戏时间"
+
+msgid "Shots"
+msgstr "摄影张数"
+
+msgid "Points"
+msgstr "点数"
+
+msgid "SAVE POINT"
+msgstr "存档点"
+
+msgid "A Select&#160;&#160;&#160;&#160;Y Exit"
+msgstr "A 确认&#160;&#160;&#160;&#160;Y 退出"
+
+msgid "Save Game"
+msgstr "保存游戏"
+
+msgid "Save Album"
+msgstr "保存相册"
+
+msgid "Load Film"
+msgstr "装填胶卷"
+
+msgid "Save game data."
+msgstr "保存游戏数据。"
+
+msgid "Register the PhotoData inside &quot;Photograph&quot;<br/>into an album for them to be saved."
+msgstr "将“照片”里的影像登记到相册，<br/>以便保存。"
+
+msgid "Load Type-14 Film into the Camera Obscura."
+msgstr "为射影机装填一四式胶卷。"
+
+msgid "Leave the save point."
+msgstr "离开存档点。"
+
+msgid "Load film?"
+msgstr "装填胶卷？"
+
+msgid "Exit the save point?"
+msgstr "离开存档点？"
+
+msgid "Raise Camera"
+msgstr "举起射影机"
+
+msgid "Take Photo"
+msgstr "拍照"
+
+msgid "Previous Film"
+msgstr "上一种胶卷"
+
+msgid "Next Film"
+msgstr "下一种胶卷"
+
+msgid "Special Ability"
+msgstr "特殊能力"
+
+msgid "Run"
+msgstr "奔跑"
+
+msgid "L2 / LT (axis)"
+msgstr "L2 / LT（轴）"
+
+msgid "R2 / RT (axis)"
+msgstr "R2 / RT（轴）"
+
+msgid "Left Stick X"
+msgstr "左摇杆 X"
+
+msgid "Left Stick Y"
+msgstr "左摇杆 Y"
+
+msgid "Right Stick X"
+msgstr "右摇杆 X"
+
+msgid "Right Stick Y"
+msgstr "右摇杆 Y"
+
+msgid "Unknown Axis"
+msgstr "未知轴"
+
+msgid "<unmapped>"
+msgstr "〈未绑定〉"
+
+msgid "<unknown>"
+msgstr "〈未知〉"
+
+msgid "Left Mouse"
+msgstr "鼠标左键"
+
+msgid "Middle Mouse"
+msgstr "鼠标中键"
+
+msgid "Right Mouse"
+msgstr "鼠标右键"
+
+msgid "Mouse 4"
+msgstr "鼠标键 4"
+
+msgid "Mouse 5"
+msgstr "鼠标键 5"
+
+msgid "<unknown mouse button>"
+msgstr "〈未知鼠标键〉"
+
+msgid "Wheel Up"
+msgstr "滚轮向上"
+
+msgid "Wheel Down"
+msgstr "滚轮向下"
+
+msgid "<unknown action>"
+msgstr "〈未知动作〉"
+
+msgid "DISPLAY"
+msgstr "显示"
+
+msgid "GRAPHICS"
+msgstr "图形"
+
+msgid "AUDIO"
+msgstr "音频"
+
+msgid "CONTROLS"
+msgstr "控制"
+
+msgid "ADVANCED"
+msgstr "高级"
+
+msgid "Windowed"
+msgstr "窗口模式"
+
+msgid "Fullscreen"
+msgstr "全屏"
+
+msgid "Pixel (Modern)"
+msgstr "像素光照（现代）"
+
+msgid "Vertex (PS2)"
+msgstr "顶点光照（PS2）"
+
+msgid "Black"
+msgstr "黑色"
+
+msgid "Blur"
+msgstr "模糊"
+
+msgid "Triangle"
+msgstr "三角键"
+
+msgid "Cross / Confirm"
+msgstr "叉键 / 确认"
+
+msgid "Square"
+msgstr "方块键"
+
+msgid "Circle / Cancel"
+msgstr "圆圈键 / 取消"
+
+msgid "D-Pad Up"
+msgstr "方向键上"
+
+msgid "D-Pad Down"
+msgstr "方向键下"
+
+msgid "D-Pad Left"
+msgstr "方向键左"
+
+msgid "D-Pad Right"
+msgstr "方向键右"
+
+msgid "R3 / Right Stick"
+msgstr "R3 / 按下右摇杆"
+
+msgid "Select"
+msgstr "选择键"
+
+msgid "Start / Pause"
+msgstr "开始键 / 暂停"
+
+msgid "L3 / Left Stick"
+msgstr "L3 / 按下左摇杆"
+
+msgid "R1 / RB"
+msgstr "R1 / RB"
+
+msgid "L2 / LT"
+msgstr "L2 / LT"
+
+msgid "R2 / RT"
+msgstr "R2 / RT"
+
+msgid "L1 / LB"
+msgstr "L1 / LB"
+
+msgid "Move X"
+msgstr "移动 X"
+
+msgid "Move Y"
+msgstr "移动 Y"
+
+msgid "Aim X"
+msgstr "瞄准 X"
+
+msgid "Aim Y"
+msgstr "瞄准 Y"
+
+msgid "Invert Move X"
+msgstr "反转移动 X 轴"
+
+msgid "Invert Move Y"
+msgstr "反转移动 Y 轴"
+
+msgid "Invert Aim X"
+msgstr "反转瞄准 X 轴"
+
+msgid "Invert Aim Y"
+msgstr "反转瞄准 Y 轴"
+
+msgid "Forward"
+msgstr "前进"
+
+msgid "Backward"
+msgstr "后退"
+
+msgid "Left"
+msgstr "向左"
+
+msgid "Right"
+msgstr "向右"
+
+msgid "Aim Up"
+msgstr "向上瞄准"
+
+msgid "Aim Down"
+msgstr "向下瞄准"
+
+msgid "Aim Left"
+msgstr "向左瞄准"
+
+msgid "Aim Right"
+msgstr "向右瞄准"
+
+msgid "On"
+msgstr "开"
+
+msgid "Off"
+msgstr "关"
+
+msgid "Toggle"
+msgstr "切换"
+
+msgid "Hold"
+msgstr "按住"
+
+msgid "Objective"
+msgstr "客观视角"
+
+msgid "Subjective"
+msgstr "主观视角"
+
+msgid "Classic"
+msgstr "经典"
+
+msgid "Modern"
+msgstr "现代"
+
+msgid "DISPLAY MODE"
+msgstr "显示模式"
+
+msgid "WINDOW SIZE"
+msgstr "窗口大小"
+
+msgid "RENDER SCALE"
+msgstr "渲染比例"
+
+msgid "GPU BACKEND"
+msgstr "GPU 后端"
+
+msgid "MSAA"
+msgstr "MSAA"
+
+msgid "SHADOW RESOLUTION"
+msgstr "阴影分辨率"
+
+msgid "LIGHTING MODE"
+msgstr "光照模式"
+
+msgid "DITHER FILTERING"
+msgstr "抖动过滤"
+
+msgid "FINDER SURROUND"
+msgstr "取景器外围"
+
+msgid "FLASHLIGHT STYLE"
+msgstr "手电筒样式"
+
+msgid "THEME"
+msgstr "主题"
+
+msgid "FONT"
+msgstr "字体"
+
+msgid "SELECT"
+msgstr "选择"
+
+msgid "Keep this render scale?"
+msgstr "保留当前渲染比例？"
+
+msgid "Keep this display mode?"
+msgstr "保留当前显示模式？"
+
+msgid "Keep this window size?"
+msgstr "保留当前窗口大小？"
+
+msgid "Display"
+msgstr "显示"
+
+msgid "Graphics"
+msgstr "图形"
+
+msgid "Audio"
+msgstr "音频"
+
+msgid "Controls"
+msgstr "控制"
+
+msgid "Advanced"
+msgstr "高级"
+
+msgid "Bind Control"
+msgstr "绑定控制"
+
+msgid "Unavailable"
+msgstr "不可用"
+
+msgid "Controller Rumble"
+msgstr "手柄震动"
+
+msgid "Camera Activation"
+msgstr "举起相机方式"
+
+msgid "Gameplay Actions"
+msgstr "游戏操作"
+
+msgid "Keyboard Buttons"
+msgstr "键盘按键"
+
+msgid "Movement"
+msgstr "移动"
+
+msgid "Aim"
+msgstr "瞄准"
+
+msgid "Controller"
+msgstr "手柄"
+
+msgid "Buttons"
+msgstr "按钮"
+
+msgid "Sticks"
+msgstr "摇杆"
+
+msgid "Stick Invert"
+msgstr "反转摇杆"
+
+msgid "No controller is currently open. Connect a controller, or select one in the ImGui device selector for now."
+msgstr "当前未连接手柄。请连接手柄，或在 ImGui 中选择设备。"
+
+msgid "Press confirm to apply"
+msgstr "按确认键应用"
+
+msgid "No window sizes"
+msgstr "无可用窗口大小"
+
+msgid "No render scales"
+msgstr "无可用渲染比例"
+
+msgid "Save Configuration and restart to apply"
+msgstr "保存设置并重启后生效"
+
+msgid "Active:"
+msgstr "当前："
+
+msgid "Adjust"
+msgstr "调整"
+
+msgid "Browse"
+msgstr "浏览"
+
+msgid "Back"
+msgstr "返回"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Apply"
+msgstr "应用"
+
+msgid "Reset"
+msgstr "重置"
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "Defaults"
+msgstr "默认值"
+
+msgid "HDR Output"
+msgstr "HDR 输出"
+
+msgid "Image Calibration"
+msgstr "画面校准"
+
+msgid "CRT Filter"
+msgstr "CRT 滤镜"
+
+msgid "OPTIONS"
+msgstr "选项"
+
+msgid "Display Mode"
+msgstr "显示模式"
+
+msgid "Windowed or borderless fullscreen."
+msgstr "在窗口和无边框全屏之间切换。"
+
+msgid "Windowed Resolution"
+msgstr "窗口分辨率"
+
+msgid "Window size used in Windowed mode. Fullscreen uses borderless desktop size."
+msgstr "仅窗口模式使用此大小。全屏使用桌面分辨率。"
+
+msgid "Open a scene preview with all image controls in one place."
+msgstr "在场景预览中调整画面设置。"
+
+msgid "Use extended-linear HDR presentation when the display supports it."
+msgstr "显示器支持时使用扩展线性 HDR 输出。"
+
+msgid "VSync"
+msgstr "垂直同步"
+
+msgid "Synchronise presentation to the display refresh."
+msgstr "使画面输出与显示器刷新同步。"
+
+msgid "Render Resolution"
+msgstr "渲染分辨率"
+
+msgid "Match the window, scale from it, or use exact PS2 multiples."
+msgstr "匹配窗口、按比例缩放或使用 PS2 分辨率的整数倍。"
+
+msgid "GPU Backend"
+msgstr "GPU 后端"
+
+msgid "Renderer backend selection. A restart may be required."
+msgstr "更改渲染后端，可能需要重启游戏。"
+
+msgid "Smooth geometry edges using multisampling."
+msgstr "使用多重采样平滑几何体边缘。"
+
+msgid "Shadow Resolution"
+msgstr "阴影分辨率"
+
+msgid "Higher values sharpen shadows at a performance cost."
+msgstr "提高此值可使阴影更清晰，但会增加渲染开销。"
+
+msgid "Lighting Mode"
+msgstr "光照模式"
+
+msgid "Modern pixel lighting or PS2-style vertex lighting."
+msgstr "使用现代逐像素光照或 PS2 风格的逐顶点光照。"
+
+msgid "Dither Filtering"
+msgstr "抖动纹理过滤"
+
+msgid "Native keeps the PS2 dither texture crisp. Soft smooths it for modern displays."
+msgstr "原生模式保留 PS2 抖动纹理。平滑模式减弱其颗粒感。"
+
+msgid "Finder Surround"
+msgstr "取景框外区域"
+
+msgid "Choose the area outside the Camera Obscura frame."
+msgstr "设置射影机取景框之外的显示方式。"
+
+msgid "Master Volume"
+msgstr "主音量"
+
+msgid "Set the overall game volume."
+msgstr "调整游戏整体音量。"
+
+msgid "Movement Style"
+msgstr "移动方式"
+
+msgid "D-Pad / Arrow Keys"
+msgstr "方向键"
+
+msgid "Left Stick / WASD"
+msgstr "左摇杆／WASD"
+
+msgid "Viewfinder"
+msgstr "取景器"
+
+msgid "Stick Layout"
+msgstr "摇杆布局"
+
+msgid "D-Pad Film Swap"
+msgstr "方向键切换胶卷"
+
+msgid "Restore keyboard, mouse, and controller bindings."
+msgstr "恢复键盘、鼠标和手柄的默认绑定。"
+
+msgid "Keyboard / Mouse"
+msgstr "键盘／鼠标"
+
+msgid "Select a movement style, or click a binding then press a key, mouse input, or controller input to assign."
+msgstr "选择移动方式，或选中绑定后按下键盘、鼠标或手柄按键。"
+
+msgid "Interface"
+msgstr "界面"
+
+msgid "Theme"
+msgstr "主题"
+
+msgid "Use the same colour palette as the ImGui overlay."
+msgstr "使用与 ImGui 叠加层相同的配色。"
+
+msgid "Font"
+msgstr "字体"
+
+msgid "LXGW WenKai Medium"
+msgstr "霞鹜文楷 Medium"
+
+msgid "Choose the options-menu font."
+msgstr "选择设置菜单的字体。"
+
+msgid "Font Scale"
+msgstr "字体缩放"
+
+msgid "Adjust interface text size."
+msgstr "调整界面文字大小。"
+
+msgid "Gameplay"
+msgstr "游戏"
+
+msgid "Flashlight Style"
+msgstr "手电筒样式"
+
+msgid "Choose the original PS2 light, the simpler Xbox light, or disable it."
+msgstr "使用 PS2 原版照明、简化的 Xbox 照明或关闭手电筒。"
+
+msgid "Keep Finder Raised"
+msgstr "保持举起相机"
+
+msgid "Do not lower the Camera Obscura when an apparition event begins."
+msgstr "灵体事件开始时保持射影机举起。"
+
+msgid "Mini Map"
+msgstr "小地图"
+
+msgid "Show the corner map while exploring."
+msgstr "探索时在屏幕角落显示地图。"
+
+msgid "Save Album Photos as PNG"
+msgstr "将相册照片导出为 PNG"
+
+msgid "Also write album photos as PNG files next to the game."
+msgstr "保存相册照片时一并导出 PNG 文件。"
+
+msgid "Auto-hide Cursor"
+msgstr "自动隐藏光标"
+
+msgid "Hide the mouse cursor after 5 seconds of inactivity."
+msgstr "鼠标闲置 5 秒后隐藏光标。"
+
+msgid "Quick Film Swap"
+msgstr "快速切换胶卷"
+
+msgid "Use D-Pad Up / Down in finder mode to switch film.<br />D-Pad finder aim is disabled while enabled."
+msgstr "在取景时用方向键上下切换胶卷。<br />开启后，方向键无法用于取景瞄准。"
+
+msgid "Mirror Stone Indicator"
+msgstr "御神石提示"
+
+msgid "Show a Mirror Stone icon next to the filament."
+msgstr "在灵丝旁显示御神石图标。"
+
+msgid "Improved Movement Collisions"
+msgstr "改进移动碰撞"
+
+msgid "Uses an improved movement collision method to reduce snagging."
+msgstr "减少角色移动时在障碍物边缘卡住的情况。"
+
+msgid "Video Filters"
+msgstr "视频滤镜"
+
+msgid "Open the CRT post-process tuning panel."
+msgstr "打开 CRT 后处理设置。"
+
+msgid "Files"
+msgstr "文件"
+
+msgid "Data Folder"
+msgstr "数据目录"
+
+msgid "Folder containing extracted MikuPan game data."
+msgstr "存放已提取游戏数据的文件夹。"
+
+msgid "Save Changes?"
+msgstr "保存更改？"
+
+msgid "Unsaved settings remain."
+msgstr "还有未保存的设置。"
+
+msgid "Up / Down to choose. Confirm applies. Back cancels."
+msgstr "按上或下选择，确认键应用，返回键取消。"
+
+msgid "Press input..."
+msgstr "等待输入…"
+
+msgid "Times out in "
+msgstr "将在 "
+
+msgid " seconds."
+msgstr " 秒后超时。"
+
+msgid "Reverting in "
+msgstr "将在 "
+
+msgid " seconds"
+msgstr " 秒后还原"
+
+msgid "Brightness"
+msgstr "亮度"
+
+msgid "Gamma"
+msgstr "伽马"
+
+msgid "Contrast"
+msgstr "对比度"
+
+msgid "Shadow Depth"
+msgstr "阴影深度"
+
+msgid "Paper White"
+msgstr "参考白亮度"
+
+msgid "Peak"
+msgstr "峰值"
+
+msgid "Strength"
+msgstr "强度"
+
+msgid "Curvature"
+msgstr "曲率"
+
+msgid "Overscan"
+msgstr "过扫描"
+
+msgid "Scanlines"
+msgstr "扫描线"
+
+msgid "Scanline Scale"
+msgstr "扫描线缩放"
+
+msgid "Scanline Thickness"
+msgstr "扫描线粗细"
+
+msgid "Mask"
+msgstr "遮罩"
+
+msgid "Mask Scale"
+msgstr "遮罩缩放"
+
+msgid "Vignette"
+msgstr "暗角"
+
+msgid "Vignette Size"
+msgstr "暗角大小"
+
+msgid "Chroma Offset"
+msgstr "色度偏移"
+
+msgid "Blend"
+msgstr "混合"
+
+msgid "Blend Radius"
+msgstr "混合半径"
+
+msgid "Noise"
+msgstr "噪点"
+
+msgid "Flicker"
+msgstr "闪烁"
+
+msgid "Glow"
+msgstr "辉光"
+
+msgid "Grey Levels"
+msgstr "灰阶"
+
+msgid "BLACK"
+msgstr "黑"
+
+msgid "WHITE"
+msgstr "白"
+
+msgid "Fix Number Door Localization"
+msgstr "修正数字机关门显示"
+
+msgid "Use clockwise numerical ordering and show inset numbers over the original kanji buttons."
+msgstr "按顺时针排列数字，并在汉字按钮上叠加数字标记。"
+
+msgid "Finder Mode"
+msgstr "取景模式"
+
+msgid "Normal Mode"
+msgstr "普通模式"
+
+msgid "Move / Aim Up"
+msgstr "向上移动或瞄准"
+
+msgid "Move / Aim Down"
+msgstr "向下移动或瞄准"
+
+msgid "Move / Aim Left"
+msgstr "向左移动或瞄准"
+
+msgid "Move / Aim Right"
+msgstr "向右移动或瞄准"
+
+msgid "Menu"
+msgstr "菜单"
+
+msgid "Search / Obtain"
+msgstr "调查／拾取"
+
+msgid "Finder ON"
+msgstr "举起相机"
+
+msgid "Special Functions"
+msgstr "特殊功能"
+
+msgid "Eye View / L2"
+msgstr "视角／L2"
+
+msgid "Shutter / R1"
+msgstr "快门／R1"
+
+msgid "Eye View / R2"
+msgstr "视角／R2"
+
+msgid "Pause"
+msgstr "暂停"
+
+msgid "Finder Aim Up"
+msgstr "向上瞄准"
+
+msgid "Finder Aim Down"
+msgstr "向下瞄准"
+
+msgid "Finder Aim Left"
+msgstr "向左瞄准"
+
+msgid "Finder Aim Right"
+msgstr "向右瞄准"
+
+msgid "Turn Around"
+msgstr "转身"
+
+msgid "Shutter"
+msgstr "快门"
+
+msgid "Quick Turn"
+msgstr "快速转身"
+
+msgid "Finder OFF"
+msgstr "放下相机"
+
+msgid "Finder Control / L2"
+msgstr "取景控制／L2"
+
+msgid "Finder Control / R2"
+msgstr "取景控制／R2"
+
+msgid "L1"
+msgstr "L1"
+
+msgid "L2"
+msgstr "L2"
+
+msgid "R1"
+msgstr "R1"
+
+msgid "R2"
+msgstr "R2"
+
+msgid "L3"
+msgstr "L3"
+
+msgid "R3"
+msgstr "R3"
+
+msgid "DPad Up"
+msgstr "方向键上"
+
+msgid "DPad Down"
+msgstr "方向键下"
+
+msgid "DPad Left"
+msgstr "方向键左"
+
+msgid "DPad Right"
+msgstr "方向键右"
+
+msgid "Cross"
+msgstr "叉键"
+
+msgid "Circle"
+msgstr "圆圈键"
+
+msgid "Start"
+msgstr "开始键"
+
+msgid "R3 (Right Stick)"
+msgstr "R3（按下右摇杆）"
+
+msgid "L3 (Left Stick)"
+msgstr "L3（按下左摇杆）"
+
+msgid "Binding"
+msgstr "绑定"
+
+msgid "Key"
+msgstr "按键"
+
+msgid "Stick"
+msgstr "摇杆"
+
+msgid "Axis"
+msgstr "轴"
+
+msgid "Invert"
+msgstr "反转"
+
+msgid "Negative"
+msgstr "负方向"
+
+msgid "Positive"
+msgstr "正方向"
+
+msgid "Target"
+msgstr "目标"
+
+msgid "Default"
+msgstr "默认"
+
+msgid "DPad"
+msgstr "方向键"
+
+msgid "Live preview"
+msgstr "实时预览"
+
+msgid "Controller Mapping"
+msgstr "手柄映射"
+
+msgid "Connected"
+msgstr "已连接"
+
+msgid "Gamepad"
+msgstr "游戏手柄"
+
+msgid "Movement & Aim"
+msgstr "移动和瞄准"
+
+msgid "Action Maps"
+msgstr "操作映射"
+
+msgid "<not connected>"
+msgstr "<未连接>"
+
+msgid "Auto (first available controller)"
+msgstr "自动（首个可用手柄）"
+
+msgid "Input device"
+msgstr "输入设备"
+
+msgid "<unknown controller>"
+msgstr "<未知手柄>"
+
+msgid "Keyboard & Mouse"
+msgstr "键盘和鼠标"
+
+msgid "Guide"
+msgstr "导航键"
+
+msgid "Touchpad"
+msgstr "触摸板"
+
+msgid "Misc 1"
+msgstr "扩展键 1"
+
+msgid "Misc 2"
+msgstr "扩展键 2"
+
+msgid "Misc 3"
+msgstr "扩展键 3"
+
+msgid "Misc 4"
+msgstr "扩展键 4"
+
+msgid "Misc 5"
+msgstr "扩展键 5"
+
+msgid "Misc 6"
+msgstr "扩展键 6"
+
+msgid "Left Paddle 1"
+msgstr "左拨片 1"
+
+msgid "Left Paddle 2"
+msgstr "左拨片 2"
+
+msgid "Right Paddle 1"
+msgstr "右拨片 1"
+
+msgid "Right Paddle 2"
+msgstr "右拨片 2"
+
+msgid "Select / Back"
+msgstr "选择／返回"
+
+msgid "Left Stick (L3)"
+msgstr "左摇杆（L3）"
+
+msgid "Right Stick (R3)"
+msgstr "右摇杆（R3）"
+
+msgid "Y / Triangle"
+msgstr "Y／三角"
+
+msgid "A / Cross"
+msgstr "A／叉"
+
+msgid "X / Square"
+msgstr "X／方块"
+
+msgid "B / Circle"
+msgstr "B／圆圈"
+
+msgid "Unknown Button"
+msgstr "未知按键"
+
+msgid "No controller connected."
+msgstr "未连接手柄。"
+
+msgid "No controller connected. Connect one to remap gamepad bindings."
+msgstr "请连接手柄以设置手柄按键。"
+
+msgid "Click a binding, then press a button on your controller. 'x' clears it."
+msgstr "选择绑定后按下手柄按键。按 X 键清除绑定。"
+
+msgid "Always active alongside the controller. Click a binding, then press a key. 'x' clears it."
+msgstr "键盘和手柄可同时使用。选择绑定后按键，按 X 键清除绑定。"
+
+msgid "Click an axis, then move a stick on your controller. 'x' clears it."
+msgstr "选择绑定后拨动手柄摇杆。按 X 键清除绑定。"
+
+msgid "No controller connected. Connect one to remap stick axes."
+msgstr "请连接手柄以设置摇杆轴。"
+
+msgid "Always active alongside the controller. Each axis is driven to its extremes by a negative and a positive key. Click a key to rebind it, 'x' clears it."
+msgstr "键盘和手柄可同时使用。每轴由正、负两个方向的按键控制。选择绑定后按键，按 X 键清除绑定。"
+
+msgid "Enable custom action profile"
+msgstr "启用自定义操作"
+
+msgid "Normal movement"
+msgstr "普通移动"
+
+msgid "Reverse finder vertical aim"
+msgstr "反转取景器垂直瞄准"
+
+msgid "Swap finder sticks"
+msgstr "交换取景摇杆"
+
+msgid "On (default): left stick / WASD move, right stick / mouse aim. Off: classic (left stick aims, right stick moves)."
+msgstr "开启时左摇杆或 WASD 移动，右摇杆或鼠标瞄准。关闭时左摇杆瞄准，右摇杆移动。"
+
+msgid "D-Pad quick film swap"
+msgstr "方向键快速切换胶卷"
+
+msgid "Mirror Stone HUD icon"
+msgstr "御神石图标"
+
+msgid "Shows a small Mirror Stone box next to the filament. It stays visible even when you do not have one."
+msgstr "在灵丝旁显示御神石图标。持有数量为零时也会显示。"
+
+msgid "Reset custom profile"
+msgstr "重置自定义操作"
+
+msgid "(keeps the custom profile enabled state)"
+msgstr "（保留自定义操作的启用状态）"
+
+msgid "Finder Mouse Look"
+msgstr "鼠标控制取景器"
+
+msgid "Aim the first-person finder with the mouse. Always active (independent of the custom profile above)."
+msgstr "在取景时用鼠标瞄准。此功能独立于自定义操作。"
+
+msgid "Enable finder mouse look"
+msgstr "启用鼠标瞄准"
+
+msgid "Mouse sensitivity"
+msgstr "鼠标灵敏度"
+
+msgid "Vertical aim follows the \"Reverse finder vertical aim\" option above."
+msgstr "垂直瞄准沿用上方的反转设置。"
+
+msgid "Advanced: remap which in-game action each button triggers, separately for normal and finder mode."
+msgstr "分别设置普通模式和取景模式中每个按键的用途。"
+
+msgid "Normal Mode Actions"
+msgstr "普通模式操作"
+
+msgid "Finder Mode Actions"
+msgstr "取景模式操作"
+
+msgid "Reset all input settings"
+msgstr "重置全部输入设置"
+
+msgid "Keyboard/mouse and controller are always active together; this selects which bindings to edit below."
+msgstr "键盘、鼠标和手柄可同时使用。此处选择要编辑的绑定。"
+
+msgid "Press input... (Esc)"
+msgstr "等待输入…（Esc 取消）"
+
+msgid "PRESS   TO LEAVE"
+msgstr "按下   返回"
+
+msgid "Scanline Strength"
+msgstr "扫描线强度"
+
+msgid "Mask Strength"
+msgstr "遮罩强度"
+
+msgid "Vignette Strength"
+msgstr "暗角强度"
+
+msgid "Blend Strength"
+msgstr "混合强度"
+
+msgid "Options"
+msgstr "选项"
+
+msgid "Game"
+msgstr "游戏"
+
+msgid "Keyboard"
+msgstr "键盘"
+
+msgid "Picture"
+msgstr "画面"
+
+msgid "HDR"
+msgstr "HDR"
+
+msgid "Camera Obscura"
+msgstr "射影机"
+
+msgid "Aspect Ratio"
+msgstr "宽高比"
+
+msgid "Auto fills the window and widens the view to its sides. Original keeps the PS2's 640x448 frame; a fixed ratio adds bars where the window differs."
+msgstr "自动模式填满窗口并向两侧扩展视野。原版模式保留 PS2 的 640×448 画面。固定比例会在边缘留黑。"
+
+msgid "Auto"
+msgstr "自动"
+
+msgid "Original (PS2)"
+msgstr "原版（PS2）"
+
+msgid "Custom"
+msgstr "自定义"
+
+msgid "Custom Ratio"
+msgstr "自定义比例"
+
+msgid "Width over height, for Custom."
+msgstr "自定义模式下的宽度与高度之比。"
+
+msgid "The game is drawn at"
+msgstr "游戏渲染分辨率"
+
+msgid "How bright the game's white is in HDR, in nits."
+msgstr "游戏中 HDR 参考白的亮度，单位为尼特。"
+
+msgid "Peak Brightness"
+msgstr "峰值亮度"
+
+msgid "The brightest the picture may go in HDR, in nits."
+msgstr "HDR 画面可达到的最高亮度，单位为尼特。"
+
+msgid "Restart the game to apply."
+msgstr "重启游戏后生效。"
+
+msgid "Off while the render resolution is above the window's."
+msgstr "渲染分辨率高于窗口分辨率时关闭。"
+
+msgid "The filter is on."
+msgstr "滤镜已开启。"
+
+msgid "The filter is off."
+msgstr "滤镜已关闭。"
+
+msgid "Overlay Theme"
+msgstr "叠加层主题"
+
+msgid "Colour palette of the ImGui overlay."
+msgstr "设置 ImGui 叠加层的配色。"
+
+msgid "Overlay Font Scale"
+msgstr "叠加层字体缩放"
+
+msgid "Text size of the ImGui overlay."
+msgstr "调整 ImGui 叠加层的文字大小。"
+
+msgid "Select it to browse; a change applies on the next launch."
+msgstr "选择后浏览文件夹。更改将在下次启动时生效。"
+
+msgid "Not set"
+msgstr "未设置"
+
+msgid "Objective walks Miku where you push, as the camera sees it. Subjective turns her and walks forward."
+msgstr "客观模式按镜头方向移动深红。主观模式按人物朝向前进和转身。"
+
+msgid "Classic aims the Camera Obscura with the left stick, Modern with the right."
+msgstr "经典模式用左摇杆瞄准，现代模式用右摇杆瞄准。"
+
+msgid "Use D-Pad Up / Down in finder mode to switch film. D-Pad finder aim is disabled while enabled."
+msgstr "在取景时用方向键上下切换胶卷。开启后，方向键无法用于取景瞄准。"
+
+msgid "Hold raises the Camera Obscura while the button is held; Toggle raises and lowers it with each press."
+msgstr "按住模式下松开即放下相机。切换模式下每按一次举起或放下相机。"
+
+msgid "Let the controller shake when the game calls for it."
+msgstr "启用游戏中的手柄震动。"
+
+msgid "Reverse this stick axis on the controller."
+msgstr "反转手柄的这个摇杆轴。"
+
+msgid "Restore"
+msgstr "恢复"
+
+msgid "Restore every control and binding to its default?"
+msgstr "将所有控制和绑定恢复为默认值？"
+
+msgid "Select it, then press the input to bind to it."
+msgstr "选中后按下要绑定的输入。"
+
+msgid "Select it, then press a key, mouse button or the scroll wheel."
+msgstr "选中后按下键盘、鼠标按键或滚动滚轮。"
+
+msgid "Select it, then move a stick to bind its axis."
+msgstr "选中后拨动摇杆来绑定该轴。"
+
+msgid "Press a key, mouse button, or scroll wheel..."
+msgstr "按下键盘、鼠标按键或滚动滚轮…"
+
+msgid "Press a key..."
+msgstr "按下键盘按键…"
+
+msgid "Press a controller button or trigger..."
+msgstr "按下手柄按钮或扳机…"
+
+msgid "Move a controller stick..."
+msgstr "拨动手柄摇杆…"
+
+msgid "Raise it until the darkest step of the ramp just parts from black."
+msgstr "提高亮度，直到最暗一格刚好能与纯黑区分。"
+
+msgid "Lifts or deepens the mid-tones."
+msgstr "调亮或压暗中间色调。"
+
+msgid "Spread between the darkest and lightest tones."
+msgstr "调整画面最暗与最亮之间的差异。"
+
+msgid "How dark the shadows cast in the rooms are."
+msgstr "调整房间内阴影的深浅。"
+
+msgid "Put every value back to its default."
+msgstr "将所有数值恢复为默认值。"
+
+msgid "Done"
+msgstr "完成"
+
+msgid "Keep these values. Back puts them all back as they were."
+msgstr "应用当前数值。选择返回可恢复先前的数值。"
+
+msgid "Run the picture through the CRT filter."
+msgstr "对游戏画面应用 CRT 滤镜。"
+
+msgid "Keep this display setting?"
+msgstr "保留当前显示设置？"
+
+msgid "The settings could not be saved."
+msgstr "无法保存设置。"
+
+msgid "Leave anyway?"
+msgstr "仍然离开？"
+
+msgid "Confirm to apply."
+msgstr "按确认键应用。"
+
+msgid "(Not available with the current settings.)"
+msgstr "（当前设置下不可用。）"
+
+msgid "Enter"
+msgstr "回车键"
+
+msgid "Del"
+msgstr "删除键"
+
+msgid "Confirm"
+msgstr "确认"
+
+msgid "Section"
+msgstr "分区"
+
+msgid "Unbind"
+msgstr "解除绑定"
+
+msgid "White"
+msgstr "白"
+
+msgid "Use HD Fonts when available"
+msgstr "有高清字体时优先使用"
+
+msgid "Use matching HD font textures when installed; otherwise use the original fonts."
+msgstr "安装了匹配的高清字体时使用高清字体，否则使用原版字体。"
+
+msgid "Gyro"
+msgstr "陀螺仪"
+
+msgid "Finder Gyro"
+msgstr "取景器陀螺仪"
+
+msgid "Gyro Aiming"
+msgstr "体感瞄准"
+
+msgid "Aim the raised Camera Obscura by moving the controller, alongside the stick."
+msgstr "举起射影机时可转动手柄瞄准，也可使用摇杆。"
+
+msgid "No controller is connected."
+msgstr "未连接手柄。"
+
+msgid "This controller has no gyro."
+msgstr "此手柄没有陀螺仪。"
+
+msgid "Learning its drift: set it down and keep it still."
+msgstr "正在校准漂移。请放下手柄并保持静止。"
+
+msgid "Its drift is learned whenever it lies still."
+msgstr "手柄静止时会自动校准漂移。"
+
+msgid "Gyro Sensitivity"
+msgstr "体感灵敏度"
+
+msgid "1.00x turns the view as far as the controller turns."
+msgstr "设为 1.00 倍时，视角与手柄转过的角度相同。"
+
+msgid "Turn With"
+msgstr "转向方式"
+
+msgid "Yaw: point the controller left and right. Roll: tip it sideways like a wheel."
+msgstr "偏航：向左右转动手柄。横滚：像方向盘一样向两侧倾斜。"
+
+msgid "Yaw"
+msgstr "偏航"
+
+msgid "Roll"
+msgstr "横滚"
+
+msgid "Pitch"
+msgstr "俯仰"
+
+msgid "Invert Gyro X"
+msgstr "反转陀螺仪 X 轴"
+
+msgid "Invert Gyro Y"
+msgstr "反转陀螺仪 Y 轴"
+
+msgid "Swap left and right."
+msgstr "交换左右。"
+
+msgid "Swap up and down."
+msgstr "交换上下。"
+
+msgid "Recalibrate Gyro"
+msgstr "重新校准陀螺仪"
+
+msgid "Forget the learned drift; set the controller down and keep it still to learn it again."
+msgstr "清除已记录的漂移。请放下手柄并保持静止，以重新校准。"
+
+msgid "Recalibrate"
+msgstr "重新校准"
+
+msgid "Reset Gyro"
+msgstr "重置陀螺仪"
+
+msgid "Gyro aiming back to its defaults."
+msgstr "将体感瞄准恢复为默认设置。"
+
+msgid "Max Core Inventory"
+msgstr "补满常用物品"
+
+msgid "Film"
+msgstr "胶卷"
+
+msgid "Equipped Film"
+msgstr "当前胶卷"
+
+msgid "Supplies"
+msgstr "补给"
+
+msgid "All Menu Items"
+msgstr "所有菜单物品"
+
+msgid "Value"
+msgstr "数值"
+
+msgid "Apply to Listed Items"
+msgstr "应用到列表中的物品"
+
+msgid "All Unlocks"
+msgstr "解锁全部"
+
+msgid "Unlock All Costumes"
+msgstr "解锁所有服装"
+
+msgid "Costume Unlock Flag"
+msgstr "服装解锁标志"
+
+msgid "Clear Count"
+msgstr "通关次数"
+
+msgid "Selected Costume"
+msgstr "当前服装"
+
+msgid "Camera"
+msgstr "相机"
+
+msgid "Unlock Camera Menu"
+msgstr "解锁射影机菜单"
+
+msgid "Camera Menu Unlock Flag"
+msgstr "射影机菜单解锁标志"
+
+msgid "Unlock Camera Abilities"
+msgstr "解锁射影机能力"
+
+msgid "Max Camera Upgrades"
+msgstr "升满射影机能力"
+
+msgid "Camera Points"
+msgstr "射影机点数"
+
+msgid "Cheats"
+msgstr "作弊"
+
+msgid "Take Screenshot"
+msgstr "截图"
+
+msgid "Photo Mode"
+msgstr "拍照模式"
+
+msgid "Inventory"
+msgstr "物品栏"
+
+msgid "Unlocks"
+msgstr "解锁"
+
+msgid "Tofu Mode"
+msgstr "方块模型模式"
+
+msgid "Title Background Room"
+msgstr "标题背景房间###Title Background Room"
+
+msgid "State: %s"
+msgstr "状态：%s"
+
+msgid "Room asset: %s"
+msgstr "房间资源：%s"
+
+msgid "Map floor: %d local room: %d"
+msgstr "地图楼层：%d　楼层房间：%d"
+
+msgid "Title style"
+msgstr "标题样式"
+
+msgid "Use room background"
+msgstr "使用房间背景"
+
+msgid "Use title dithering"
+msgstr "使用标题抖动"
+
+msgid "Title audio"
+msgstr "标题音频"
+
+msgid "Room audio file ID"
+msgstr "房间音频文件编号"
+
+msgid "Last started file ID: %d"
+msgstr "最近播放的文件编号：%d"
+
+msgid "Effective title BGM: %d"
+msgstr "当前标题背景音乐：%d"
+
+msgid "Volume table value: %u"
+msgstr "音量表数值：%u"
+
+msgid "Play / restart audio"
+msgstr "播放／重新播放"
+
+msgid "Stop audio"
+msgstr "停止播放"
+
+msgid "Use default title audio##title_audio"
+msgstr "使用默认标题音乐##title_audio"
+
+msgid "Use original title BGM##title_audio"
+msgstr "使用原版标题音乐##title_audio"
+
+msgid "Auto cycle title scenes"
+msgstr "自动轮换标题场景"
+
+msgid "Cycle seconds"
+msgstr "轮换间隔（秒）"
+
+msgid "Title scene"
+msgstr "标题场景"
+
+msgid "Prev##title_bg_scene"
+msgstr "上一个##title_bg_scene"
+
+msgid "Next##title_bg_scene"
+msgstr "下一个##title_bg_scene"
+
+msgid "Title scene count: %d"
+msgstr "标题场景数：%d"
+
+msgid "Mission"
+msgstr "章节"
+
+msgid "Reload room"
+msgstr "重新加载房间"
+
+msgid "Reset camera"
+msgstr "重置镜头"
+
+msgid "Pan camera + target"
+msgstr "平移镜头和目标"
+
+msgid "Forward##title_bg_pan"
+msgstr "前##title_bg_pan"
+
+msgid "Back##title_bg_pan"
+msgstr "后##title_bg_pan"
+
+msgid "Left##title_bg_pan"
+msgstr "左##title_bg_pan"
+
+msgid "Right##title_bg_pan"
+msgstr "右##title_bg_pan"
+
+msgid "Up##title_bg_pan"
+msgstr "上##title_bg_pan"
+
+msgid "Down##title_bg_pan"
+msgstr "下##title_bg_pan"
+
+msgid "Dolly camera"
+msgstr "推拉镜头"
+
+msgid "In##title_bg_dolly"
+msgstr "推近##title_bg_dolly"
+
+msgid "Out##title_bg_dolly"
+msgstr "拉远##title_bg_dolly"
+
+msgid "Look target"
+msgstr "注视目标"
+
+msgid "Left##title_bg_look"
+msgstr "左##title_bg_look"
+
+msgid "Right##title_bg_look"
+msgstr "右##title_bg_look"
+
+msgid "Up##title_bg_look"
+msgstr "上##title_bg_look"
+
+msgid "Down##title_bg_look"
+msgstr "下##title_bg_look"
+
+msgid "FOV"
+msgstr "视野角"
+
+msgid "Camera lerp"
+msgstr "镜头插值"
+
+msgid "Set A from camera##title_bg_lerp"
+msgstr "将当前镜头存为 A##title_bg_lerp"
+
+msgid "Apply A##title_bg_lerp"
+msgstr "应用 A##title_bg_lerp"
+
+msgid "Set B from camera##title_bg_lerp"
+msgstr "将当前镜头存为 B##title_bg_lerp"
+
+msgid "Apply B##title_bg_lerp"
+msgstr "应用 B##title_bg_lerp"
+
+msgid "Lerp A to B"
+msgstr "从 A 插值到 B"
+
+msgid "Play camera lerp"
+msgstr "播放镜头插值"
+
+msgid "Copy current camera"
+msgstr "复制当前镜头"
+
+msgid "Copy full setup"
+msgstr "复制整组设置"
+
+msgid "Grouped summary"
+msgstr "分组汇总"
+
+msgid "Captured %d  drawn %d  skipped %d  elements %d  submit %.3f ms"
+msgstr "捕获 %d　已绘制 %d　已跳过 %d　元素 %d　提交 %.3f 毫秒"
+
+msgid "Mesh-ish %d  sprite-ish %d  other %d  unique draw keys %d"
+msgstr "网格 %d　精灵图 %d　其他 %d　不同绘制键 %d"
+
+msgid "Consecutive merge candidates: %d draws in %d run groups, possible saved draws %d"
+msgstr "可连续合并：%d 次绘制分成 %d 组，可节省 %d 次"
+
+msgid "Merge candidates group by shader + primitive + texture + index mode and intentionally ignore VAO/buffer ids."
+msgstr "合并按着色器、图元、纹理和索引模式分组。"
+
+msgid "Top broad draw sources"
+msgstr "主要绘制来源"
+
+msgid "Top detailed draw sources"
+msgstr "按详细绘制来源"
+
+msgid "Top source + shader groups"
+msgstr "按来源及着色器"
+
+msgid "Best consecutive merge candidates"
+msgstr "最适合连续合并的绘制"
+
+msgid "Top draw groups"
+msgstr "主要绘制组"
+
+msgid "Performance Diagnostics"
+msgstr "性能诊断###Performance Diagnostics"
+
+msgid "Collect diagnostics"
+msgstr "收集诊断数据"
+
+msgid "GPU weighted skinning"
+msgstr "GPU 加权蒙皮"
+
+msgid "Log to console"
+msgstr "输出到控制台"
+
+msgid "Log interval"
+msgstr "日志间隔"
+
+msgid "Open Draw Call Inspector"
+msgstr "打开绘制调用检查器"
+
+msgid "Collection is off. Toggle it here, or set MIKUPAN_PERF_DIAG=1 before launch."
+msgstr "数据收集已关闭。可在此启用，或在启动前设定 MIKUPAN_PERF_DIAG=1。"
+
+msgid "Frame"
+msgstr "帧"
+
+msgid "Frame %u  CPU %.3f ms  GPU wait %.3f ms"
+msgstr "第 %u 帧　CPU %.3f 毫秒　GPU 等待 %.3f 毫秒"
+
+msgid "Draws %d  State %d  Uploads %d  Upload bytes %.2f KiB"
+msgstr "绘制 %d　状态 %d　上传 %d　上传数据 %.2f KiB"
+
+msgid "Upload flushes %d  Render pass flushes %d  Buffer grows %d"
+msgstr "上传刷新 %d　渲染通道刷新 %d　缓冲区扩展 %d"
+
+msgid "Mesh cache %d hit / %d new / %d full  2D textures %d created / %d misses"
+msgstr "网格缓存命中 %d／新增 %d／满 %d　创建二维纹理 %d／未命中 %d"
+
+msgid "Mesh 0x2 / 0xA"
+msgstr "网格 0x2／0xA"
+
+msgid "0x2 calls %d  0xA calls %d  CPU path %d  GPU path %d"
+msgstr "0x2 调用 %d　0xA 调用 %d　CPU 路径 %d　GPU 路径 %d"
+
+msgid "Shadow %d  Receiver %d  Cache on %d  Cache hit %d  Static miss %d"
+msgstr "阴影 %d　接收面 %d　缓存启用 %d　缓存命中 %d　静态未命中 %d"
+
+msgid "Submeshes %d  Vertices %d  Indices %d"
+msgstr "子网格 %d　顶点 %d　索引 %d"
+
+msgid "Max packet: submeshes %d  vertices %d  indices %d"
+msgstr "最大数据包：子网格 %d　顶点 %d　索引 %d"
+
+msgid "CPU stream skips %d  skipped bytes %.2f KiB"
+msgstr "CPU 流已跳过 %d 次，共 %.2f KiB"
+
+msgid "Skinning"
+msgstr "蒙皮"
+
+msgid "vtype2 %d  vtype3 %d  other %d  allowed %d  blocked %d"
+msgstr "顶点类型 2：%d　类型 3：%d　其他 %d　允许 %d　阻止 %d"
+
+msgid "copy %d / %d vertices"
+msgstr "复制 %d／%d 个顶点"
+
+msgid "weighted copy %d / %d vertices"
+msgstr "加权复制 %d／%d 个顶点"
+
+msgid "CPU calc %d / %d vertices"
+msgstr "CPU 计算 %d／%d 个顶点"
+
+msgid "GPU %d / %d vertices"
+msgstr "GPU 计算 %d／%d 个顶点"
+
+msgid "VType detail"
+msgstr "顶点类型详情"
+
+msgid "vtype 0x%02X  %d / %d vertices  copy %d/%d  weighted %d/%d  calc %d/%d  gpu %d/%d"
+msgstr "顶点类型 0x%02X　%d／%d 个顶点　复制 %d/%d　加权 %d/%d　计算 %d/%d　GPU %d/%d"
+
+msgid "GPU reject reasons"
+msgstr "GPU 拒绝原因"
+
+msgid "%-22s %d / %d vertices"
+msgstr "%-22s %d／%d 个顶点"
+
+msgid "  vtype 0x%02X  %d / %d vertices"
+msgstr "  顶点类型 0x%02X　%d／%d 个顶点"
+
+msgid "DrawGirl"
+msgstr "绘制主角"
+
+msgid "normal %d  mirror %d  rendered %d  hidden %d  tofu %d"
+msgstr "普通 %d　镜像 %d　已渲染 %d　隐藏 %d　方块模型 %d"
+
+msgid "subobj calls %d  subobj total %d  sorted items %d"
+msgstr "子物体调用 %d　总数 %d　已排序 %d"
+
+msgid "Upload contexts"
+msgstr "上传来源"
+
+msgid "Red flags"
+msgstr "异常指标"
+
+msgid "Capture a bad ghost frame and compare CPU path, uploads, and flushes."
+msgstr "捕获出现问题的一帧，比较 CPU 路径、上传和刷新次数。"
+
+msgid "Draw Call Inspector"
+msgstr "绘制调用检查器###Draw Call Inspector"
+
+msgid "Capture"
+msgstr "捕获"
+
+msgid "Show All"
+msgstr "显示全部"
+
+msgid "  (click 'Solo' on a row to render only that draw)"
+msgstr "  （点击一行的“仅显示此项”可单独绘制）"
+
+msgid "Last frame: %d draw calls captured"
+msgstr "上一帧捕获了 %d 次绘制调用"
+
+msgid "Unsolo"
+msgstr "取消单独显示"
+
+msgid "Solo"
+msgstr "仅显示此项"
+
+msgid "Camera World Info"
+msgstr "镜头世界坐标###Camera World Info"
+
+msgid "Map camera: %s  no=%u old=%u  type=%u"
+msgstr "地图镜头：%s　编号 %u　旧编号 %u　类型 %u"
+
+msgid "Map camera: runtime/free camera"
+msgstr "地图镜头：实时／自由镜头"
+
+msgid "Distance camera -> interest: %.1f"
+msgstr "镜头到注视点的距离：%.1f"
+
+msgid "Shader Reload"
+msgstr "重载着色器###Shader Reload"
+
+msgid "Reload All  (F5)"
+msgstr "全部重载（F5）"
+
+msgid "9 programs"
+msgstr "9 个着色器程序"
+
+msgid "Reload"
+msgstr "重载"
+
+msgid "%-26s id=%u"
+msgstr "%-26s 编号=%u"
+
+msgid "    vert: %s"
+msgstr "    顶点：%s"
+
+msgid "    geom: %s"
+msgstr "    几何：%s"
+
+msgid "    frag: %s"
+msgstr "    片元：%s"
+
+msgid "Shadow Debug"
+msgstr "阴影调试###Shadow Debug"
+
+msgid "Enable Shadows"
+msgstr "启用阴影"
+
+msgid "Receiver Debug Colors"
+msgstr "阴影接收面调试颜色"
+
+msgid "Inspect Caster (orbit camera)"
+msgstr "查看投影物体（环绕镜头）"
+
+msgid "Wireframe"
+msgstr "线框"
+
+msgid "Orbits the shadow camera; the preview shows the"
+msgstr "环绕阴影镜头，从此角度预览"
+
+msgid "caster model from this angle (cast shadow is"
+msgstr "投影物体。启用时会覆盖"
+
+msgid "overridden while this is on)."
+msgstr "原阴影输出。"
+
+msgid "FBO: %s  status: 0x%04x"
+msgstr "帧缓冲：%s　状态：0x%04x"
+
+msgid "Matrix: %s  texture: %u (%dx%d)"
+msgstr "矩阵：%s　纹理：%u（%d×%d）"
+
+msgid "Passes: caster %d  receiver %d"
+msgstr "渲染通道：投影 %d　接收 %d"
+
+msgid "Draws:  caster %d (%d indices)  receiver %d (%d indices)"
+msgstr "绘制：投影 %d（%d 个索引）　接收 %d（%d 个索引）"
+
+msgid "Probe Shadow Map"
+msgstr "采样阴影贴图"
+
+msgid "Auto Probe"
+msgstr "自动采样"
+
+msgid "Map probe: nonzero %d / %d (%.2f%%), max %d, avg %.3f"
+msgstr "采样：非零 %d／%d（%.2f%%），最大 %d，平均 %.3f"
+
+msgid "Map probe: not sampled yet"
+msgstr "尚未采样阴影贴图。"
+
+msgid "Shadow Map (R8 occlusion, white = caster)"
+msgstr "阴影贴图（R8 遮挡，白色为投影者）"
+
+msgid "Texture Preview Size"
+msgstr "纹理预览大小"
+
+msgid "Flip Y"
+msgstr "垂直翻转"
+
+msgid "Shadow texture has not been created yet."
+msgstr "阴影纹理尚未生成。"
+
+msgid "Photo Debug"
+msgstr "照片调试###Photo Debug"
+
+msgid "Force Opaque Preview Overlay"
+msgstr "强制不透明预览"
+
+msgid "Force Negative Final Pass"
+msgstr "强制执行负片渲染"
+
+msgid "Forced Negative Strength"
+msgstr "强制负片强度"
+
+msgid "Show Target Rect"
+msgstr "显示目标矩形"
+
+msgid "Show Negative Debug Layer"
+msgstr "显示负片调试图层"
+
+msgid "Texture: %s  id: %u  size: %dx%d"
+msgstr "纹理：%s　编号：%u　大小：%d×%d"
+
+msgid "Texture updates: %d"
+msgstr "纹理更新次数：%d"
+
+msgid "Negative source: %s  id: %u  size: %dx%d"
+msgstr "负片来源：%s　编号：%u　大小：%d×%d"
+
+msgid "Negative source updates: %d"
+msgstr "负片来源更新次数：%d"
+
+msgid "Queued: %s  count: %d"
+msgstr "已排队：%s　次数：%d"
+
+msgid "Effect overlay active: %s  count: %d"
+msgstr "效果叠加启用：%s　次数：%d"
+
+msgid "Effect overlay drawn in game: %s  count: %d"
+msgstr "游戏内已绘制效果叠加：%s　次数：%d"
+
+msgid "Negative final-pass active: %s  count: %d"
+msgstr "负片最终通道启用：%s　次数：%d"
+
+msgid "Legacy negative sprite drawn: %s  count: %d"
+msgstr "旧负片图块已绘制：%s　次数：%d"
+
+msgid "Force negative preview: %s  strength: %.2f"
+msgstr "强制负片预览：%s　强度：%.2f"
+
+msgid "Negative rect: %d,%d %dx%d  strength: %.2f"
+msgstr "负片矩形：%d,%d　%d×%d　强度：%.2f"
+
+msgid "Queue rect: %d,%d %dx%d  alpha: %d"
+msgstr "队列矩形：%d,%d　%d×%d　透明度：%d"
+
+msgid "Last draw: %s  count: %d"
+msgstr "上次绘制：%s　次数：%d"
+
+msgid "Draw rect: %d,%d %dx%d  alpha: %d"
+msgstr "绘制矩形：%d,%d　%d×%d　透明度：%d"
+
+msgid "Target rect drawn this frame: %s"
+msgstr "此帧已绘制目标矩形：%s"
+
+msgid "Negative debug layer drawn this frame: %s  count: %d"
+msgstr "此帧已绘制负片调试图层：%s　次数：%d"
+
+msgid "Expected photo rect is usually 128,80 384x256."
+msgstr "照片矩形通常位于 128,80，大小为 384×256。"
+
+msgid "Cyan negative debug layer marks the outside region."
+msgstr "青色负片调试图层标记取景框外区域。"
+
+msgid "If this preview is correct but the overlay is wrong,"
+msgstr "如果预览正确但叠加效果异常，"
+
+msgid "the failure is compositing/order/state, not capture."
+msgstr "请检查合成、顺序或渲染状态。"
+
+msgid "Captured Photo Texture"
+msgstr "已捕获的照片纹理"
+
+msgid "Preview Size"
+msgstr "预览大小"
+
+msgid "No photo preview texture has been uploaded yet."
+msgstr "尚未上传照片预览纹理。"
+
+msgid "Texture List"
+msgstr "纹理列表###Texture List"
+
+msgid "last draw: %d vertices, depth %s, blend %s"
+msgstr "上次绘制：%d 个顶点，深度 %s，混合 %s"
+
+msgid "Generated distortion screen copy: not created yet"
+msgstr "尚未生成扭曲效果的屏幕副本。"
+
+msgid "Effect Debug"
+msgstr "特效调试###Effect Debug"
+
+msgid "Enable All"
+msgstr "全部启用"
+
+msgid "Clear All"
+msgstr "全部清除"
+
+msgid "Rows list EFFECT_ID names and the render function/path used by the test toggle."
+msgstr "每行显示特效编号及用于测试的渲染函数或路径。"
+
+msgid "Unavailable rows need live enemy or scene-specific state, or have no renderer in this port."
+msgstr "灰显项目需要在对应场景或敌人出现时启用，或尚无 PC 渲染实现。"
+
+msgid "Enum"
+msgstr "枚举"
+
+msgid "Function"
+msgstr "函数"
+
+msgid "Note"
+msgstr "备注"
+
+msgid "Default test values"
+msgstr "默认测试数值"
+
+msgid "Debug"
+msgstr "调试"
+
+msgid "Zero's Menu"
+msgstr "原版调试菜单"
+
+msgid "Title Menu Debugger"
+msgstr "标题菜单调试器"
+
+msgid "Rendering"
+msgstr "渲染"
+
+msgid "Effect Debug Window"
+msgstr "特效调试窗口"
+
+msgid "Visualization"
+msgstr "可视化"
+
+msgid "Bounding Boxes"
+msgstr "包围盒"
+
+msgid "Event Hitboxes"
+msgstr "事件碰撞范围"
+
+msgid "Normals"
+msgstr "法线"
+
+msgid "Normal Length"
+msgstr "法线长度"
+
+msgid "Photo"
+msgstr "照片"
+
+msgid "Lighting"
+msgstr "光照"
+
+msgid "Disable Lighting"
+msgstr "禁用光照"
+
+msgid "Static Lighting"
+msgstr "静态光照"
+
+msgid "Shadows"
+msgstr "阴影"
+
+msgid "Shadow Debug Window"
+msgstr "阴影调试窗口"
+
+msgid "Meshes"
+msgstr "网格"
+
+msgid "Mesh 0x82"
+msgstr "网格 0x82"
+
+msgid "Mesh 0x32"
+msgstr "网格 0x32"
+
+msgid "Mesh 0x12"
+msgstr "网格 0x12"
+
+msgid "Mesh 0x10"
+msgstr "网格 0x10"
+
+msgid "Mesh 0x2"
+msgstr "网格 0x2"
+
+msgid "Mesh Cache"
+msgstr "网格缓存"
+
+msgid "Clear Mesh Cache"
+msgstr "清空网格缓存"
+
+msgid "Cache: %u entries, %u buffers, %.1f MiB"
+msgstr "缓存：%u 项，%u 个缓冲区，%.1f MiB"
+
+msgid "GPU buffers: %u live / %u max"
+msgstr "GPU 缓冲区：使用 %u／上限 %u"
+
+msgid "GPU Skinning (0x2/0xA)"
+msgstr "GPU 蒙皮（0x2／0xA）"
+
+msgid "GPU Weighted Skinning"
+msgstr "GPU 加权蒙皮"
+
+msgid "Textures"
+msgstr "纹理"
+
+msgid "Release 2D Textures"
+msgstr "释放二维纹理"
+
+msgid "Frees the GPU copies of the 2D textures; each is decoded again the next time it is drawn"
+msgstr "释放二维纹理的 GPU 副本。下次绘制时会重新解码。"
+
+msgid "Player Collision Console Log"
+msgstr "记录角色碰撞到控制台"
+
+msgid "Game Text"
+msgstr "游戏文本"
+
+msgid "Extract All Texts"
+msgstr "导出所有文本"
+
+msgid "Writes to resources/mods/text/<lang>/game_text.po"
+msgstr "写入 resources/mods/text/<lang>/game_text.po"
+
+msgid "Enable Text Override"
+msgstr "启用文本覆盖"
+
+msgid "Applies overrides from resources/mods/text/<lang>/game_text.po in-game"
+msgstr "在游戏中应用 resources/mods/text/<lang>/game_text.po"
+
+msgid "Show Camera World Info"
+msgstr "显示镜头世界坐标"
+
+msgid "First Person"
+msgstr "第一人称"
+
+msgid "First Person Mode"
+msgstr "第一人称模式"
+
+msgid "R3 Toggles First Person"
+msgstr "用 R3 切换第一人称"
+
+msgid "Auto Run in First Person"
+msgstr "第一人称自动奔跑"
+
+msgid "FP Eye Height"
+msgstr "第一人称视点高度"
+
+msgid "FP Eye Forward"
+msgstr "第一人称视点前后偏移"
+
+msgid "FP Look Distance"
+msgstr "第一人称注视距离"
+
+msgid "FP FOV"
+msgstr "第一人称视野角"
+
+msgid "FP Stick Yaw Speed"
+msgstr "第一人称摇杆水平转速"
+
+msgid "FP Stick Pitch Speed"
+msgstr "第一人称摇杆俯仰转速"
+
+msgid "Left stick strafes. Right stick/mouse aims."
+msgstr "左摇杆移动，右摇杆或鼠标瞄准。"
+
+msgid "Third Person"
+msgstr "第三人称"
+
+msgid "Third Person Camera"
+msgstr "第三人称镜头"
+
+msgid "TP Distance"
+msgstr "第三人称镜头距离"
+
+msgid "TP Height"
+msgstr "第三人称镜头高度"
+
+msgid "TP Side"
+msgstr "第三人称镜头侧向偏移"
+
+msgid "TP Look Ahead"
+msgstr "第三人称前视距离"
+
+msgid "TP Interest Height"
+msgstr "第三人称注视点高度"
+
+msgid "TP FOV"
+msgstr "第三人称视野角"
+
+msgid "Profiler"
+msgstr "性能分析"
+
+msgid "FPS Counter"
+msgstr "帧率计数器"
+
+msgid "Frame Time Graph"
+msgstr "帧时间图"
+
+msgid "Performance Diagnostics Window"
+msgstr "性能诊断窗口"
+
+msgid "Measure GPU Wait"
+msgstr "测量 GPU 等待时间"
+
+msgid "fps"
+msgstr "帧率###fps"
+
+msgid "FPS %.2f"
+msgstr "帧率 %.2f"
+
+msgid "Active: %s"
+msgstr "当前：%s"
+
+msgid "Windowed Resolution: no modes available"
+msgstr "无可用窗口分辨率。"
+
+msgid "Render Resolution: no modes available"
+msgstr "无可用渲染分辨率。"
+
+msgid "Smooth 2D sprites"
+msgstr "平滑二维精灵图"
+
+msgid "HD Font Textures (if available)"
+msgstr "可用时使用高清字体"
+
+msgid "MSAA: disabled on Android"
+msgstr "Android 不支持 MSAA。"
+
+msgid "MSAA: disabled while supersampling"
+msgstr "超采样时禁用 MSAA。"
+
+msgid "Scene samples: %dx"
+msgstr "场景采样数：%d 倍"
+
+msgid "Save Configuration to keep Dither Filtering after restart."
+msgstr "保存设置后，重启时会保留抖动过滤选项。"
+
+msgid "Atmosphere Test"
+msgstr "环境效果测试"
+
+msgid "Dust Particles (Test)"
+msgstr "尘埃粒子（测试）"
+
+msgid "Room Dust"
+msgstr "房间尘埃"
+
+msgid "Dusty Rooms Only"
+msgstr "仅在有灰尘的房间启用"
+
+msgid "Door Disturbance"
+msgstr "开门扬尘"
+
+msgid "Door Dust Strength"
+msgstr "开门扬尘强度"
+
+msgid "Door Dust Lifetime"
+msgstr "开门扬尘持续时间"
+
+msgid "Trigger Door Dust"
+msgstr "触发开门扬尘"
+
+msgid "Room %d%s, power %.2fx"
+msgstr "房间 %d%s，强度 %.2f 倍"
+
+msgid "Ambient %d/%d, door %d, bursts %d"
+msgstr "环境粒子 %d／%d，门 %d，扬尘 %d"
+
+msgid "Last door %d, work %d, distance %.0f"
+msgstr "上一扇门 %d，工作项 %d，距离 %.0f"
+
+msgid "Next room unknown, burst skipped"
+msgstr "下一房间未知，已跳过扬尘。"
+
+msgid "Next room %d (%s), burst %s"
+msgstr "下一房间 %d（%s），扬尘 %s"
+
+msgid "Player-front origin %.0f, %.0f, %.0f"
+msgstr "角色前方位置 %.0f, %.0f, %.0f"
+
+msgid "Trigger Last Door Dust"
+msgstr "触发上一扇门扬尘"
+
+msgid "Room Dust Power"
+msgstr "房间尘埃强度"
+
+msgid "Power"
+msgstr "强度"
+
+msgid "Font Size"
+msgstr "字体大小"
+
+msgid "Room title background"
+msgstr "标题房间背景"
+
+msgid "Title dithering"
+msgstr "标题抖动"
+
+msgid "CRT"
+msgstr "CRT"
+
+msgid "Enabled"
+msgstr "已启用"
+
+msgid "Reset CRT"
+msgstr "重置 CRT"
+
+msgid "Input"
+msgstr "输入"
+
+msgid "Controller / Joystick Mapping"
+msgstr "手柄及摇杆映射"
+
+msgid "Reset Bindings to Defaults"
+msgstr "恢复默认绑定"
+
+msgid "Game Data Folder"
+msgstr "游戏数据文件夹"
+
+msgid "Folder"
+msgstr "文件夹"
+
+msgid "Browse..."
+msgstr "浏览…"
+
+msgid "Save Configuration"
+msgstr "保存设置"
+
+msgid "Game data could not be opened."
+msgstr "无法打开游戏数据。"
+
+msgid "Select the folder containing the game data. The folder will be saved in settings."
+msgstr "请选择存放游戏数据的文件夹。所选路径会保存到设置。"
+
+msgid "Game data unavailable"
+msgstr "无法读取游戏数据"
+
+msgid "Resolution"
+msgstr "分辨率"
+
+msgid "Per-Fragment"
+msgstr "逐片元"
+
+msgid "Per-Vertex"
+msgstr "逐顶点"
+
+msgid "Build: %s"
+msgstr "构建：%s"
+
+msgid "Version: %s"
+msgstr "版本：%s"
+
+msgid "Author: %s"
+msgstr "作者：%s"
+
+msgid "GitHub repository"
+msgstr "GitHub 仓库"
+
+msgid "Copy version to clipboard"
+msgstr "复制版本号"
+
+msgid "Open a card/folder or choose New blank card."
+msgstr "打开记忆卡文件或文件夹，或选择新建空白记忆卡。"
+
+msgid "Open a PS2 card or extracted save folder."
+msgstr "打开 PS2 记忆卡文件或已提取的存档文件夹。"
+
+msgid "No supported Fatal Frame saves found."
+msgstr "未找到受支持的《零》存档。"
+
+msgid "PC source: "
+msgstr "PC 来源："
+
+msgid "PS2 source: "
+msgstr "PS2 来源："
+
+msgid "PS2 destination: "
+msgstr "PS2 目标："
+
+msgid "PC destination: "
+msgstr "PC 目标："
+
+msgid "Output path is too long."
+msgstr "输出路径过长。"
+
+msgid "Transferring saves..."
+msgstr "正在转移存档…"
+
+msgid "Finish editing the path to open its saves."
+msgstr "完成路径编辑后即可读取存档。"
+
+msgid "Finish choosing the file or folder."
+msgstr "请完成文件或文件夹的选择。"
+
+msgid "Close the game's save/load screen; startup card access must also finish."
+msgstr "关闭游戏内的存档或读档界面，并等待启动时的记忆卡读取完成。"
+
+msgid "Open a source containing saves."
+msgstr "请选择包含存档的来源。"
+
+msgid "Destination saves are damaged: "
+msgstr "目标存档已损坏："
+
+msgid "Select one or more source saves."
+msgstr "请选择一个或多个源存档。"
+
+msgid "No compatible saves. Open a warning icon for details."
+msgstr "没有兼容存档。点击警告图标可查看详情。"
+
+msgid "A PS2 save can contain at most three gameplay slots."
+msgstr "一个 PS2 存档最多包含三个游戏存档位。"
+
+msgid "Assign a destination slot to each selected save."
+msgstr "请为每个选中的存档指定目标位置。"
+
+msgid "Each destination slot can be used only once."
+msgstr "每个目标位置只能使用一次。"
+
+msgid "Choose a filename for the new card."
+msgstr "请为新记忆卡指定文件名。"
+
+msgid "Choose a new filename; existing cards are never overwritten."
+msgstr "请选择新文件名，已有记忆卡会保留。"
+
+msgid "PS2 cards or save archives"
+msgstr "PS2 记忆卡或存档包"
+
+msgid "PCSX2 / ECC memory card"
+msgstr "PCSX2／ECC 记忆卡"
+
+msgid "OPL / raw memory card"
+msgstr "OPL／原始记忆卡"
+
+msgid "Cannot open file picker: "
+msgstr "无法打开文件选择器："
+
+msgid "Selected path is too long."
+msgstr "所选路径过长。"
+
+msgid "A save folder already exists there; choose another output folder."
+msgstr "该位置已有存档文件夹。请选择其他输出目录。"
+
+msgid " New card: "
+msgstr " 新记忆卡："
+
+msgid " Current session unchanged; load the imported save normally."
+msgstr " 可以从游戏的读档菜单加载刚导入的存档。"
+
+msgid "Transfer failed: "
+msgstr "存档转移失败："
+
+msgid "Choose slot"
+msgstr "选择存档位"
+
+msgid "New PC save"
+msgstr "新建 PC 存档"
+
+msgid "Slot "
+msgstr "存档位 "
+
+msgid " (replace)"
+msgstr "（替换）"
+
+msgid " (empty)"
+msgstr "（空）"
+
+msgid "Unavailable save"
+msgstr "存档不可用"
+
+msgid "Chapter %u / Room %d"
+msgstr "章节 %u／房间 %d"
+
+msgid "Empty slot"
+msgstr "空存档位"
+
+msgid "Replace"
+msgstr "替换"
+
+msgid "Add"
+msgstr "新增"
+
+msgid "%s <- source %d"
+msgstr "%s ← 来源 %d"
+
+msgid "Keep existing save"
+msgstr "保留现有存档"
+
+msgid "PS2 save transfer..."
+msgstr "转移 PS2 存档…"
+
+msgid "Choose direction"
+msgstr "选择转移方向"
+
+msgid "Choose PS2 storage"
+msgstr "选择 PS2 存档位置"
+
+msgid "Select saves and slots"
+msgstr "选择存档和存档位"
+
+msgid "Choose PS2 region"
+msgstr "选择 PS2 版区"
+
+msgid "Choose output format"
+msgstr "选择输出格式"
+
+msgid "Step %d of %d: %s"
+msgstr "第 %d 步／共 %d 步：%s"
+
+msgid "Where would you like to send your saves?"
+msgstr "选择要将存档转移到哪里"
+
+msgid "Import to PC\n\nBring your PS2 progress to this PC"
+msgstr "导入到 PC\n\n将 PS2 游戏进度转入本机"
+
+msgid "Export to PS2\n\nTake your PC progress to a memory card"
+msgstr "导出到 PS2\n\n将 PC 游戏进度转入记忆卡"
+
+msgid "Choose where your PS2 saves are stored"
+msgstr "选择 PS2 存档的保存位置"
+
+msgid "Open a card or save archive\n\nPCSX2 / OPL card or single-game save archive"
+msgstr "打开记忆卡文件或存档包\n\nPCSX2／OPL 记忆卡或单个游戏的存档包"
+
+msgid "Open a save folder\n\nUse extracted PS2 save files"
+msgstr "打开存档文件夹\n\n使用已提取的 PS2 存档文件"
+
+msgid "Select source saves, then choose a destination slot for each."
+msgstr "选择源存档，为每个存档指定目标位置。"
+
+msgid "Card save region"
+msgstr "记忆卡存档版区"
+
+msgid "%d of %d saves selected"
+msgstr "已选 %d 个存档，共 %d 个"
+
+msgid "Select all"
+msgstr "全选"
+
+msgid "Clear selection"
+msgstr "清除选择"
+
+msgid "Source: PC saves"
+msgstr "来源：PC 存档"
+
+msgid "Source: PS2 saves"
+msgstr "来源：PS2 存档"
+
+msgid "Destination: PS2 saves"
+msgstr "目标：PS2 存档"
+
+msgid "Destination: PC saves"
+msgstr "目标：PC 存档"
+
+msgid "Choose the original game's region"
+msgstr "选择原版游戏的版区"
+
+msgid "The output will use that release's save data and filenames."
+msgstr "输出将使用所选版本的存档格式和文件名。"
+
+msgid "PAL release; English for cross-region exports"
+msgstr "PAL 版，跨区导出使用英语"
+
+msgid "Original release"
+msgstr "原版"
+
+msgid "Region: %s"
+msgstr "版区：%s"
+
+msgid "Choose the output format"
+msgstr "选择输出格式"
+
+msgid "Choose a format, then confirm the destination in the file picker to export immediately."
+msgstr "选择格式并在文件选择器中确认目标位置，即可导出。"
+
+msgid "PCSX2 / ECC\n\nStandard .ps2 memory card"
+msgstr "PCSX2／ECC\n\n标准 .ps2 记忆卡"
+
+msgid "OPL / raw\n\nNon-ECC .bin memory card"
+msgstr "OPL／原始格式\n\n无 ECC 的 .bin 记忆卡"
+
+msgid "Extracted save folder\n\nCreate save files inside the chosen folder"
+msgstr "提取后的存档文件夹\n\n在所选目录中创建存档文件"
+
+msgid "PSU / EMS\n\nuLaunchELF and PS2 save-transfer tools"
+msgstr "PSU／EMS\n\nuLaunchELF 和 PS2 存档转移工具"
+
+msgid "Action Replay MAX\n\nSingle-game .max save archive"
+msgstr "Action Replay MAX\n\n单游戏 .max 存档包"
+
+msgid "X-Port / SharkPort\n\nSingle-game .xps / .sps save archive"
+msgstr "X-Port／SharkPort\n\n单游戏 .xps／.sps 存档包"
+
+msgid "CodeBreaker\n\nSingle-game .cbs save archive"
+msgstr "CodeBreaker\n\n单游戏 .cbs 存档包"
+
+msgid "Save archives contain this game's selected saves, not a whole memory card."
+msgstr "存档包只包含本游戏中选中的存档。"
+
+msgid "Next"
+msgstr "下一步"
+
+msgid "PS2 save transfer###ps2-save-transfer"
+msgstr "转移 PS2 存档###ps2-save-transfer"
+
+msgid "Save transfer message###save-transfer-message"
+msgstr "存档转移提示###save-transfer-message"
+
+msgid "Exported %zu save(s)."
+msgstr "已导出 %zu 个存档。"
+
+msgid "Imported %zu save(s)."
+msgstr "已导入 %zu 个存档。"
+
+msgid "Export %zu save(s)"
+msgstr "导出 %zu 个存档"
+
+msgid "Import %zu save(s)"
+msgstr "导入 %zu 个存档"
+
+msgid "Japan / SLPS-25074"
+msgstr "日版／SLPS-25074"
+
+msgid "US / SLUS-20388"
+msgstr "美版／SLUS-20388"
+
+msgid "Europe / SLES-50821"
+msgstr "欧版／SLES-50821"
+
+msgid "Korea / SCPS-56008"
+msgstr "韩版／SCPS-56008"
+
+msgid "Asia / SCPS-55043"
+msgstr "亚洲版／SCPS-55043"
+
+msgid "Unknown region"
+msgstr "未知版区"
+
+msgid "Action"
+msgstr "动作"
+
+msgid "Use D-Pad Up / Down in finder mode to switch film.\nD-Pad finder aim is disabled while enabled."
+msgstr "在取景模式中，按方向键上、下切换胶卷。\n启用后无法用方向键瞄准。"
+
+msgid "Unknown"
+msgstr "未知"
+
+msgid "Match Window (100%)"
+msgstr "与窗口一致（100%）"
+
+msgid "%d%% of Window"
+msgstr "窗口的 %d%%"
+
+msgid "PS2 Native (%d x %d)"
+msgstr "PS2 原始分辨率（%d × %d）"
+
+msgid " [Desktop]"
+msgstr "［桌面］"
+
+msgid " (unsupported)"
+msgstr "（不支持）"
+
+msgid "Auto (fill window)"
+msgstr "自动（填满窗口）"
+
+msgid "Original (PS2 640x448)"
+msgstr "原始比例（PS2 640×448）"
+
+msgid "Bilinear filtering for enlarged UI sprites. Effects and screen captures retain their own filtering."
+msgstr "对放大的界面图像应用双线性过滤。特效和画面截图仍使用各自的过滤方式。"
+
+msgid "Low"
+msgstr "低"
+
+msgid "High"
+msgstr "高"
+
+msgid "Dust Level"
+msgstr "灰尘密度"
+
+msgid "Native"
+msgstr "原版"
+
+msgid "Soft"
+msgstr "柔和"
+
+msgid "PS2 Style"
+msgstr "PS2 风格"
+
+msgid "Xbox Style"
+msgstr "Xbox 风格"
+
+msgid "Moonlit Blue"
+msgstr "月光蓝"
+
+msgid "Ghost Cyan"
+msgstr "幽灵青"
+
+msgid "Crimson"
+msgstr "深红"
+
+msgid "FF1 Ritual"
+msgstr "零一代祭仪"
+
+msgid "Mist Teal"
+msgstr "薄雾青"
+
+msgid "Sepia Photo"
+msgstr "复古照片"
+
+msgid "MikuPan Classic"
+msgstr "MikuPan 经典"
+
+msgid "Edits to .vert/.frag/.geom files take effect after Reload."
+msgstr "修改 .vert、.frag 或 .geom 文件后，重新加载即可生效。"
+
+msgid "Failed reloads keep the live program — no need to restart."
+msgstr "重新加载失败时继续使用当前着色器，无需重启。"
+
+msgid "Generated: distortion screen copy (0x1a40)"
+msgstr "生成纹理：扭曲效果画面副本（0x1a40）"
+
+msgid "Furn work/load: %d/%u  Door work/load: %d/%u  Model req: %d"
+msgstr "家具在用／已加载：%d/%u　门在用／已加载：%d/%u　模型请求：%d"
+
+msgid "ImGui Default Monospace"
+msgstr "ImGui 默认等宽字体"
+
+msgid "Info"
+msgstr "信息"
+
+msgid "Save Tools"
+msgstr "存档工具"
+
+msgid "Open Log Folder"
+msgstr "打开日志文件夹"
+
+msgid "Version"
+msgstr "版本"
+
+msgid "About"
+msgstr "关于"
+
+msgid "Restart required"
+msgstr "需要重启"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "No game data"
+msgstr "缺少游戏数据"
+
+msgid "Missing file: %s"
+msgstr "缺少文件：%s"
+
+msgid "Select game data folder"
+msgstr "选择游戏数据文件夹"
+
+msgid "Browse for game data"
+msgstr "浏览游戏数据文件夹"
+
+msgid "Select a game data folder"
+msgstr "选择游戏数据文件夹"

@@ -1,4 +1,5 @@
 #include "mikupan/gameplay/mikupan_title_scene.h"
+#include "mikupan/mikupan_i18n.h"
 
 #include "common.h"
 #include "outgame/title.h"
@@ -25,6 +26,7 @@
 #include "ingame/map/furn_eff.h"
 #include "ingame/map/furn_spe/furn_spe.h"
 #include "ingame/map/map_ctrl.h"
+#include "mikupan/io/mikupan_file.h"
 #include "mikupan/mikupan_config.h"
 #include "mikupan/mikupan_memory.h"
 #include "mikupan/mikupan_rng.h"
@@ -261,7 +263,7 @@ int MikuPan_TitleUseRoomBackground(void)
 {
     /* A load that never completes must not hang the title; once the watchdog
      * gives up we behave as if the room background were off (classic 2D title). */
-    if (title_bg_load_failed)
+    if (title_bg_load_failed || MikuPan_IsJapaneseGameData())
     {
         return 0;
     }
@@ -1627,13 +1629,13 @@ void MikuPan_TitleBackgroundDebugUi(void)
         ImGuiCond_FirstUseEver,
         ImVec2{0.0f, 0.0f});
 
-    igBegin("Title Background Room", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+    igBegin(MikuPan_Translate("Title Background Room"), NULL, ImGuiWindowFlags_AlwaysAutoResize);
 
-    igText("State: %s", TitleBgRoomStateName());
-    igText("Room asset: %s", TitleBgRoomName(title_bg_room_no));
-    igText("Map floor: %d local room: %d", title_bg_floor, title_bg_map_room_no);
+    igText(MikuPan_Translate("State: %s"), TitleBgRoomStateName());
+    igText(MikuPan_Translate("Room asset: %s"), TitleBgRoomName(title_bg_room_no));
+    igText(MikuPan_Translate("Map floor: %d local room: %d"), title_bg_floor, title_bg_map_room_no);
     igText(
-        "Furn work/load: %d/%u  Door work/load: %d/%u  Model req: %d",
+        MikuPan_Translate("Furn work/load: %d/%u  Door work/load: %d/%u  Model req: %d"),
         TitleBgCountDrawableFurnitureWork(),
         room_load_block[TITLE_BG_ROOM_BLOCK].furn_num,
         TitleBgCountDrawableDoorWork(),
@@ -1641,22 +1643,22 @@ void MikuPan_TitleBackgroundDebugUi(void)
         title_bg_model_load_num);
 
     igSeparator();
-    igText("Title style");
+    igText(MikuPan_Translate("Title style"));
 
-    if (igCheckbox("Use room background", (bool *)&use_room_background))
+    if (igCheckbox(MikuPan_Translate("Use room background"), (bool *)&use_room_background))
     {
         MikuPan_TitleSetUseRoomBackground(use_room_background);
     }
 
-    if (igCheckbox("Use title dithering", (bool *)&use_title_dither))
+    if (igCheckbox(MikuPan_Translate("Use title dithering"), (bool *)&use_title_dither))
     {
         MikuPan_TitleSetUseDither(use_title_dither);
     }
 
     igSeparator();
-    igText("Title audio");
+    igText(MikuPan_Translate("Title audio"));
 
-    if (igInputInt("Room audio file ID", &audio_file_no, 1, 10, 0))
+    if (igInputInt(MikuPan_Translate("Room audio file ID"), &audio_file_no, 1, 10, 0))
     {
         if (audio_file_no < 0)
         {
@@ -1670,23 +1672,23 @@ void MikuPan_TitleBackgroundDebugUi(void)
         title_bgm_file_no = audio_file_no;
     }
 
-    igText("Last started file ID: %d", title_bgm_playing_file_no);
-    igText("Effective title BGM: %d", TitleAudioActiveFileNo());
-    igText("Volume table value: %u", GetAdpcmVol(TitleAudioActiveFileNo()));
+    igText(MikuPan_Translate("Last started file ID: %d"), title_bgm_playing_file_no);
+    igText(MikuPan_Translate("Effective title BGM: %d"), TitleAudioActiveFileNo());
+    igText(MikuPan_Translate("Volume table value: %u"), GetAdpcmVol(TitleAudioActiveFileNo()));
 
-    if (igButton("Play / restart audio", ImVec2{0.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Play / restart audio"), ImVec2{0.0f, 0.0f}))
     {
         TitleAudioRestartBgm();
     }
 
     igSameLine(0.0f, -1.0f);
 
-    if (igButton("Stop audio", ImVec2{0.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Stop audio"), ImVec2{0.0f, 0.0f}))
     {
         TitleAudioStopBgm();
     }
 
-    if (igButton("Use default title audio##title_audio", ImVec2{0.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Use default title audio##title_audio"), ImVec2{0.0f, 0.0f}))
     {
         title_bgm_file_no = TITLE_BGM_DEFAULT_FILE_NO;
         TitleAudioRestartBgm();
@@ -1694,7 +1696,7 @@ void MikuPan_TitleBackgroundDebugUi(void)
 
     igSameLine(0.0f, -1.0f);
 
-    if (igButton("Use original title BGM##title_audio", ImVec2{0.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Use original title BGM##title_audio"), ImVec2{0.0f, 0.0f}))
     {
         title_bgm_file_no = AO000_TITLE_STR;
         TitleAudioRestartBgm();
@@ -1702,7 +1704,7 @@ void MikuPan_TitleBackgroundDebugUi(void)
 
     igSeparator();
 
-    if (igCheckbox("Auto cycle title scenes", (bool *)&auto_cycle))
+    if (igCheckbox(MikuPan_Translate("Auto cycle title scenes"), (bool *)&auto_cycle))
     {
         title_bg_auto_cycle = auto_cycle != 0;
         title_bg_auto_cycle_timer = 0;
@@ -1713,13 +1715,13 @@ void MikuPan_TitleBackgroundDebugUi(void)
         }
     }
 
-    if (igInputInt("Cycle seconds", &cycle_seconds, 1, 5, 0))
+    if (igInputInt(MikuPan_Translate("Cycle seconds"), &cycle_seconds, 1, 5, 0))
     {
         title_bg_auto_cycle_seconds = MikuPan_ClampInt(cycle_seconds, 1, 120);
         title_bg_auto_cycle_timer = 0;
     }
 
-    if (igInputInt("Title scene", &preset_index, 1, 1, 0))
+    if (igInputInt(MikuPan_Translate("Title scene"), &preset_index, 1, 1, 0))
     {
         TitleBgPauseCameraAnimations();
         TitleBgApplyPreset(preset_index - 1);
@@ -1727,7 +1729,7 @@ void MikuPan_TitleBackgroundDebugUi(void)
 
     igSameLine(0.0f, -1.0f);
 
-    if (igButton("Prev##title_bg_scene", ImVec2{0.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Prev##title_bg_scene"), ImVec2{0.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgApplyPrevPreset();
@@ -1735,25 +1737,25 @@ void MikuPan_TitleBackgroundDebugUi(void)
 
     igSameLine(0.0f, -1.0f);
 
-    if (igButton("Next##title_bg_scene", ImVec2{0.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Next##title_bg_scene"), ImVec2{0.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgApplyNextPreset();
     }
 
-    igText("Title scene count: %d", TITLE_BG_PRESET_COUNT);
+    igText(MikuPan_Translate("Title scene count: %d"), TITLE_BG_PRESET_COUNT);
 
-    if (igInputInt("Mission", &msn_no, 1, 10, 0))
+    if (igInputInt(MikuPan_Translate("Mission"), &msn_no, 1, 10, 0))
     {
         TitleBgSetMissionNo(msn_no);
     }
 
-    if (igInputInt("Room", &room_no, 1, 5, 0))
+    if (igInputInt(MikuPan_Translate("Room"), &room_no, 1, 5, 0))
     {
         TitleBgSetRoomNo(room_no);
     }
 
-    if (igButton("Reload room", ImVec2{0.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Reload room"), ImVec2{0.0f, 0.0f}))
     {
         TitleBgResetFade();
         TitleBgPauseCameraAnimations();
@@ -1762,7 +1764,7 @@ void MikuPan_TitleBackgroundDebugUi(void)
 
     igSameLine(0.0f, -1.0f);
 
-    if (igButton("Reset camera", ImVec2{0.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Reset camera"), ImVec2{0.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgResetCamera();
@@ -1771,9 +1773,9 @@ void MikuPan_TitleBackgroundDebugUi(void)
     igSeparator();
     igDragFloat("Move step", &title_bg_camera_move_step, 5.0f, 1.0f, 2500.0f, "%.1f", 0);
 
-    igText("Pan camera + target");
+    igText(MikuPan_Translate("Pan camera + target"));
 
-    if (igButton("Forward##title_bg_pan", ImVec2{92.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Forward##title_bg_pan"), ImVec2{92.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgPanForward(title_bg_camera_move_step);
@@ -1781,13 +1783,13 @@ void MikuPan_TitleBackgroundDebugUi(void)
 
     igSameLine(0.0f, -1.0f);
 
-    if (igButton("Back##title_bg_pan", ImVec2{92.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Back##title_bg_pan"), ImVec2{92.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgPanForward(-title_bg_camera_move_step);
     }
 
-    if (igButton("Left##title_bg_pan", ImVec2{92.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Left##title_bg_pan"), ImVec2{92.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgPanRight(-title_bg_camera_move_step);
@@ -1795,13 +1797,13 @@ void MikuPan_TitleBackgroundDebugUi(void)
 
     igSameLine(0.0f, -1.0f);
 
-    if (igButton("Right##title_bg_pan", ImVec2{92.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Right##title_bg_pan"), ImVec2{92.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgPanRight(title_bg_camera_move_step);
     }
 
-    if (igButton("Up##title_bg_pan", ImVec2{92.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Up##title_bg_pan"), ImVec2{92.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgPanY(-title_bg_camera_move_step);
@@ -1809,15 +1811,15 @@ void MikuPan_TitleBackgroundDebugUi(void)
 
     igSameLine(0.0f, -1.0f);
 
-    if (igButton("Down##title_bg_pan", ImVec2{92.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Down##title_bg_pan"), ImVec2{92.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgPanY(title_bg_camera_move_step);
     }
 
-    igText("Dolly camera");
+    igText(MikuPan_Translate("Dolly camera"));
 
-    if (igButton("In##title_bg_dolly", ImVec2{92.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("In##title_bg_dolly"), ImVec2{92.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgDolly(title_bg_camera_move_step);
@@ -1825,15 +1827,15 @@ void MikuPan_TitleBackgroundDebugUi(void)
 
     igSameLine(0.0f, -1.0f);
 
-    if (igButton("Out##title_bg_dolly", ImVec2{92.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Out##title_bg_dolly"), ImVec2{92.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgDolly(-title_bg_camera_move_step);
     }
 
-    igText("Look target");
+    igText(MikuPan_Translate("Look target"));
 
-    if (igButton("Left##title_bg_look", ImVec2{92.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Left##title_bg_look"), ImVec2{92.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgLookRight(-title_bg_camera_move_step);
@@ -1841,13 +1843,13 @@ void MikuPan_TitleBackgroundDebugUi(void)
 
     igSameLine(0.0f, -1.0f);
 
-    if (igButton("Right##title_bg_look", ImVec2{92.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Right##title_bg_look"), ImVec2{92.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgLookRight(title_bg_camera_move_step);
     }
 
-    if (igButton("Up##title_bg_look", ImVec2{92.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Up##title_bg_look"), ImVec2{92.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgLookY(-title_bg_camera_move_step);
@@ -1855,7 +1857,7 @@ void MikuPan_TitleBackgroundDebugUi(void)
 
     igSameLine(0.0f, -1.0f);
 
-    if (igButton("Down##title_bg_look", ImVec2{92.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Down##title_bg_look"), ImVec2{92.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgLookY(title_bg_camera_move_step);
@@ -1873,15 +1875,15 @@ void MikuPan_TitleBackgroundDebugUi(void)
         TitleBgPauseCameraAnimations();
     }
 
-    if (igSliderFloat("FOV", &title_bg_camera_fov_deg, 10.0f, 100.0f, "%.1f", 0))
+    if (igSliderFloat(MikuPan_Translate("FOV"), &title_bg_camera_fov_deg, 10.0f, 100.0f, "%.1f", 0))
     {
         TitleBgPauseCameraAnimations();
     }
 
     igSeparator();
-    igText("Camera lerp");
+    igText(MikuPan_Translate("Camera lerp"));
 
-    if (igButton("Set A from camera##title_bg_lerp", ImVec2{0.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Set A from camera##title_bg_lerp"), ImVec2{0.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgCopyCurrentCamera(&title_bg_camera_lerp_a);
@@ -1889,14 +1891,14 @@ void MikuPan_TitleBackgroundDebugUi(void)
 
     igSameLine(0.0f, -1.0f);
 
-    if (igButton("Apply A##title_bg_lerp", ImVec2{0.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Apply A##title_bg_lerp"), ImVec2{0.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgApplyCameraPoint(&title_bg_camera_lerp_a);
         title_bg_camera_lerp_t = 0.0f;
     }
 
-    if (igButton("Set B from camera##title_bg_lerp", ImVec2{0.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Set B from camera##title_bg_lerp"), ImVec2{0.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgCopyCurrentCamera(&title_bg_camera_lerp_b);
@@ -1904,14 +1906,14 @@ void MikuPan_TitleBackgroundDebugUi(void)
 
     igSameLine(0.0f, -1.0f);
 
-    if (igButton("Apply B##title_bg_lerp", ImVec2{0.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Apply B##title_bg_lerp"), ImVec2{0.0f, 0.0f}))
     {
         TitleBgPauseCameraAnimations();
         TitleBgApplyCameraPoint(&title_bg_camera_lerp_b);
         title_bg_camera_lerp_t = 1.0f;
     }
 
-    if (igSliderFloat("Lerp A to B", &title_bg_camera_lerp_t, 0.0f, 1.0f, "%.3f", 0))
+    if (igSliderFloat(MikuPan_Translate("Lerp A to B"), &title_bg_camera_lerp_t, 0.0f, 1.0f, "%.3f", 0))
     {
         TitleBgPauseCameraAnimations();
         TitleBgApplyCameraLerp();
@@ -1919,7 +1921,7 @@ void MikuPan_TitleBackgroundDebugUi(void)
 
     igDragFloat("Lerp seconds", &title_bg_camera_lerp_seconds, 0.1f, 0.1f, 120.0f, "%.1f", 0);
 
-    if (igCheckbox("Play camera lerp", (bool *)&camera_lerp_enabled))
+    if (igCheckbox(MikuPan_Translate("Play camera lerp"), (bool *)&camera_lerp_enabled))
     {
         title_bg_camera_lerp_enabled = camera_lerp_enabled != 0;
         title_bg_camera_lerp_timer = 0;
@@ -1991,7 +1993,7 @@ void MikuPan_TitleBackgroundDebugUi(void)
     igSeparator();
     igTextWrapped("%s", constants);
 
-    if (igButton("Copy current camera", ImVec2{0.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Copy current camera"), ImVec2{0.0f, 0.0f}))
     {
         igSetClipboardText(constants);
     }
@@ -1999,7 +2001,7 @@ void MikuPan_TitleBackgroundDebugUi(void)
     igSeparator();
     igTextWrapped("%s", full_values);
 
-    if (igButton("Copy full setup", ImVec2{0.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Copy full setup"), ImVec2{0.0f, 0.0f}))
     {
         igSetClipboardText(full_values);
     }

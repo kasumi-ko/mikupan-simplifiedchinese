@@ -1,4 +1,5 @@
 #include "typedefs.h"
+#include "mikupan/mikupan_i18n.h"
 #include "mikupan_ui_debug.h"
 #include "mikupan_ui.h"
 
@@ -627,15 +628,15 @@ static void MikuPan_UiDrawCallSummary(int count)
         possible_run_draws += runs[r].draws;
     }
 
-    igSeparatorText("Grouped summary");
-    igText("Captured %d  drawn %d  skipped %d  elements %d  submit %.3f ms", captured, drawn, skipped, total_elements, total_ms);
-    igText("Mesh-ish %d  sprite-ish %d  other %d  unique draw keys %d", mesh_draws, sprite_draws, other_draws, group_count);
-    igText("Consecutive merge candidates: %d draws in %d run groups, possible saved draws %d", possible_run_draws, run_count, possible_saved);
-    igTextDisabled("Merge candidates group by shader + primitive + texture + index mode and intentionally ignore VAO/buffer ids.");
+    igSeparatorText(MikuPan_Translate("Grouped summary"));
+    igText(MikuPan_Translate("Captured %d  drawn %d  skipped %d  elements %d  submit %.3f ms"), captured, drawn, skipped, total_elements, total_ms);
+    igText(MikuPan_Translate("Mesh-ish %d  sprite-ish %d  other %d  unique draw keys %d"), mesh_draws, sprite_draws, other_draws, group_count);
+    igText(MikuPan_Translate("Consecutive merge candidates: %d draws in %d run groups, possible saved draws %d"), possible_run_draws, run_count, possible_saved);
+    igTextDisabled(MikuPan_Translate("Merge candidates group by shader + primitive + texture + index mode and intentionally ignore VAO/buffer ids."));
 
     if (source_kind_count > 0)
     {
-        igSeparatorText("Top broad draw sources");
+        igSeparatorText(MikuPan_Translate("Top broad draw sources"));
         igText("%-4s %-24s %-6s %-8s %-7s %s", "#", "source", "draws", "elements", "ms", "range");
         int shown = source_kind_count < 12 ? source_kind_count : 12;
         for (int g = 0; g < shown; g++)
@@ -648,7 +649,7 @@ static void MikuPan_UiDrawCallSummary(int count)
 
     if (source_count > 0)
     {
-        igSeparatorText("Top detailed draw sources");
+        igSeparatorText(MikuPan_Translate("Top detailed draw sources"));
         igText("%-4s %-26s %-6s %-8s %-7s %s", "#", "source", "draws", "elements", "ms", "range");
         int shown = source_count < 12 ? source_count : 12;
         for (int g = 0; g < shown; g++)
@@ -662,7 +663,7 @@ static void MikuPan_UiDrawCallSummary(int count)
 
     if (source_shader_count > 0)
     {
-        igSeparatorText("Top source + shader groups");
+        igSeparatorText(MikuPan_Translate("Top source + shader groups"));
         igText("%-4s %-24s %-22s %-7s %-6s %-8s %-7s %s", "#", "source", "shader", "tex0", "draws", "elements", "ms", "range");
         int shown = source_shader_count < 12 ? source_shader_count : 12;
         for (int g = 0; g < shown; g++)
@@ -678,7 +679,7 @@ static void MikuPan_UiDrawCallSummary(int count)
 
     if (run_count > 0)
     {
-        igSeparatorText("Best consecutive merge candidates");
+        igSeparatorText(MikuPan_Translate("Best consecutive merge candidates"));
         igText("%-4s %-22s %-13s %-7s %-5s %-5s %-6s %-7s %s", "#", "shader", "primitive", "tex0", "draws", "runs", "saved", "maxrun", "first");
         int shown = run_count < 12 ? run_count : 12;
         for (int r = 0; r < shown; r++)
@@ -698,7 +699,7 @@ static void MikuPan_UiDrawCallSummary(int count)
 
     if (group_count > 0)
     {
-        igSeparatorText("Top draw groups");
+        igSeparatorText(MikuPan_Translate("Top draw groups"));
         igText("%-4s %-22s %-13s %-7s %-6s %-8s %-7s %-9s %s", "#", "shader", "primitive", "tex0", "draws", "elements", "ms", "vao churn", "range");
         int shown = group_count < 12 ? group_count : 12;
         for (int g = 0; g < shown; g++)
@@ -727,14 +728,14 @@ void MikuPan_UiPerfDiagWindow(void)
     }
 
     igSetNextWindowSize(ImVec2{640.0f, 620.0f}, ImGuiCond_FirstUseEver);
-    if (!igBegin("Performance Diagnostics", (bool*) &show_perf_diag_window, 0))
+    if (!igBegin(MikuPan_Translate("Performance Diagnostics"), (bool*) &show_perf_diag_window, 0))
     {
         igEnd();
         return;
     }
 
     bool enabled = MikuPan_PerfDiagIsEnabled() != 0;
-    if (igCheckbox("Collect diagnostics", &enabled))
+    if (igCheckbox(MikuPan_Translate("Collect diagnostics"), &enabled))
     {
         MikuPan_PerfDiagSetEnabled(enabled ? 1 : 0);
     }
@@ -742,64 +743,64 @@ void MikuPan_UiPerfDiagWindow(void)
     extern int MikuPan_GpuWeightedSkinningEnabled(void);
     extern void MikuPan_SetGpuWeightedSkinningEnabled(int);
     bool weighted_gpu_skin = MikuPan_GpuWeightedSkinningEnabled() != 0;
-    if (igCheckbox("GPU weighted skinning", &weighted_gpu_skin))
+    if (igCheckbox(MikuPan_Translate("GPU weighted skinning"), &weighted_gpu_skin))
     {
         MikuPan_SetGpuWeightedSkinningEnabled(weighted_gpu_skin ? 1 : 0);
     }
 
     bool log_enabled = MikuPan_PerfDiagLogEnabled() != 0;
-    if (igCheckbox("Log to console", &log_enabled))
+    if (igCheckbox(MikuPan_Translate("Log to console"), &log_enabled))
     {
         MikuPan_PerfDiagSetLogEnabled(log_enabled ? 1 : 0);
     }
 
     int interval = MikuPan_PerfDiagGetLogInterval();
-    if (igInputInt("Log interval", &interval, 1, 60, 0))
+    if (igInputInt(MikuPan_Translate("Log interval"), &interval, 1, 60, 0))
     {
         MikuPan_PerfDiagSetLogInterval(interval);
     }
 
-    if (igButton("Open Draw Call Inspector", ImVec2{0.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Open Draw Call Inspector"), ImVec2{0.0f, 0.0f}))
     {
         show_draw_inspector = 1;
     }
 
     if (!enabled)
     {
-        igTextDisabled("Collection is off. Toggle it here, or set MIKUPAN_PERF_DIAG=1 before launch.");
+        igTextDisabled(MikuPan_Translate("Collection is off. Toggle it here, or set MIKUPAN_PERF_DIAG=1 before launch."));
     }
 
     MikuPan_PerfDiagSnapshot s;
     MikuPan_PerfDiagGetLastSnapshot(&s);
 
-    igSeparatorText("Frame");
-    igText("Frame %u  CPU %.3f ms  GPU wait %.3f ms", s.frame, s.cpu_ms, s.gpu_wait_ms);
-    igText("Draws %d  State %d  Uploads %d  Upload bytes %.2f KiB", s.draw_calls, s.state_changes, s.gpu_uploads, (double)s.gpu_upload_bytes / 1024.0);
-    igText("Upload flushes %d  Render pass flushes %d  Buffer grows %d", s.gpu_upload_flushes, s.render_pass_flushes, s.gpu_upload_grows);
-    igText("Mesh cache %d hit / %d new / %d full  2D textures %d created / %d misses", s.mesh_cache_hits, s.mesh_cache_misses_new, s.mesh_cache_misses_full, s.tex_created, s.tex_misses);
+    igSeparatorText(MikuPan_Translate("Frame"));
+    igText(MikuPan_Translate("Frame %u  CPU %.3f ms  GPU wait %.3f ms"), s.frame, s.cpu_ms, s.gpu_wait_ms);
+    igText(MikuPan_Translate("Draws %d  State %d  Uploads %d  Upload bytes %.2f KiB"), s.draw_calls, s.state_changes, s.gpu_uploads, (double)s.gpu_upload_bytes / 1024.0);
+    igText(MikuPan_Translate("Upload flushes %d  Render pass flushes %d  Buffer grows %d"), s.gpu_upload_flushes, s.render_pass_flushes, s.gpu_upload_grows);
+    igText(MikuPan_Translate("Mesh cache %d hit / %d new / %d full  2D textures %d created / %d misses"), s.mesh_cache_hits, s.mesh_cache_misses_new, s.mesh_cache_misses_full, s.tex_created, s.tex_misses);
 
-    igSeparatorText("Mesh 0x2 / 0xA");
-    igText("0x2 calls %d  0xA calls %d  CPU path %d  GPU path %d", s.mesh0x2_calls, s.mesh0xA_calls, s.mesh0x2_cpu, s.mesh0x2_gpu);
-    igText("Shadow %d  Receiver %d  Cache on %d  Cache hit %d  Static miss %d", s.mesh0x2_shadow, s.mesh0x2_receiver, s.mesh0x2_cache_on, s.mesh0x2_cache_hit, s.mesh0x2_static_miss);
-    igText("Submeshes %d  Vertices %d  Indices %d", s.mesh0x2_submeshes, s.mesh0x2_vertices, s.mesh0x2_indices);
-    igText("Max packet: submeshes %d  vertices %d  indices %d", s.mesh0x2_max_submeshes, s.mesh0x2_max_vertices, s.mesh0x2_max_indices);
-    igText("CPU stream skips %d  skipped bytes %.2f KiB", s.mesh0x2_stream_skips, (double)s.mesh0x2_stream_skip_bytes / 1024.0);
+    igSeparatorText(MikuPan_Translate("Mesh 0x2 / 0xA"));
+    igText(MikuPan_Translate("0x2 calls %d  0xA calls %d  CPU path %d  GPU path %d"), s.mesh0x2_calls, s.mesh0xA_calls, s.mesh0x2_cpu, s.mesh0x2_gpu);
+    igText(MikuPan_Translate("Shadow %d  Receiver %d  Cache on %d  Cache hit %d  Static miss %d"), s.mesh0x2_shadow, s.mesh0x2_receiver, s.mesh0x2_cache_on, s.mesh0x2_cache_hit, s.mesh0x2_static_miss);
+    igText(MikuPan_Translate("Submeshes %d  Vertices %d  Indices %d"), s.mesh0x2_submeshes, s.mesh0x2_vertices, s.mesh0x2_indices);
+    igText(MikuPan_Translate("Max packet: submeshes %d  vertices %d  indices %d"), s.mesh0x2_max_submeshes, s.mesh0x2_max_vertices, s.mesh0x2_max_indices);
+    igText(MikuPan_Translate("CPU stream skips %d  skipped bytes %.2f KiB"), s.mesh0x2_stream_skips, (double)s.mesh0x2_stream_skip_bytes / 1024.0);
 
-    igSeparatorText("Skinning");
-    igText("vtype2 %d  vtype3 %d  other %d  allowed %d  blocked %d", s.skin_vtype2, s.skin_vtype3, s.skin_other, s.skin_allowed, s.skin_blocked);
-    igText("copy %d / %d vertices", s.skin_paths[MIKUPAN_PERF_SKIN_COPY], s.skin_vertices[MIKUPAN_PERF_SKIN_COPY]);
-    igText("weighted copy %d / %d vertices", s.skin_paths[MIKUPAN_PERF_SKIN_WEIGHTED_COPY], s.skin_vertices[MIKUPAN_PERF_SKIN_WEIGHTED_COPY]);
-    igText("CPU calc %d / %d vertices", s.skin_paths[MIKUPAN_PERF_SKIN_CPU_CALC], s.skin_vertices[MIKUPAN_PERF_SKIN_CPU_CALC]);
-    igText("GPU %d / %d vertices", s.skin_paths[MIKUPAN_PERF_SKIN_GPU], s.skin_vertices[MIKUPAN_PERF_SKIN_GPU]);
+    igSeparatorText(MikuPan_Translate("Skinning"));
+    igText(MikuPan_Translate("vtype2 %d  vtype3 %d  other %d  allowed %d  blocked %d"), s.skin_vtype2, s.skin_vtype3, s.skin_other, s.skin_allowed, s.skin_blocked);
+    igText(MikuPan_Translate("copy %d / %d vertices"), s.skin_paths[MIKUPAN_PERF_SKIN_COPY], s.skin_vertices[MIKUPAN_PERF_SKIN_COPY]);
+    igText(MikuPan_Translate("weighted copy %d / %d vertices"), s.skin_paths[MIKUPAN_PERF_SKIN_WEIGHTED_COPY], s.skin_vertices[MIKUPAN_PERF_SKIN_WEIGHTED_COPY]);
+    igText(MikuPan_Translate("CPU calc %d / %d vertices"), s.skin_paths[MIKUPAN_PERF_SKIN_CPU_CALC], s.skin_vertices[MIKUPAN_PERF_SKIN_CPU_CALC]);
+    igText(MikuPan_Translate("GPU %d / %d vertices"), s.skin_paths[MIKUPAN_PERF_SKIN_GPU], s.skin_vertices[MIKUPAN_PERF_SKIN_GPU]);
 
-    igTextDisabled("VType detail");
+    igTextDisabled(MikuPan_Translate("VType detail"));
     for (int i = 0; i < MIKUPAN_PERF_SKIN_VTYPE_COUNT; i++)
     {
         if (s.skin_vtype_counts[i] == 0)
         {
             continue;
         }
-        igText("vtype 0x%02X  %d / %d vertices  copy %d/%d  weighted %d/%d  calc %d/%d  gpu %d/%d",
+        igText(MikuPan_Translate("vtype 0x%02X  %d / %d vertices  copy %d/%d  weighted %d/%d  calc %d/%d  gpu %d/%d"),
                i,
                s.skin_vtype_counts[i],
                s.skin_vtype_vertices[i],
@@ -813,14 +814,14 @@ void MikuPan_UiPerfDiagWindow(void)
                s.skin_vtype_path_vertices[MIKUPAN_PERF_SKIN_GPU][i]);
     }
 
-    igTextDisabled("GPU reject reasons");
+    igTextDisabled(MikuPan_Translate("GPU reject reasons"));
     for (int i = 0; i < MIKUPAN_PERF_SKIN_REJECT_COUNT; i++)
     {
         if (s.skin_reject_counts[i] == 0)
         {
             continue;
         }
-        igText("%-22s %d / %d vertices",
+        igText(MikuPan_Translate("%-22s %d / %d vertices"),
                MikuPan_PerfDiagSkinRejectName(i),
                s.skin_reject_counts[i],
                s.skin_reject_vertices[i]);
@@ -830,24 +831,24 @@ void MikuPan_UiPerfDiagWindow(void)
             {
                 continue;
             }
-            igText("  vtype 0x%02X  %d / %d vertices",
+            igText(MikuPan_Translate("  vtype 0x%02X  %d / %d vertices"),
                    j,
                    s.skin_reject_vtype_counts[i][j],
                    s.skin_reject_vtype_vertices[i][j]);
         }
     }
 
-    igSeparatorText("DrawGirl");
-    igText("normal %d  mirror %d  rendered %d  hidden %d  tofu %d", s.drawgirl_normal, s.drawgirl_mirror, s.drawgirl_rendered, s.drawgirl_hidden, s.drawgirl_tofu);
-    igText("subobj calls %d  subobj total %d  sorted items %d", s.drawgirl_subobj_calls, s.drawgirl_subobj_total, s.drawgirl_sort_items);
+    igSeparatorText(MikuPan_Translate("DrawGirl"));
+    igText(MikuPan_Translate("normal %d  mirror %d  rendered %d  hidden %d  tofu %d"), s.drawgirl_normal, s.drawgirl_mirror, s.drawgirl_rendered, s.drawgirl_hidden, s.drawgirl_tofu);
+    igText(MikuPan_Translate("subobj calls %d  subobj total %d  sorted items %d"), s.drawgirl_subobj_calls, s.drawgirl_subobj_total, s.drawgirl_sort_items);
 
-    igSeparatorText("Upload contexts");
+    igSeparatorText(MikuPan_Translate("Upload contexts"));
     for (int i = 0; i < MIKUPAN_PERF_UPLOAD_COUNT; i++)
     {
         igText("%-22s %5d  %.2f KiB", MikuPan_PerfDiagUploadContextName(i), s.upload_counts[i], (double)s.upload_bytes[i] / 1024.0);
     }
 
-    igSeparatorText("Red flags");
+    igSeparatorText(MikuPan_Translate("Red flags"));
     if (s.mesh0x2_cpu > 100 && s.gpu_upload_flushes > 100)
     {
         igTextColored(ImVec4{1.0f, 0.55f, 0.25f, 1.0f}, "CPU 0x2 packets and upload flushes are both high.");
@@ -860,7 +861,7 @@ void MikuPan_UiPerfDiagWindow(void)
     }
     else
     {
-        igTextDisabled("Capture a bad ghost frame and compare CPU path, uploads, and flushes.");
+        igTextDisabled(MikuPan_Translate("Capture a bad ghost frame and compare CPU path, uploads, and flushes."));
     }
 
     igEnd();
@@ -879,14 +880,14 @@ void MikuPan_UiDrawCallInspector(void)
     }
 
     igSetNextWindowSize(ImVec2{780.0f, 540.0f}, ImGuiCond_FirstUseEver);
-    if (!igBegin("Draw Call Inspector", (bool*) &show_draw_inspector, 0))
+    if (!igBegin(MikuPan_Translate("Draw Call Inspector"), (bool*) &show_draw_inspector, 0))
     {
         igEnd();
         return;
     }
 
     int enabled = MikuPan_DrawCapEnabled();
-    if (igCheckbox("Capture", (bool*) &enabled))
+    if (igCheckbox(MikuPan_Translate("Capture"), (bool*) &enabled))
     {
         MikuPan_DrawCapEnable(enabled);
     }
@@ -898,18 +899,18 @@ void MikuPan_UiDrawCallInspector(void)
         igTextColored(ImVec4{1.0f, 0.7f, 0.2f, 1.0f}, "  ISOLATING #%d",
                       isolate);
         igSameLine(0.0f, -1.0f);
-        if (igButton("Show All", ImVec2{0, 0}))
+        if (igButton(MikuPan_Translate("Show All"), ImVec2{0, 0}))
         {
             MikuPan_DrawCapSetIsolate(-1);
         }
     }
     else
     {
-        igTextDisabled("  (click 'Solo' on a row to render only that draw)");
+        igTextDisabled(MikuPan_Translate("  (click 'Solo' on a row to render only that draw)"));
     }
 
     int count = MikuPan_DrawCapLastCount();
-    igText("Last frame: %d draw calls captured", count);
+    igText(MikuPan_Translate("Last frame: %d draw calls captured"), count);
 
     MikuPan_UiDrawCallSummary(count);
 
@@ -949,14 +950,14 @@ void MikuPan_UiDrawCallInspector(void)
 
         if (isolate == i)
         {
-            if (igButton("Unsolo", ImVec2{70.0f, 0.0f}))
+            if (igButton(MikuPan_Translate("Unsolo"), ImVec2{70.0f, 0.0f}))
             {
                 MikuPan_DrawCapSetIsolate(-1);
             }
         }
         else
         {
-            if (igButton("Solo", ImVec2{70.0f, 0.0f}))
+            if (igButton(MikuPan_Translate("Solo"), ImVec2{70.0f, 0.0f}))
             {
                 MikuPan_DrawCapSetIsolate(i);
             }
@@ -1008,7 +1009,7 @@ void MikuPan_UiCameraDebugWindow(void)
               + view_vec[2] * view_vec[2]);
 
     igSetNextWindowSize(ImVec2{360.0f, 0.0f}, ImGuiCond_FirstUseEver);
-    if (!igBegin("Camera World Info", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    if (!igBegin(MikuPan_Translate("Camera World Info"), NULL, ImGuiWindowFlags_AlwaysAutoResize))
     {
         igEnd();
         return;
@@ -1016,16 +1017,16 @@ void MikuPan_UiCameraDebugWindow(void)
 
     if (path->active)
     {
-        igText("Map camera: %s  no=%u old=%u  type=%u",
+        igText(MikuPan_Translate("Map camera: %s  no=%u old=%u  type=%u"),
                MikuPan_CameraDebugKindName(path->kind), path->no, path->no_old,
                path->type);
     }
     else
     {
-        igText("Map camera: runtime/free camera");
+        igText(MikuPan_Translate("Map camera: runtime/free camera"));
     }
 
-    igText("Distance camera -> interest: %.1f", view_dist);
+    igText(MikuPan_Translate("Distance camera -> interest: %.1f"), view_dist);
     igSeparator();
 
     MikuPan_CameraDebugVec3("camera.p", camera.p,
@@ -1063,26 +1064,26 @@ void MikuPan_UiShaderReloadWindow(void)
     }
 
     igSetNextWindowSize(ImVec2{560.0f, 480.0f}, ImGuiCond_FirstUseEver);
-    if (!igBegin("Shader Reload", (bool*) &show_shader_reload, 0))
+    if (!igBegin(MikuPan_Translate("Shader Reload"), (bool*) &show_shader_reload, 0))
     {
         igEnd();
         return;
     }
 
-    igTextDisabled(
-        "Edits to .vert/.frag/.geom files take effect after Reload.");
-    igTextDisabled(
-        "Failed reloads keep the live program — no need to restart.");
+    igTextDisabled("%s", MikuPan_Translate(
+        "Edits to .vert/.frag/.geom files take effect after Reload."));
+    igTextDisabled("%s", MikuPan_Translate(
+        "Failed reloads keep the live program — no need to restart."));
     igSpacing();
 
-    if (igButton("Reload All  (F5)", ImVec2{160.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Reload All  (F5)"), ImVec2{160.0f, 0.0f}))
     {
         last_reload_error[0] = '\0';
         MikuPan_ReloadAllShaders(last_reload_error,
                                  (int) sizeof(last_reload_error));
     }
     igSameLine(0.0f, -1.0f);
-    igTextDisabled("9 programs");
+    igTextDisabled(MikuPan_Translate("9 programs"));
 
     igSpacing();
     igSeparator();
@@ -1092,14 +1093,14 @@ void MikuPan_UiShaderReloadWindow(void)
     {
         igPushID_Int(i);
 
-        if (igButton("Reload", ImVec2{80.0f, 0.0f}))
+        if (igButton(MikuPan_Translate("Reload"), ImVec2{80.0f, 0.0f}))
         {
             last_reload_error[0] = '\0';
             MikuPan_ReloadShader(i, last_reload_error,
                                  (int) sizeof(last_reload_error));
         }
         igSameLine(0.0f, -1.0f);
-        igText("%-26s id=%u", MikuPan_GetShaderName(i),
+        igText(MikuPan_Translate("%-26s id=%u"), MikuPan_GetShaderName(i),
                (unsigned) shader_list[i]);
 
         // Source paths underneath, indented — handy when there's any doubt
@@ -1109,15 +1110,15 @@ void MikuPan_UiShaderReloadWindow(void)
         const char* fp = MikuPan_GetShaderFragSource(i);
         if (vp)
         {
-            igText("    vert: %s", vp);
+            igText(MikuPan_Translate("    vert: %s"), vp);
         }
         if (gp)
         {
-            igText("    geom: %s", gp);
+            igText(MikuPan_Translate("    geom: %s"), gp);
         }
         if (fp)
         {
-            igText("    frag: %s", fp);
+            igText(MikuPan_Translate("    frag: %s"), fp);
         }
 
         igSpacing();
@@ -1130,7 +1131,7 @@ void MikuPan_UiShaderReloadWindow(void)
         igSeparator();
         igTextColored(ImVec4{1.0f, 0.4f, 0.4f, 1.0f}, "Last reload error:");
         igTextWrapped("%s", last_reload_error);
-        if (igButton("Clear", ImVec2{0, 0}))
+        if (igButton(MikuPan_Translate("Clear"), ImVec2{0, 0}))
         {
             last_reload_error[0] = '\0';
         }
@@ -1147,26 +1148,26 @@ void MikuPan_UiShadowDebugWindow(void)
     }
 
     igSetNextWindowSize(ImVec2{560.0f, 680.0f}, ImGuiCond_FirstUseEver);
-    if (!igBegin("Shadow Debug", (bool*) &show_shadow_debug_window, 0))
+    if (!igBegin(MikuPan_Translate("Shadow Debug"), (bool*) &show_shadow_debug_window, 0))
     {
         igEnd();
         return;
     }
 
     int shadows_on = MikuPan_IsShadowEnabled();
-    if (igCheckbox("Enable Shadows", (bool*) &shadows_on))
+    if (igCheckbox(MikuPan_Translate("Enable Shadows"), (bool*) &shadows_on))
     {
         MikuPan_SetShadowEnabled(shadows_on);
     }
 
     int receiver_debug_view = MikuPan_IsShadowReceiverDebugViewEnabled();
-    if (igCheckbox("Receiver Debug Colors", (bool*) &receiver_debug_view))
+    if (igCheckbox(MikuPan_Translate("Receiver Debug Colors"), (bool*) &receiver_debug_view))
     {
         MikuPan_SetShadowReceiverDebugViewEnabled(receiver_debug_view);
     }
 
     int inspect = MikuPan_IsShadowInspectEnabled();
-    if (igCheckbox("Inspect Caster (orbit camera)", (bool*) &inspect))
+    if (igCheckbox(MikuPan_Translate("Inspect Caster (orbit camera)"), (bool*) &inspect))
     {
         MikuPan_SetShadowInspectEnabled(inspect);
     }
@@ -1175,22 +1176,22 @@ void MikuPan_UiShadowDebugWindow(void)
         float yaw = 0.0f, pitch = 0.0f;
         MikuPan_GetShadowInspectAngles(&yaw, &pitch);
         int changed = 0;
-        changed |= igSliderFloat("Yaw", &yaw, -3.14159f, 3.14159f, "%.2f", 0);
-        changed |= igSliderFloat("Pitch", &pitch, -1.55f, 1.55f, "%.2f", 0);
+        changed |= igSliderFloat(MikuPan_Translate("Yaw"), &yaw, -3.14159f, 3.14159f, "%.2f", 0);
+        changed |= igSliderFloat(MikuPan_Translate("Pitch"), &pitch, -1.55f, 1.55f, "%.2f", 0);
         if (changed)
         {
             MikuPan_SetShadowInspectAngles(yaw, pitch);
         }
 
         int wireframe = MikuPan_IsShadowInspectWireframe();
-        if (igCheckbox("Wireframe", (bool*) &wireframe))
+        if (igCheckbox(MikuPan_Translate("Wireframe"), (bool*) &wireframe))
         {
             MikuPan_SetShadowInspectWireframe(wireframe);
         }
 
-        igTextDisabled("Orbits the shadow camera; the preview shows the");
-        igTextDisabled("caster model from this angle (cast shadow is");
-        igTextDisabled("overridden while this is on).");
+        igTextDisabled(MikuPan_Translate("Orbits the shadow camera; the preview shows the"));
+        igTextDisabled(MikuPan_Translate("caster model from this angle (cast shadow is"));
+        igTextDisabled(MikuPan_Translate("overridden while this is on)."));
     }
 
     if (shadow_debug_auto_probe)
@@ -1200,20 +1201,20 @@ void MikuPan_UiShadowDebugWindow(void)
 
     const MikuPan_ShadowDebugInfo* shadow_debug = MikuPan_GetShadowDebugInfo();
 
-    igText("FBO: %s  status: 0x%04x",
+    igText(MikuPan_Translate("FBO: %s  status: 0x%04x"),
            shadow_debug->fbo_initialized
                ? (shadow_debug->fbo_complete ? "complete" : "incomplete")
                : "not created",
            shadow_debug->fbo_status);
-    igText("Matrix: %s  texture: %u (%dx%d)",
+    igText(MikuPan_Translate("Matrix: %s  texture: %u (%dx%d)"),
            shadow_debug->matrix_valid ? "valid" : "missing",
            shadow_debug->texture_id, shadow_debug->texture_size,
            shadow_debug->texture_size);
 
     igSeparator();
-    igText("Passes: caster %d  receiver %d", shadow_debug->caster_passes,
+    igText(MikuPan_Translate("Passes: caster %d  receiver %d"), shadow_debug->caster_passes,
            shadow_debug->receiver_passes);
-    igText("Draws:  caster %d (%d indices)  receiver %d (%d indices)",
+    igText(MikuPan_Translate("Draws:  caster %d (%d indices)  receiver %d (%d indices)"),
            shadow_debug->caster_draws, shadow_debug->caster_indices,
            shadow_debug->receiver_draws, shadow_debug->receiver_indices);
 
@@ -1243,17 +1244,17 @@ void MikuPan_UiShadowDebugWindow(void)
     }
 
     igSeparator();
-    if (igButton("Probe Shadow Map", ImVec2{0.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Probe Shadow Map"), ImVec2{0.0f, 0.0f}))
     {
         MikuPan_ShadowDebugProbeTexture();
         shadow_debug = MikuPan_GetShadowDebugInfo();
     }
     igSameLine(0.0f, -1.0f);
-    igCheckbox("Auto Probe", (bool*) &shadow_debug_auto_probe);
+    igCheckbox(MikuPan_Translate("Auto Probe"), (bool*) &shadow_debug_auto_probe);
 
     if (shadow_debug->probe_valid)
     {
-        igText("Map probe: nonzero %d / %d (%.2f%%), max %d, avg %.3f",
+        igText(MikuPan_Translate("Map probe: nonzero %d / %d (%.2f%%), max %d, avg %.3f"),
                shadow_debug->probe_nonzero_pixels,
                shadow_debug->texture_size * shadow_debug->texture_size,
                shadow_debug->probe_coverage * 100.0f,
@@ -1269,14 +1270,14 @@ void MikuPan_UiShadowDebugWindow(void)
     }
     else
     {
-        igTextDisabled("Map probe: not sampled yet");
+        igTextDisabled(MikuPan_Translate("Map probe: not sampled yet"));
     }
 
     igSeparator();
-    igText("Shadow Map (R8 occlusion, white = caster)");
-    igSliderFloat("Texture Preview Size", &shadow_debug_preview_size, 64.0f,
+    igText(MikuPan_Translate("Shadow Map (R8 occlusion, white = caster)"));
+    igSliderFloat(MikuPan_Translate("Texture Preview Size"), &shadow_debug_preview_size, 64.0f,
                   768.0f, "%.0f", 0);
-    igCheckbox("Flip Y", (bool*) &shadow_debug_flip_y);
+    igCheckbox(MikuPan_Translate("Flip Y"), (bool*) &shadow_debug_flip_y);
 
     if (shadow_debug->texture_id != 0)
     {
@@ -1312,7 +1313,7 @@ void MikuPan_UiShadowDebugWindow(void)
     }
     else
     {
-        igTextDisabled("Shadow texture has not been created yet.");
+        igTextDisabled(MikuPan_Translate("Shadow texture has not been created yet."));
     }
 
     igEnd();
@@ -1326,27 +1327,27 @@ void MikuPan_UiPhotoDebugWindow(void)
     }
 
     igSetNextWindowSize(ImVec2{460.0f, 560.0f}, ImGuiCond_FirstUseEver);
-    if (!igBegin("Photo Debug", (bool*) &show_photo_debug_window, 0))
+    if (!igBegin(MikuPan_Translate("Photo Debug"), (bool*) &show_photo_debug_window, 0))
     {
         igEnd();
         return;
     }
 
     int force_preview = MikuPan_IsPhotoDebugForceOpaquePreviewEnabled();
-    if (igCheckbox("Force Opaque Preview Overlay", (bool*) &force_preview))
+    if (igCheckbox(MikuPan_Translate("Force Opaque Preview Overlay"), (bool*) &force_preview))
     {
         MikuPan_SetPhotoDebugForceOpaquePreviewEnabled(force_preview);
     }
 
     int force_negative = MikuPan_IsPhotoDebugForceNegativePreviewEnabled();
-    if (igCheckbox("Force Negative Final Pass", (bool*) &force_negative))
+    if (igCheckbox(MikuPan_Translate("Force Negative Final Pass"), (bool*) &force_negative))
     {
         MikuPan_SetPhotoDebugForceNegativePreviewEnabled(force_negative);
     }
 
     float force_negative_strength =
         MikuPan_GetPhotoDebugForceNegativePreviewStrength();
-    if (igSliderFloat("Forced Negative Strength", &force_negative_strength,
+    if (igSliderFloat(MikuPan_Translate("Forced Negative Strength"), &force_negative_strength,
                       0.0f, 1.0f, "%.2f", 0))
     {
         MikuPan_SetPhotoDebugForceNegativePreviewStrength(
@@ -1354,13 +1355,13 @@ void MikuPan_UiPhotoDebugWindow(void)
     }
 
     int target_rect = MikuPan_IsPhotoDebugTargetRectEnabled();
-    if (igCheckbox("Show Target Rect", (bool*) &target_rect))
+    if (igCheckbox(MikuPan_Translate("Show Target Rect"), (bool*) &target_rect))
     {
         MikuPan_SetPhotoDebugTargetRectEnabled(target_rect);
     }
 
     int negative_layer = MikuPan_IsPhotoDebugNegativeLayerEnabled();
-    if (igCheckbox("Show Negative Debug Layer", (bool*) &negative_layer))
+    if (igCheckbox(MikuPan_Translate("Show Negative Debug Layer"), (bool*) &negative_layer))
     {
         MikuPan_SetPhotoDebugNegativeLayerEnabled(negative_layer);
     }
@@ -1369,67 +1370,69 @@ void MikuPan_UiPhotoDebugWindow(void)
 
     const MikuPan_PhotoDebugInfo* photo_debug = MikuPan_GetPhotoDebugInfo();
 
-    igText("Texture: %s  id: %u  size: %dx%d",
+    igText(MikuPan_Translate("Texture: %s  id: %u  size: %dx%d"),
            photo_debug->texture_valid ? "valid" : "missing",
            photo_debug->texture_id, photo_debug->texture_width,
            photo_debug->texture_height);
-    igText("Texture updates: %d", photo_debug->texture_update_count);
-    igText("Negative source: %s  id: %u  size: %dx%d",
+    igText(MikuPan_Translate("Texture updates: %d"), photo_debug->texture_update_count);
+    igText(MikuPan_Translate("Negative source: %s  id: %u  size: %dx%d"),
            photo_debug->negative_source_texture_valid ? "valid" : "missing",
            photo_debug->negative_source_texture_id,
            photo_debug->negative_source_texture_width,
            photo_debug->negative_source_texture_height);
-    igText("Negative source updates: %d",
+    igText(MikuPan_Translate("Negative source updates: %d"),
            photo_debug->negative_source_texture_update_count);
 
     igSeparator();
-    igText("Queued: %s  count: %d", photo_debug->queued ? "yes" : "no",
+    const char* yes = MikuPan_Translate("Yes");
+    const char* no = MikuPan_Translate("No");
+    igText(MikuPan_Translate("Queued: %s  count: %d"), photo_debug->queued ? yes : no,
            photo_debug->queue_count);
-    igText("Effect overlay active: %s  count: %d",
-           photo_debug->effect_overlay_active ? "yes" : "no",
+    igText(MikuPan_Translate("Effect overlay active: %s  count: %d"),
+           photo_debug->effect_overlay_active ? yes : no,
            photo_debug->effect_overlay_count);
-    igText("Effect overlay drawn in game: %s  count: %d",
-           photo_debug->effect_overlay_drawn_in_game ? "yes" : "no",
+    igText(MikuPan_Translate("Effect overlay drawn in game: %s  count: %d"),
+           photo_debug->effect_overlay_drawn_in_game ? yes : no,
            photo_debug->effect_overlay_in_game_count);
-    igText("Negative final-pass active: %s  count: %d",
-           photo_debug->negative_overlay_active ? "yes" : "no",
+    igText(MikuPan_Translate("Negative final-pass active: %s  count: %d"),
+           photo_debug->negative_overlay_active ? yes : no,
            photo_debug->negative_overlay_count);
-    igText("Legacy negative sprite drawn: %s  count: %d",
-           photo_debug->negative_overlay_drawn_in_game ? "yes" : "no",
+    igText(MikuPan_Translate("Legacy negative sprite drawn: %s  count: %d"),
+           photo_debug->negative_overlay_drawn_in_game ? yes : no,
            photo_debug->negative_overlay_in_game_count);
-    igText("Force negative preview: %s  strength: %.2f",
-           photo_debug->force_negative_preview_enabled ? "yes" : "no",
+    igText(MikuPan_Translate("Force negative preview: %s  strength: %.2f"),
+           photo_debug->force_negative_preview_enabled ? yes : no,
            photo_debug->force_negative_preview_strength);
-    igText("Negative rect: %d,%d %dx%d  strength: %.2f",
+    igText(MikuPan_Translate("Negative rect: %d,%d %dx%d  strength: %.2f"),
            photo_debug->negative_x, photo_debug->negative_y,
            photo_debug->negative_w, photo_debug->negative_h,
            photo_debug->negative_strength);
-    igText("Queue rect: %d,%d %dx%d  alpha: %d", photo_debug->queue_x,
+    igText(MikuPan_Translate("Queue rect: %d,%d %dx%d  alpha: %d"), photo_debug->queue_x,
            photo_debug->queue_y, photo_debug->queue_w, photo_debug->queue_h,
            photo_debug->queue_alpha);
 
     igSeparator();
-    igText("Last draw: %s  count: %d",
-           photo_debug->last_draw_valid ? "yes" : "no",
+    igText(MikuPan_Translate("Last draw: %s  count: %d"),
+           photo_debug->last_draw_valid ? yes : no,
            photo_debug->draw_count);
-    igText("Draw rect: %d,%d %dx%d  alpha: %d", photo_debug->draw_x,
+    igText(MikuPan_Translate("Draw rect: %d,%d %dx%d  alpha: %d"), photo_debug->draw_x,
            photo_debug->draw_y, photo_debug->draw_w, photo_debug->draw_h,
            photo_debug->draw_alpha);
-    igText("Target rect drawn this frame: %s",
-           photo_debug->target_rect_drawn ? "yes" : "no");
-    igText("Negative debug layer drawn this frame: %s  count: %d",
-           photo_debug->negative_debug_layer_drawn ? "yes" : "no",
+    igText(MikuPan_Translate("Target rect drawn this frame: %s"),
+           photo_debug->target_rect_drawn ? yes : no);
+    igText(MikuPan_Translate("Negative debug layer drawn this frame: %s  count: %d"),
+           photo_debug->negative_debug_layer_drawn ? yes : no,
            photo_debug->negative_debug_layer_count);
 
     igSeparator();
-    igTextDisabled("Expected photo rect is usually 128,80 384x256.");
-    igTextDisabled("Cyan negative debug layer marks the outside region.");
-    igTextDisabled("If this preview is correct but the overlay is wrong,");
-    igTextDisabled("the failure is compositing/order/state, not capture.");
+    igTextDisabled(MikuPan_Translate("Expected photo rect is usually 128,80 384x256."));
+    igTextDisabled(MikuPan_Translate("Cyan negative debug layer marks the outside region."));
+    igTextDisabled(MikuPan_Translate("If this preview is correct but the overlay is wrong,"));
+    igTextDisabled(MikuPan_Translate("the failure is compositing/order/state, not capture."));
 
     igSeparator();
-    igText("Captured Photo Texture");
-    igSliderFloat("Preview Size", &photo_debug_preview_size, 64.0f, 512.0f,
+    igText(MikuPan_Translate("Captured Photo Texture"));
+    igSliderFloat(MikuPan_Translate("Preview Size"), &photo_debug_preview_size, 64.0f, 512.0f,
                   "%.0f", 0);
 
     if (photo_debug->texture_id != 0)
@@ -1454,7 +1457,7 @@ void MikuPan_UiPhotoDebugWindow(void)
     }
     else
     {
-        igTextDisabled("No photo preview texture has been uploaded yet.");
+        igTextDisabled(MikuPan_Translate("No photo preview texture has been uploaded yet."));
     }
 
     igEnd();
@@ -1477,7 +1480,7 @@ void MikuPan_UiShadowResolutionCombo(const char* label)
         }
     }
 
-    if (igCombo_Str_arr(label, &idx, res_labels, count, -1))
+    if (igCombo_Str_arr(MikuPan_Translate(label), &idx, res_labels, count, -1))
     {
         MikuPan_SetShadowResolution(res_values[idx]);
     }
@@ -1519,13 +1522,13 @@ void MikuPan_ShowTextureList(void)
     qsort(tex_list, tex_list_count, sizeof(MikuPan_TextureInfo),
           CompareTextureById);
 
-    igBegin("Texture List", NULL, 0);
+    igBegin(MikuPan_Translate("Texture List"), NULL, 0);
 
     screen_copy = MikuPan_GetScreenCopyTextureInfo();
     if (screen_copy != NULL)
     {
         if (igCollapsingHeader_TreeNodeFlags(
-                "Generated: distortion screen copy (0x1a40)",
+                MikuPan_Translate("Generated: distortion screen copy (0x1a40)"),
                 ImGuiTreeNodeFlags_DefaultOpen))
         {
             const MikuPan_ScreenCopyDebugInfo* debug =
@@ -1548,7 +1551,7 @@ void MikuPan_ShowTextureList(void)
                     : debug->depth_mode == MIKUPAN_DEPTH_GEQUAL ? "gequal"
                                                                 : "lequal";
 
-                igText("last draw: %d vertices, depth %s, blend %s",
+                igText(MikuPan_Translate("last draw: %d vertices, depth %s, blend %s"),
                        debug->vertex_count, depth,
                        MikuPanUIDebugBlendModeName(debug->blend_mode));
                 igText("uv:  %.3f %.3f  ->  %.3f %.3f", debug->uv_min[0],
@@ -1565,7 +1568,7 @@ void MikuPan_ShowTextureList(void)
     }
     else
     {
-        igText("Generated distortion screen copy: not created yet");
+        igText(MikuPan_Translate("Generated distortion screen copy: not created yet"));
     }
 
     for (int i = 0; i < tex_list_count; i++)
@@ -1627,26 +1630,26 @@ void MikuPan_UiEffectDebugWindow(void)
     }
 
     igSetNextWindowSize(ImVec2{720.0f, 560.0f}, ImGuiCond_FirstUseEver);
-    if (!igBegin("Effect Debug", (bool*) &show_effect_debug_window, 0))
+    if (!igBegin(MikuPan_Translate("Effect Debug"), (bool*) &show_effect_debug_window, 0))
     {
         igEnd();
         return;
     }
 
-    if (igButton("Enable All", ImVec2{150.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Enable All"), ImVec2{150.0f, 0.0f}))
     {
         MikuPan_EffectDebugSetAll(1);
     }
 
     igSameLine(0.0f, -1.0f);
-    if (igButton("Clear All", ImVec2{90.0f, 0.0f}))
+    if (igButton(MikuPan_Translate("Clear All"), ImVec2{90.0f, 0.0f}))
     {
         MikuPan_EffectDebugSetAll(0);
     }
 
     igSpacing();
-    igTextDisabled("Rows list EFFECT_ID names and the render function/path used by the test toggle.");
-    igTextDisabled("Unavailable rows need live enemy or scene-specific state, or have no renderer in this port.");
+    igTextDisabled(MikuPan_Translate("Rows list EFFECT_ID names and the render function/path used by the test toggle."));
+    igTextDisabled(MikuPan_Translate("Unavailable rows need live enemy or scene-specific state, or have no renderer in this port."));
     igSeparator();
 
     const int table_flags =
@@ -1657,12 +1660,12 @@ void MikuPan_UiEffectDebugWindow(void)
     if (igBeginTable("##effect_debug_table", 4, table_flags,
                      ImVec2{0.0f, 0.0f}, 0.0f))
     {
-        igTableSetupColumn("On", ImGuiTableColumnFlags_WidthFixed, 48.0f, 0);
-        igTableSetupColumn("Enum", ImGuiTableColumnFlags_WidthStretch, 0.35f,
+        igTableSetupColumn(MikuPan_Translate("On"), ImGuiTableColumnFlags_WidthFixed, 48.0f, 0);
+        igTableSetupColumn(MikuPan_Translate("Enum"), ImGuiTableColumnFlags_WidthStretch, 0.35f,
                            0);
-        igTableSetupColumn("Function", ImGuiTableColumnFlags_WidthStretch,
+        igTableSetupColumn(MikuPan_Translate("Function"), ImGuiTableColumnFlags_WidthStretch,
                            0.30f, 0);
-        igTableSetupColumn("Note", ImGuiTableColumnFlags_WidthStretch, 0.35f,
+        igTableSetupColumn(MikuPan_Translate("Note"), ImGuiTableColumnFlags_WidthStretch, 0.35f,
                            0);
         igTableHeadersRow();
 
@@ -1717,7 +1720,7 @@ void MikuPan_UiEffectDebugWindow(void)
             }
             else
             {
-                igTextDisabled("Default test values");
+                igTextDisabled(MikuPan_Translate("Default test values"));
             }
 
             igPopID();
@@ -1731,84 +1734,86 @@ void MikuPan_UiEffectDebugWindow(void)
 
 void MikuPan_UiDebugMenuRender(void)
 {
-    if (igBeginMenu("Debug", 1))
+    if (igBeginMenu(MikuPan_Translate("Debug"), 1))
     {
-        igCheckbox("Zero's Menu", (bool*) &dbg_wrk.mode_on);
+        igCheckbox(MikuPan_Translate("Zero's Menu"), (bool*) &dbg_wrk.mode_on);
         int title_debug_window = MikuPan_TitleDebugWindowVisible();
-        if (igCheckbox("Title Menu Debugger", (bool*) &title_debug_window))
+        if (igCheckbox(MikuPan_Translate("Title Menu Debugger"), (bool*) &title_debug_window))
         {
             MikuPan_TitleSetDebugWindowVisible(title_debug_window);
         }
 
         igSeparator();
 
-        if (igBeginMenu("Rendering", 1))
+        if (igBeginMenu(MikuPan_Translate("Rendering"), 1))
         {
-            igCheckbox("Draw Call Inspector", (bool*) &show_draw_inspector);
-            igCheckbox("Shader Reload", (bool*) &show_shader_reload);
-            igCheckbox("Effect Debug Window",
+            igCheckbox(MikuPan_Translate("Draw Call Inspector"), (bool*) &show_draw_inspector);
+            igCheckbox(MikuPan_Translate("Shader Reload"), (bool*) &show_shader_reload);
+            igCheckbox(MikuPan_Translate("Effect Debug Window"),
                        (bool*) &show_effect_debug_window);
 
-            if (igBeginMenu("Visualization", 1))
+            if (igBeginMenu(MikuPan_Translate("Visualization"), 1))
             {
-                igCheckbox("Wireframe", (bool*) &render_wireframe);
-                igCheckbox("Bounding Boxes", (bool*) &show_bounding_boxes);
-                igCheckbox("Event Hitboxes", (bool*) &show_event_hitboxes);
-                igCheckbox("Normals", (bool*) &render_normals);
+                igCheckbox(MikuPan_Translate("Wireframe"), (bool*) &render_wireframe);
+                igCheckbox(MikuPan_Translate("Bounding Boxes"), (bool*) &show_bounding_boxes);
+                igCheckbox(MikuPan_Translate("Event Hitboxes"), (bool*) &show_event_hitboxes);
+                igCheckbox(MikuPan_Translate("Normals"), (bool*) &render_normals);
 
                 if (render_normals)
                 {
-                    igSliderFloat("Normal Length", &normal_length, 0.1f, 100.0f,
+                    igSliderFloat(MikuPan_Translate("Normal Length"), &normal_length, 0.1f, 100.0f,
                                   "%.1f", 0);
                 }
 
-                igCheckbox("Photo", (bool*) &show_photo_debug_window);
+                igCheckbox(MikuPan_Translate("Photo"), (bool*) &show_photo_debug_window);
 
                 igEndMenu();
             }
 
-            if (igBeginMenu("Lighting", 1))
+            if (igBeginMenu(MikuPan_Translate("Lighting"), 1))
             {
-                igCheckbox("Disable Lighting", (bool*) &disable_lighting);
-                igCheckbox("Static Lighting", (bool*) &show_static_lighting);
-                const char* lighting_modes[] = {"Per-Fragment", "Per-Vertex"};
-                igCombo_Str_arr("Lighting Mode", &mikupan_configuration.renderer.lighting_mode,
+                igCheckbox(MikuPan_Translate("Disable Lighting"), (bool*) &disable_lighting);
+                igCheckbox(MikuPan_Translate("Static Lighting"), (bool*) &show_static_lighting);
+                const char* lighting_modes[] = {
+                    MikuPan_Translate("Per-Fragment"), MikuPan_Translate("Per-Vertex"),
+                };
+                igCombo_Str_arr(MikuPan_Translate("Lighting Mode"), &mikupan_configuration.renderer.lighting_mode,
                                 lighting_modes, 2, -1);
                 igEndMenu();
             }
 
-            if (igBeginMenu("Shadows", 1))
+            if (igBeginMenu(MikuPan_Translate("Shadows"), 1))
             {
                 int shadows_on = MikuPan_IsShadowEnabled();
-                if (igCheckbox("Enable Shadows", (bool*) &shadows_on))
+                if (igCheckbox(MikuPan_Translate("Enable Shadows"), (bool*) &shadows_on))
                 {
                     MikuPan_SetShadowEnabled(shadows_on);
                 }
 
                 MikuPan_UiShadowResolutionCombo("Resolution");
 
-                igCheckbox("Shadow Debug Window",
+                igCheckbox(MikuPan_Translate("Shadow Debug Window"),
                            (bool*) &show_shadow_debug_window);
                 igEndMenu();
             }
 
-            if (igBeginMenu("Meshes", 1))
+            if (igBeginMenu(MikuPan_Translate("Meshes"), 1))
             {
-                igCheckbox("Mesh 0x82", (bool*) &show_mesh_0x82);
-                igCheckbox("Mesh 0x32", (bool*) &show_mesh_0x32);
-                igCheckbox("Mesh 0x12", (bool*) &show_mesh_0x12);
-                igCheckbox("Mesh 0x10", (bool*) &show_mesh_0x10);
-                igCheckbox("Mesh 0x2", (bool*) &show_mesh_0x2);
+                igCheckbox(MikuPan_Translate("Mesh 0x82"), (bool*) &show_mesh_0x82);
+                igCheckbox(MikuPan_Translate("Mesh 0x32"), (bool*) &show_mesh_0x32);
+                igCheckbox(MikuPan_Translate("Mesh 0x12"), (bool*) &show_mesh_0x12);
+                igCheckbox(MikuPan_Translate("Mesh 0x10"), (bool*) &show_mesh_0x10);
+                igCheckbox(MikuPan_Translate("Mesh 0x2"), (bool*) &show_mesh_0x2);
 
                 igSeparator();
                 int mesh_cache_on = MikuPan_MeshCache_IsEnabled();
 
-                if (igCheckbox("Mesh Cache", (bool*) &mesh_cache_on))
+                if (igCheckbox(MikuPan_Translate("Mesh Cache"), (bool*) &mesh_cache_on))
                 {
                     MikuPan_MeshCache_SetEnabled(mesh_cache_on);
                 }
 
-                if (igButton("Clear Mesh Cache", ImVec2{0.0f, 0.0f}))
+                if (igButton(MikuPan_Translate("Clear Mesh Cache"), ImVec2{0.0f, 0.0f}))
                 {
                     MikuPan_MeshCache_Flush();
                 }
@@ -1819,18 +1824,18 @@ void MikuPan_UiDebugMenuRender(void)
                 MikuPan_MeshCache_GetStats(&mesh_cache_bytes,
                                             &mesh_cache_buffers,
                                             &mesh_cache_entries);
-                igText("Cache: %u entries, %u buffers, %.1f MiB",
+                igText(MikuPan_Translate("Cache: %u entries, %u buffers, %.1f MiB"),
                        mesh_cache_entries,
                        mesh_cache_buffers,
                        (double)mesh_cache_bytes / (1024.0 * 1024.0));
-                igText("GPU buffers: %u live / %u max",
+                igText(MikuPan_Translate("GPU buffers: %u live / %u max"),
                        MikuPan_GPUGetLiveBufferCount(),
                        MikuPan_GPUGetMaxBufferCount());
 
                 extern int MikuPan_GpuSkinningEnabled(void);
                 extern void MikuPan_SetGpuSkinningEnabled(int);
                 int gpu_skin_on = MikuPan_GpuSkinningEnabled();
-                if (igCheckbox("GPU Skinning (0x2/0xA)", (bool*) &gpu_skin_on))
+                if (igCheckbox(MikuPan_Translate("GPU Skinning (0x2/0xA)"), (bool*) &gpu_skin_on))
                 {
                     MikuPan_SetGpuSkinningEnabled(gpu_skin_on);
                 }
@@ -1838,17 +1843,17 @@ void MikuPan_UiDebugMenuRender(void)
                 extern int MikuPan_GpuWeightedSkinningEnabled(void);
                 extern void MikuPan_SetGpuWeightedSkinningEnabled(int);
                 int gpu_weighted_skin_on = MikuPan_GpuWeightedSkinningEnabled();
-                if (igCheckbox("GPU Weighted Skinning", (bool*) &gpu_weighted_skin_on))
+                if (igCheckbox(MikuPan_Translate("GPU Weighted Skinning"), (bool*) &gpu_weighted_skin_on))
                 {
                     MikuPan_SetGpuWeightedSkinningEnabled(gpu_weighted_skin_on);
                 }
                 igEndMenu();
             }
 
-            if (igBeginMenu("Textures", 1))
+            if (igBeginMenu(MikuPan_Translate("Textures"), 1))
             {
-                igCheckbox("Texture List", (bool*) &show_texture_list);
-                if (igButton("Release 2D Textures", ImVec2{0.0f, 0.0f}))
+                igCheckbox(MikuPan_Translate("Texture List"), (bool*) &show_texture_list);
+                if (igButton(MikuPan_Translate("Release 2D Textures"), ImVec2{0.0f, 0.0f}))
                 {
                     MikuPan_TexSlots_ReleaseTextures();
                 }
@@ -1856,7 +1861,7 @@ void MikuPan_UiDebugMenuRender(void)
                 if (igIsItemHovered(0))
                 {
                     igBeginTooltip();
-                    igText("Frees the GPU copies of the 2D textures; each is decoded again the next time it is drawn");
+                    igText(MikuPan_Translate("Frees the GPU copies of the 2D textures; each is decoded again the next time it is drawn"));
                     igEndTooltip();
                 }
 
@@ -1866,46 +1871,46 @@ void MikuPan_UiDebugMenuRender(void)
             igEndMenu();
         }
 
-        if (igBeginMenu("Gameplay", 1))
+        if (igBeginMenu(MikuPan_Translate("Gameplay"), 1))
         {
-            igCheckbox("Player Collision Console Log",
+            igCheckbox(MikuPan_Translate("Player Collision Console Log"),
                        (bool*) &player_collision_console_log);
 
-            igSeparatorText("Game Text");
-            if (igButton("Extract All Texts", ImVec2{0, 0}))
+            igSeparatorText(MikuPan_Translate("Game Text"));
+            if (igButton(MikuPan_Translate("Extract All Texts"), ImVec2{0, 0}))
             {
                 MikuPan_GameTextExtractAllPOs();
             }
-            igTextDisabled("Writes to resources/mods/text/<lang>/game_text.po");
+            igTextDisabled(MikuPan_Translate("Writes to resources/mods/text/<lang>/game_text.po"));
 
             bool text_override_enabled = mikupan_configuration.text_mods_enabled != 0;
-            if (igCheckbox("Enable Text Override", &text_override_enabled))
+            if (igCheckbox(MikuPan_Translate("Enable Text Override"), &text_override_enabled))
             {
                 mikupan_configuration.text_mods_enabled = text_override_enabled;
                 MikuPan_SaveConfigurationFromUi();
             }
-            igTextDisabled("Applies overrides from resources/mods/text/<lang>/game_text.po in-game");
+            igTextDisabled(MikuPan_Translate("Applies overrides from resources/mods/text/<lang>/game_text.po in-game"));
 
             igEndMenu();
         }
 
-        if (igBeginMenu("Camera", 1))
+        if (igBeginMenu(MikuPan_Translate("Camera"), 1))
         {
             bool first_person_enabled = MikuPan_FirstPersonEnabled() != 0;
             bool first_person_r3_toggle =
                 mikupan_first_person_r3_toggle_enabled != 0;
             bool third_person_enabled = camera_third_person_enabled != 0;
 
-            igCheckbox("Show Camera World Info", &show_camera_debug);
+            igCheckbox(MikuPan_Translate("Show Camera World Info"), &show_camera_debug);
 
-            igSeparatorText("First Person");
+            igSeparatorText(MikuPan_Translate("First Person"));
 
-            if (igCheckbox("First Person Mode", &first_person_enabled))
+            if (igCheckbox(MikuPan_Translate("First Person Mode"), &first_person_enabled))
             {
                 MikuPan_FirstPersonSetEnabled(first_person_enabled ? 1 : 0);
             }
 
-            if (igCheckbox("R3 Toggles First Person", &first_person_r3_toggle))
+            if (igCheckbox(MikuPan_Translate("R3 Toggles First Person"), &first_person_r3_toggle))
             {
                 mikupan_first_person_r3_toggle_enabled =
                     first_person_r3_toggle ? 1 : 0;
@@ -1913,62 +1918,62 @@ void MikuPan_UiDebugMenuRender(void)
 
             bool first_person_auto_run =
                 mikupan_first_person_auto_run_enabled != 0;
-            if (igCheckbox("Auto Run in First Person", &first_person_auto_run))
+            if (igCheckbox(MikuPan_Translate("Auto Run in First Person"), &first_person_auto_run))
             {
                 mikupan_first_person_auto_run_enabled =
                     first_person_auto_run ? 1 : 0;
             }
 
-            igSliderFloat("FP Eye Height", &mikupan_first_person_eye_height,
+            igSliderFloat(MikuPan_Translate("FP Eye Height"), &mikupan_first_person_eye_height,
                           600.0f, 800.0f, "%.0f", 0);
-            igSliderFloat("FP Eye Forward", &mikupan_first_person_eye_forward,
+            igSliderFloat(MikuPan_Translate("FP Eye Forward"), &mikupan_first_person_eye_forward,
                           -100.0f, 100.0f, "%.0f", 0);
-            igSliderFloat("FP Look Distance",
+            igSliderFloat(MikuPan_Translate("FP Look Distance"),
                           &mikupan_first_person_look_distance, 250.0f, 2500.0f,
                           "%.0f", 0);
-            igSliderFloat("FP FOV", &mikupan_first_person_fov_deg, 20.0f, 90.0f,
+            igSliderFloat(MikuPan_Translate("FP FOV"), &mikupan_first_person_fov_deg, 20.0f, 90.0f,
                           "%.1f deg", 0);
-            igSliderFloat("FP Stick Yaw Speed",
+            igSliderFloat(MikuPan_Translate("FP Stick Yaw Speed"),
                           &mikupan_first_person_stick_yaw_speed_deg, 0.1f,
                           8.0f, "%.2f deg/frame", 0);
-            igSliderFloat("FP Stick Pitch Speed",
+            igSliderFloat(MikuPan_Translate("FP Stick Pitch Speed"),
                           &mikupan_first_person_stick_pitch_speed_deg, 0.1f,
                           8.0f, "%.2f deg/frame", 0);
 
-            igTextDisabled("Left stick strafes. Right stick/mouse aims.");
+            igTextDisabled(MikuPan_Translate("Left stick strafes. Right stick/mouse aims."));
 
-            igSeparatorText("Third Person");
+            igSeparatorText(MikuPan_Translate("Third Person"));
 
-            if (igCheckbox("Third Person Camera", &third_person_enabled))
+            if (igCheckbox(MikuPan_Translate("Third Person Camera"), &third_person_enabled))
             {
                 camera_third_person_enabled = third_person_enabled ? 1 : 0;
             }
 
-            igSliderFloat("TP Distance", &camera_third_person_distance, 100.0f,
+            igSliderFloat(MikuPan_Translate("TP Distance"), &camera_third_person_distance, 100.0f,
                           2500.0f, "%.0f", 0);
-            igSliderFloat("TP Height", &camera_third_person_height, 0.0f,
+            igSliderFloat(MikuPan_Translate("TP Height"), &camera_third_person_height, 0.0f,
                           1400.0f, "%.0f", 0);
-            igSliderFloat("TP Side", &camera_third_person_side, -600.0f, 600.0f,
+            igSliderFloat(MikuPan_Translate("TP Side"), &camera_third_person_side, -600.0f, 600.0f,
                           "%.0f", 0);
-            igSliderFloat("TP Look Ahead", &camera_third_person_look_ahead,
+            igSliderFloat(MikuPan_Translate("TP Look Ahead"), &camera_third_person_look_ahead,
                           100.0f, 2500.0f, "%.0f", 0);
-            igSliderFloat("TP Interest Height",
+            igSliderFloat(MikuPan_Translate("TP Interest Height"),
                           &camera_third_person_interest_height, -400.0f,
                           1200.0f, "%.0f", 0);
-            igSliderFloat("TP FOV", &camera_third_person_fov_deg, 20.0f, 90.0f,
+            igSliderFloat(MikuPan_Translate("TP FOV"), &camera_third_person_fov_deg, 20.0f, 90.0f,
                           "%.1f deg", 0);
 
             igEndMenu();
         }
 
-        if (igBeginMenu("Profiler", 1))
+        if (igBeginMenu(MikuPan_Translate("Profiler"), 1))
         {
-            igCheckbox("FPS Counter", (bool*) &mikupan_configuration.show_fps);
+            igCheckbox(MikuPan_Translate("FPS Counter"), (bool*) &mikupan_configuration.show_fps);
 
-            igCheckbox("Frame Time Graph", (bool*) &show_frame_time_graph);
+            igCheckbox(MikuPan_Translate("Frame Time Graph"), (bool*) &show_frame_time_graph);
 
             bool perf_diag_enabled = MikuPan_PerfDiagIsEnabled() != 0;
-            if (igCheckbox("Performance Diagnostics", &perf_diag_enabled))
+            if (igCheckbox(MikuPan_Translate("Performance Diagnostics"), &perf_diag_enabled))
             {
                 MikuPan_PerfDiagSetEnabled(perf_diag_enabled ? 1 : 0);
                 if (perf_diag_enabled)
@@ -1977,9 +1982,9 @@ void MikuPan_UiDebugMenuRender(void)
                 }
             }
 
-            igCheckbox("Performance Diagnostics Window",
+            igCheckbox(MikuPan_Translate("Performance Diagnostics Window"),
                        (bool*) &show_perf_diag_window);
-            igCheckbox("Measure GPU Wait", (bool*) &measure_gpu_wait);
+            igCheckbox(MikuPan_Translate("Measure GPU Wait"), (bool*) &measure_gpu_wait);
             igEndMenu();
         }
 
@@ -2031,8 +2036,8 @@ void MikuPan_UiDebugWindowsRender(void)
 
         igSetNextWindowPos(fps_window_pos, ImGuiCond_Always,
                            {0.0f, 0.0f});
-        igBegin("fps", (bool*) &mikupan_configuration.show_fps, mikupan_no_navigation_window);
-        igText("FPS %.2f", MikuPan_GetFrameRate());
+        igBegin(MikuPan_Translate("fps"), (bool*) &mikupan_configuration.show_fps, mikupan_no_navigation_window);
+        igText(MikuPan_Translate("FPS %.2f"), MikuPan_GetFrameRate());
         igEnd();
     }
 }

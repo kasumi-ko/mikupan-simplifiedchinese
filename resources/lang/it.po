@@ -19,8 +19,8 @@ msgstr "Impostazioni"
 msgid "Exit Game"
 msgstr "Esci dal gioco"
 
-msgid "Press Start"
-msgstr "Premi Start"
+msgid "Press any key"
+msgstr "Premi un tasto"
 
 msgid "Exit the game?"
 msgstr "Uscire dal gioco?"

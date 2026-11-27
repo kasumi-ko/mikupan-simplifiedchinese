@@ -788,7 +788,8 @@ int MikuPan_OpenController()
     if (mikupan_gamepad != NULL)
     {
         const char *name = SDL_GetGamepadName(mikupan_gamepad);
-        const char *safe_name = (name != NULL && name[0] != '\0') ? name : "<unknown controller>";
+        const char *safe_name = (name != NULL && name[0] != '\0')
+            ? name : MikuPan_Translate("<unknown controller>");
         info_log("Controller %d connected: %s",
                  selected_index + 1, safe_name);
         MikuPan_FinderGyroSetGamepad(mikupan_gamepad);
@@ -2571,7 +2572,7 @@ static void MikuPan_ControllerDrawActionTargetCombo(int mode, int action)
     if (igBeginCombo("##target", preview, 0))
     {
         const bool none_selected = target == MIKUPAN_ACTION_PROFILE_TARGET_NONE;
-        if (igSelectable_Bool("<unmapped>", none_selected, 0, ImVec2{0, 0}))
+        if (igSelectable_Bool(MikuPan_Translate("<unmapped>"), none_selected, 0, ImVec2{0, 0}))
         {
             MikuPan_SetCustomActionProfileTarget(
                 mode, action, MIKUPAN_ACTION_PROFILE_TARGET_NONE);

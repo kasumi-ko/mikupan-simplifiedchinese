@@ -209,13 +209,12 @@ static void MikuPan_RmlTitleUpdateBuildInfo(void)
         return;
     }
 
-    char buffer[512];
-    std::snprintf(buffer,
-                  sizeof(buffer),
-                  "MikuPan Build: %s<br/>Version: %s (%s)<br/>https://github.com/Mikompilation/MikuPan",
-                  MIKUPAN_BUILD_DATE,
-                  MIKUPAN_GIT_DESCRIBE,
-                  MIKUPAN_GIT_COMMIT);
+    char version[128];
+    char author[192];
+    std::snprintf(version, sizeof(version), MikuPan_Translate("Version: %s"), MIKUPAN_DISPLAY_VERSION);
+    std::snprintf(author, sizeof(author), MikuPan_Translate("Author: %s"), MIKUPAN_AUTHOR);
+    const std::string buffer = std::string(MIKUPAN_PROJECT_NAME) + "<br/>" + version
+        + "<br/>" + author + "<br/>" MIKUPAN_REPOSITORY_URL;
     g_title.build_info->SetInnerRML(buffer);
 }
 
@@ -228,6 +227,7 @@ static void MikuPan_RmlTitleRequestVisible(void)
     }
 
     g_title.root->SetClass("hidden", false);
+    g_title.root->SetClass("original-disc", MikuPan_IsJapaneseGameData());
     if (!g_title.visible)
     {
         g_title.document->Show(Rml::ModalFlag::None, Rml::FocusFlag::None);
@@ -530,7 +530,7 @@ void MikuPan_RmlTitleShowPress(float prompt_alpha)
     }
 
     MikuPan_RmlTitleRequestVisible();
-    MikuPan_RmlTitleSetElementHidden(g_title.logo_group, false);
+    MikuPan_RmlTitleSetElementHidden(g_title.logo_group, MikuPan_IsJapaneseGameData());
     MikuPan_RmlTitleSetElementHidden(g_title.press_button, false);
     MikuPan_RmlTitleSetElementHidden(g_title.menu_panel, true);
     MikuPan_RmlTitleSetElementHidden(g_title.exit_dialog, true);
@@ -551,7 +551,7 @@ void MikuPan_RmlTitleShowMenu(int selected_index, int menu_count)
     g_title.active_selection = count > 0 ? std::clamp(selected_index, 0, count - 1) : 0;
 
     MikuPan_RmlTitleRequestVisible();
-    MikuPan_RmlTitleSetElementHidden(g_title.logo_group, false);
+    MikuPan_RmlTitleSetElementHidden(g_title.logo_group, MikuPan_IsJapaneseGameData());
     MikuPan_RmlTitleSetElementHidden(g_title.press_button, true);
     MikuPan_RmlTitleSetElementHidden(g_title.menu_panel, false);
     MikuPan_RmlTitleSetElementHidden(g_title.exit_dialog, true);
@@ -567,7 +567,7 @@ void MikuPan_RmlTitleShowExitPrompt(int selected_index)
     }
 
     MikuPan_RmlTitleRequestVisible();
-    MikuPan_RmlTitleSetElementHidden(g_title.logo_group, false);
+    MikuPan_RmlTitleSetElementHidden(g_title.logo_group, MikuPan_IsJapaneseGameData());
     MikuPan_RmlTitleSetElementHidden(g_title.press_button, true);
     MikuPan_RmlTitleSetElementHidden(g_title.menu_panel, true);
     MikuPan_RmlTitleSetElementHidden(g_title.exit_dialog, false);
@@ -643,7 +643,7 @@ void MikuPan_RmlTitleApplyLanguage(int language)
 
     if (g_title.press_button != nullptr)
     {
-        g_title.press_button->SetInnerRML(MikuPan_Translate("Press Start"));
+        g_title.press_button->SetInnerRML(MikuPan_Translate("Press any key"));
     }
 
     if (g_title.exit_message != nullptr)

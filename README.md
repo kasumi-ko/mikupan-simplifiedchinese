@@ -1,4 +1,4 @@
-# MikuPan 简体中文版
+# MikuPan-SimplifiedChinese
 
 MikuPan 是《零～zero～ / Fatal Frame》的 PS2 至 PC 原生移植项目。本仓库基于 Mikompilation 的 MikuPan，为 Windows 提供日版游戏的简体中文适配。[上游仓库](https://github.com/Mikompilation/MikuPan)
 
@@ -10,9 +10,7 @@ MikuPan 是《零～zero～ / Fatal Frame》的 PS2 至 PC 原生移植项目。
 - 游戏资源读取已转换为日版 NTSC-J，对应游戏编号 `SLPS-25074`，光盘启动文件为 `SLPS_250.74`。
 - 为了正常显示简体中文，**必须使用非高汉化团制作的日版汉化 ISO**。本分支按该版本的字库、文字编码和资源布局适配。
 
-经测试，本简体中文适配版本已经可以完整体验游戏内容。
-
-本分支后续不再更新或维护。即使上游仓库继续更新，本分支也不会同步后续改动。
+当前版本为 **0.1.0 beta**，简中适配由 **kasumi-ko（霞詩@bilibili）**维护。主线以外的事件、动画和界面仍在回归验证中。[本项目仓库](https://github.com/kasumi-ko/mikupan-simplifiedchinese)
 
 ## 游戏文件
 
@@ -31,14 +29,14 @@ MikuPan/
 
 首次启动时，在游戏数据文件夹选择界面选中上述 `binary` 目录。后续可通过设置菜单中的游戏数据文件夹选项修改路径。
 
-首次运行会转换模型及二维纹理，并在配置目录生成 `IMG_TEX.BIN` 缓存。需要重新转换时，可删除该缓存后再次启动。
+首次运行会转换模型及二维纹理，并在配置目录生成 `IMG_TEX_JP.BIN` 缓存。需要重新转换时，可删除该缓存后再次启动。
 
 ## Windows 构建
 
 准备 Windows C/C++ 编译工具链、CMake 3.25 或更新版本、Ninja 和 Git。可使用 MinGW-w64 GCC，或在已配置 MSVC 开发环境的终端中构建。依赖由 CMake 配置过程自动获取。
 
 ```powershell
-git clone --branch mikupan-chinese https://github.com/kasumi-ko/mikupan-simplifiedchinese.git
+git clone --branch main https://github.com/kasumi-ko/mikupan-simplifiedchinese.git
 cd mikupan-simplifiedchinese
 
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_EU_VERSION=OFF

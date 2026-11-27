@@ -14,6 +14,7 @@
 #include "graphics/graph2d/g2d_main.h"
 #include "graphics/graph3d/sgdma.h"
 #include "graphics/graph3d/gra3d.h"
+#include "ingame/info/inf_disp.h"
 #include "os/eeiop/adpcm/ea_cmd.h"
 #include "mikupan/rendering/mikupan_baked_texture.h"
 #include "mikupan/rendering/mikupan_renderer.h"
@@ -79,6 +80,10 @@ static int MikuPan_TryInitializeGame(void)
     }
 
     MikuPanFonts::Prepare();
+    if (MikuPan_IsJapaneseGameData())
+    {
+        MikuPan_ApplyJapaneseMenuSpriteLayout();
+    }
 
     /// GAME LOGIC ///
     InitSystem();
@@ -114,6 +119,12 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
     if (event->type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED)
     {
         MikuPan_UpdateWindowSize(event->window.data1, event->window.data2);
+    }
+
+    if ((event->type == SDL_EVENT_KEY_DOWN && !event->key.repeat)
+        || event->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)
+    {
+        TitleHandlePressInput();
     }
 
     if (event->type == SDL_EVENT_GAMEPAD_REMOVED)

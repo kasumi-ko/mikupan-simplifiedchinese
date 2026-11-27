@@ -1,4 +1,5 @@
 #include "typedefs.h"
+#include "mikupan/mikupan_i18n.h"
 #include "mikupan_ui_cheats.h"
 
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
@@ -210,13 +211,13 @@ void MikuPan_UiInventoryCheatsMenu(void)
     static int all_menu_item_value = 1;
     int selected_film = plyr_wrk.film_no;
 
-    if (igMenuItem_Bool("Max Core Inventory", NULL, false, true))
+    if (igMenuItem_Bool(MikuPan_Translate("Max Core Inventory"), NULL, false, true))
     {
         MikuPan_CheatMaxCoreInventory();
     }
 
-    igSeparatorText("Film");
-    if (igSliderInt("Equipped Film", &selected_film, 1, 4, "Type index %d", 0))
+    igSeparatorText(MikuPan_Translate("Film"));
+    if (igSliderInt(MikuPan_Translate("Equipped Film"), &selected_film, 1, 4, "Type index %d", 0))
     {
         plyr_wrk.film_no = (u_char) selected_film;
     }
@@ -226,19 +227,19 @@ void MikuPan_UiInventoryCheatsMenu(void)
     MikuPan_UiInventoryItemSlider(3);
     MikuPan_UiInventoryItemSlider(4);
 
-    igSeparatorText("Supplies");
+    igSeparatorText(MikuPan_Translate("Supplies"));
     MikuPan_UiInventoryItemSlider(5);
     MikuPan_UiInventoryItemSlider(6);
     MikuPan_UiInventoryItemSlider(7);
     MikuPan_UiInventoryItemSlider(8);
     MikuPan_UiInventoryItemSlider(9);
 
-    if (igBeginMenu("All Menu Items", 1))
+    if (igBeginMenu(MikuPan_Translate("All Menu Items"), 1))
     {
         const int count = (int) (sizeof(item_sort) / sizeof(item_sort[0]));
 
-        igSliderInt("Value", &all_menu_item_value, 0, 99, "%d", 0);
-        if (igButton("Apply to Listed Items", ImVec2{0.0f, 0.0f}))
+        igSliderInt(MikuPan_Translate("Value"), &all_menu_item_value, 0, 99, "%d", 0);
+        if (igButton(MikuPan_Translate("Apply to Listed Items"), ImVec2{0.0f, 0.0f}))
         {
             MikuPan_CheatSetAllMenuItems(all_menu_item_value);
         }
@@ -262,19 +263,19 @@ void MikuPan_UiUnlockCheatsMenu(void)
     int costume = cribo.costume;
     int points = (int) cam_custom_wrk.point;
 
-    if (igMenuItem_Bool("All Unlocks", NULL, false, true))
+    if (igMenuItem_Bool(MikuPan_Translate("All Unlocks"), NULL, false, true))
     {
         MikuPan_CheatUnlockAll();
     }
 
-    if (igMenuItem_Bool("Unlock All Costumes", NULL, false, true))
+    if (igMenuItem_Bool(MikuPan_Translate("Unlock All Costumes"), NULL, false, true))
     {
         MikuPan_CheatUnlockAllCostumes();
         costume_flag = true;
         clear_count = ingame_wrk.clear_count;
     }
 
-    if (igCheckbox("Costume Unlock Flag", &costume_flag))
+    if (igCheckbox(MikuPan_Translate("Costume Unlock Flag"), &costume_flag))
     {
         if (costume_flag)
         {
@@ -287,25 +288,25 @@ void MikuPan_UiUnlockCheatsMenu(void)
         }
     }
 
-    if (igSliderInt("Clear Count", &clear_count, 0, 108, "%d", 0))
+    if (igSliderInt(MikuPan_Translate("Clear Count"), &clear_count, 0, 108, "%d", 0))
     {
         ingame_wrk.clear_count = (u_char) clear_count;
     }
 
-    if (igSliderInt("Selected Costume", &costume, 0, 3, "%d", 0))
+    if (igSliderInt(MikuPan_Translate("Selected Costume"), &costume, 0, 3, "%d", 0))
     {
         cribo.costume = (u_char) costume;
     }
 
-    igSeparatorText("Camera");
+    igSeparatorText(MikuPan_Translate("Camera"));
 
-    if (igMenuItem_Bool("Unlock Camera Menu", NULL, false, true))
+    if (igMenuItem_Bool(MikuPan_Translate("Unlock Camera Menu"), NULL, false, true))
     {
         MikuPan_CheatUnlockCameraMenu();
         camera_menu_flag = true;
     }
 
-    if (igCheckbox("Camera Menu Unlock Flag", &camera_menu_flag))
+    if (igCheckbox(MikuPan_Translate("Camera Menu Unlock Flag"), &camera_menu_flag))
     {
         if (camera_menu_flag)
         {
@@ -317,18 +318,18 @@ void MikuPan_UiUnlockCheatsMenu(void)
         }
     }
 
-    if (igMenuItem_Bool("Unlock Camera Abilities", NULL, false, true))
+    if (igMenuItem_Bool(MikuPan_Translate("Unlock Camera Abilities"), NULL, false, true))
     {
         MikuPan_CheatUnlockCameraAbilities();
     }
 
-    if (igMenuItem_Bool("Max Camera Upgrades", NULL, false, true))
+    if (igMenuItem_Bool(MikuPan_Translate("Max Camera Upgrades"), NULL, false, true))
     {
         MikuPan_CheatMaxCameraUpgrades();
         points = (int) cam_custom_wrk.point;
     }
 
-    if (igInputInt("Camera Points", &points, 1000, 10000, 0))
+    if (igInputInt(MikuPan_Translate("Camera Points"), &points, 1000, 10000, 0))
     {
         cam_custom_wrk.point = (u_long) MikuPan_ClampInt(points, 0, 9999999);
     }
@@ -336,16 +337,16 @@ void MikuPan_UiUnlockCheatsMenu(void)
 
 void MikuPan_UiCheatsRender(void)
 {
-    if (igBeginMenu("Cheats", 1))
+    if (igBeginMenu(MikuPan_Translate("Cheats"), 1))
     {
-        if (igMenuItem_Bool("Take Screenshot", "F12", false, true))
+        if (igMenuItem_Bool(MikuPan_Translate("Take Screenshot"), "F12", false, true))
         {
             MikuPan_ScreenshotRequest();
         }
 
         {
             int photo_mode = cheat_photo_mode;
-            if (igCheckbox("Photo Mode", (bool*) &photo_mode))
+            if (igCheckbox(MikuPan_Translate("Photo Mode"), (bool*) &photo_mode))
             {
                 MikuPan_CheatSetPhotoMode(photo_mode);
             }
@@ -353,13 +354,13 @@ void MikuPan_UiCheatsRender(void)
 
         igSeparator();
 
-        if (igBeginMenu("Inventory", 1))
+        if (igBeginMenu(MikuPan_Translate("Inventory"), 1))
         {
             MikuPan_UiInventoryCheatsMenu();
             igEndMenu();
         }
 
-        if (igBeginMenu("Unlocks", 1))
+        if (igBeginMenu(MikuPan_Translate("Unlocks"), 1))
         {
             MikuPan_UiUnlockCheatsMenu();
             igEndMenu();
@@ -367,7 +368,7 @@ void MikuPan_UiCheatsRender(void)
 
         igSeparator();
 
-        igCheckbox("Tofu Mode", (bool*) &cheat_tofu_mode);
+        igCheckbox(MikuPan_Translate("Tofu Mode"), (bool*) &cheat_tofu_mode);
         igColorEdit3("Tofu Color", cheat_tofu_color, 0);
 
         igEndMenu();

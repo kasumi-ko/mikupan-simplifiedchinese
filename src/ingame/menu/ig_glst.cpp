@@ -13,6 +13,7 @@
 #include "ingame/menu/ig_menu.h"
 #include "ingame/menu/item.h"
 #include "main/glob.h"
+#include "mikupan/io/mikupan_file.h"
 #include "os/eeiop/cdvd/eecdvd.h"
 #include "os/eeiop/eese.h"
 
@@ -927,6 +928,12 @@ void DispGlistPhoto(u_int line, u_char alpha)
 {
     u_int id;
 
+    if (line >= GetGlistAllNum())
+    {
+        return;
+    }
+
+    const bool japanese = MikuPan_IsJapaneseGameData();
     switch(glist_order[line].knd)
     {
     case 1:
@@ -934,19 +941,24 @@ void DispGlistPhoto(u_int line, u_char alpha)
         id = M000_DMY_TM2 + glist_order[line].mdl_no;
     break;
     case 3:
-        id = M033_LIST_TM2 + line;
+        id = japanese ? M000_DMY_TM2 + glist_order[line].mdl_no : M033_LIST_TM2 + line;
     break;
     case 4:
 #ifdef BUILD_EU_VERSION
         id = ITEM_26_TM2 + glist_order[line].no;
 #else
-        id = STG16TTL_PK2 + glist_order[line].no;
+        id = (japanese ? PL_LIFE_PK2 : STG16TTL_PK2) + glist_order[line].no;
 #endif
     break;
     case 5:
     default:
-        id = M006_LIST_TM2 + glist_order[line].no;
+        id = (japanese ? REA_21_PK2 : M006_LIST_TM2) + glist_order[line].no;
     break;
+    }
+
+    if (japanese && GetImgArrangementP(id)->size == 0)
+    {
+        return;
     }
 
     switch (glist_photo.mode)

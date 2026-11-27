@@ -13,7 +13,9 @@
 #include "ingame/info/inf_disp.h"
 #include "mikupan/io/mikupan_file.h"
 #include "mikupan/io/mikupan_controller.h"
+#include "mikupan/mikupan_config.h"
 #include "mikupan/mikupan_memory.h"
+#include "mikupan/mikupan_i18n.h"
 #include "mikupan/rendering/mikupan_gl_compat.h"
 #include "os/eeiop/cdvd/eecdvd.h"
 
@@ -1265,11 +1267,14 @@ struct MikuPanRmlFontFace
 {
     const char* relative_path = nullptr;
     const char* family = nullptr;
+    Rml::Style::FontWeight weight = Rml::Style::FontWeight::Normal;
+    bool fallback = false;
 };
 
 static constexpr MikuPanRmlFontFace kRmlFontFaces[] = {
     {"resources/fonts/CenturyOldStyle.ttf", "MikuPanRml"},
     {"resources/fonts/URW Chancery L Medium Italic U.ttf", "MikuPanRmlZapf"},
+    {MIKUPAN_WENKAI_FONT_PATH, "MikuPanRmlWenKai", Rml::Style::FontWeight::Normal, true},
 };
 
 static constexpr int kRmlFontFaceCount =
@@ -1284,6 +1289,7 @@ struct MikuPanRmlState
     std::array<std::vector<Rml::byte>, kRmlFontFaceCount> font_data;
     std::array<MikuPanRmlPadActionState, MIKUPAN_RML_PAD_COUNT> pad_actions;
     bool pointer_input_active = true;
+    bool has_wenkai = false;
     bool initialized = false;
 };
 
@@ -1380,7 +1386,7 @@ void UpdateContextDimensions(void)
      */
     const float scale_x = static_cast<float>(viewport_w) / 640.0f;
     const float scale_y = static_cast<float>(viewport_h) / 448.0f;
-    const float dp_ratio = std::max(0.75f, std::min(scale_x, scale_y));
+    const float dp_ratio = std::min(scale_x, scale_y);
     g_rml.context->SetDensityIndependentPixelRatio(dp_ratio);
 }
 
@@ -1414,16 +1420,26 @@ bool LoadFontFace(int index)
         Rml::Span<const Rml::byte>(font_data.data(), font_data.size()),
         kRmlFontFaces[index].family,
         Rml::Style::FontStyle::Normal,
-        Rml::Style::FontWeight::Normal);
+        kRmlFontFaces[index].weight,
+        kRmlFontFaces[index].fallback);
 }
 
 bool LoadFont(void)
 {
-    for (int i = 0; i < kRmlFontFaceCount; i++)
+    for (int i = 0; i < kRmlFontFaceCount - 1; i++)
     {
         if (!LoadFontFace(i))
         {
             return false;
+        }
+    }
+
+    g_rml.has_wenkai = LoadFontFace(kRmlFontFaceCount - 1);
+    if (!g_rml.has_wenkai)
+    {
+        if (const char *chinese_font = MikuPan_GetChineseUiFont())
+        {
+            Rml::LoadFontFace(chinese_font, true);
         }
     }
 
@@ -2022,54 +2038,8 @@ void MikuPan_RmlUiInit(SDL_Window* window)
         return;
     }
 
-    int width = 1;
-    int height = 1;
-    SDL_GetWindowSizeInPixels(window, &width, &height);
-    width = std::max(width, 1);
-    height = std::max(height, 1);
-    int render_width = MikuPan_GetRenderResolutionWidth();
-    int render_height = MikuPan_GetRenderResolutionHeight();
-    render_width = std::max(render_width, 1);
-    render_height = std::max(render_height, 1);
-
-    const float target_aspect =
-        static_cast<float>(render_width) / static_cast<float>(render_height);
-    const float window_aspect =
-        static_cast<float>(width) / static_cast<float>(height);
-    int viewport_x = 0;
-    int viewport_y = 0;
-    int viewport_w = width;
-    int viewport_h = height;
-    if (window_aspect > target_aspect)
-    {
-        viewport_h = height;
-        viewport_w = static_cast<int>(static_cast<float>(height) * target_aspect);
-        viewport_x = (width - viewport_w) / 2;
-    }
-    else
-    {
-        viewport_w = width;
-        viewport_h = static_cast<int>(static_cast<float>(width) / target_aspect);
-        viewport_y = (height - viewport_h) / 2;
-    }
-    viewport_w = std::max(viewport_w, 1);
-    viewport_h = std::max(viewport_h, 1);
-    g_rml.render_interface->SetWindowMetrics(width,
-                                             height,
-                                             viewport_x,
-                                             viewport_y,
-                                             viewport_w,
-                                             viewport_h);
-
-    g_rml.context = Rml::CreateContext(
-        "mikupan", Rml::Vector2i(viewport_w, viewport_h));
-    if (g_rml.context != nullptr)
-    {
-        const float scale_x = static_cast<float>(viewport_w) / 640.0f;
-        const float scale_y = static_cast<float>(viewport_h) / 448.0f;
-        const float dp_ratio = std::max(0.75f, std::min(scale_x, scale_y));
-        g_rml.context->SetDensityIndependentPixelRatio(dp_ratio);
-    }
+    g_rml.context = Rml::CreateContext("mikupan", Rml::Vector2i(1, 1));
+    UpdateContextDimensions();
     if (g_rml.context == nullptr || !LoadFont()
         || !MikuPan_RmlOptionsInit(g_rml.context))
     {
@@ -2105,6 +2075,12 @@ void MikuPan_RmlUiStartFrame(void)
     }
 
     UpdateContextDimensions();
+    const bool use_wenkai = g_rml.has_wenkai
+        && mikupan_configuration.selected_font == MIKUPAN_UI_FONT_WENKAI;
+    for (int i = 0; i < g_rml.context->GetNumDocuments(); ++i)
+    {
+        g_rml.context->GetDocument(i)->SetClass("font-wenkai", use_wenkai);
+    }
     UpdateMikuPanItemIconAssets();
     MikuPan_RmlOptionsStartFrame();
     MikuPan_RmlSaveLoadStartFrame();

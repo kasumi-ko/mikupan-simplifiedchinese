@@ -19,8 +19,8 @@ msgstr "Options"
 msgid "Exit Game"
 msgstr "Quitter"
 
-msgid "Press Start"
-msgstr "Appuyez sur Start"
+msgid "Press any key"
+msgstr "Appuyez sur une touche"
 
 msgid "Exit the game?"
 msgstr "Quitter le jeu ?"

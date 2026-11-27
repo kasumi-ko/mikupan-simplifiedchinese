@@ -153,6 +153,7 @@ typedef struct {
 } JET_SET;
 
 extern SPRT_DAT spr_dat[];
+void MikuPan_ApplyJapaneseMenuSpriteLayout();
 extern short unsigned int flip_table[];
 // extern float NC_ADJ;
 // extern SPRT_DAT raze_sprt;

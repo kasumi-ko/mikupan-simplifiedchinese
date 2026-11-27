@@ -1,4 +1,5 @@
 #include "mikupan_ui_saves.h"
+#include "mikupan/mikupan_i18n.h"
 #include "typedefs.h"
 
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
@@ -83,6 +84,7 @@ void MikuPan_RenderUi(void)
 void MikuPan_StartFrameUi(void)
 {
     MikuPan_ImGui_ImplNewFrame();
+    MikuPan_UiThemeUpdateScale(ui_window);
     igNewFrame();
     MikuPan_RmlUiStartFrame();
 }
@@ -112,7 +114,7 @@ void MikuPan_DrawMissingDataUi(const char *missing_file)
         ImGuiCond_Always,
         ImVec2{0.5f, 0.5f});
     igSetNextWindowSize(ImVec2{width, height}, ImGuiCond_Always);
-    if (!igBegin("Game Data Required", NULL,
+    if (!igBegin(MikuPan_Translate("Game Data Required"), NULL,
                  ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize
                  | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
     {
@@ -120,14 +122,14 @@ void MikuPan_DrawMissingDataUi(const char *missing_file)
         return;
     }
 
-    igTextWrapped("MikuPan needs the Fatal Frame disc data before it can start.");
+    igTextWrapped("%s", MikuPan_Translate("MikuPan needs the Fatal Frame disc data before it can start."));
     igSpacing();
-    igText("Missing: %s", file);
+    igText(MikuPan_Translate("Missing: %s"), file);
     igSpacing();
-    igTextWrapped("Select the folder that contains IMG_HD.BIN and IMG_BD.BIN. Extracted files are optional and will be used when present.");
+    igTextWrapped("%s", MikuPan_Translate("Select the folder that contains IMG_HD.BIN and IMG_BD.BIN."));
     igSpacing();
 
-    if (igButton("Select Folder", ImVec2{160.0f * scale, 0.0f}))
+    if (igButton(MikuPan_Translate("Select Folder"), ImVec2{160.0f * scale, 0.0f}))
     {
         MikuPan_RequestDataFolderSelection(file);
     }
@@ -149,7 +151,7 @@ void MikuPan_DrawTextureBakeUi(void)
         ImGuiCond_Always,
         ImVec2{0.5f, 0.5f});
     igSetNextWindowSize(ImVec2{520.0f * scale, 0.0f}, ImGuiCond_Always);
-    if (!igBegin(failed ? "Texture Preparation Failed" : "Preparing Textures",
+    if (!igBegin(MikuPan_Translate(failed ? "Texture Preparation Failed" : "Preparing Textures"),
                  NULL,
                  ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize
                  | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
@@ -160,23 +162,21 @@ void MikuPan_DrawTextureBakeUi(void)
 
     if (failed)
     {
-        igTextWrapped("MikuPan could not prepare the textures from the game "
-                      "data:");
+        igTextWrapped("%s", MikuPan_Translate("MikuPan could not prepare the textures from the game data."));
         igSpacing();
         igTextWrapped("%s", MikuPan_BakedTexture_GetError());
         igSpacing();
 
-        if (igButton("Retry", ImVec2{160.0f * scale, 0.0f}))
+        if (igButton(MikuPan_Translate("Retry"), ImVec2{160.0f * scale, 0.0f}))
         {
             MikuPan_BakedTexture_Retry();
         }
     }
     else
     {
-        igTextWrapped("MikuPan is converting the textures of the game data. "
-                      "This happens once and takes a few seconds.");
+        igTextWrapped("%s", MikuPan_Translate("MikuPan is preparing textures for the first launch."));
         igSpacing();
-        igText("%s", strcmp(stage, "verify") == 0 ? "Checking" : "Converting");
+        igText("%s", MikuPan_Translate(strcmp(stage, "verify") == 0 ? "Checking" : "Converting"));
         igProgressBar(progress, ImVec2{-1.0f, 0.0f}, NULL);
     }
 
@@ -284,23 +284,16 @@ void MikuPan_UiMenuBar(void)
     MikuPan_UiDebugMenuRender();
     MikuPan_UiCheatsRender();
 
-    if (igBeginMenu("Info", 1))
+    if (igBeginMenu(MikuPan_Translate("Info"), 1))
     {
-        igText("MikuPan");
+        igTextUnformatted(MIKUPAN_PROJECT_NAME, NULL);
         igSeparator();
-        igText("Tag:      %s", MIKUPAN_GIT_TAG);
-        igText("Commit:   %s", MIKUPAN_GIT_COMMIT);
-        igText("Version:  %s", MIKUPAN_GIT_DESCRIBE);
-        igText("Branch:   %s", MIKUPAN_GIT_BRANCH);
-        igText("Built:    %s", MIKUPAN_BUILD_DATE);
-
-        igSeparator();
-        char version_line[256];
-        snprintf(version_line, sizeof(version_line), "%s (%s)",
-                 MIKUPAN_GIT_DESCRIBE, MIKUPAN_GIT_COMMIT);
-        if (igButton("Copy version to clipboard", ImVec2{0.0f, 0.0f}))
+        igText(MikuPan_Translate("Version: %s"), MIKUPAN_DISPLAY_VERSION);
+        igText(MikuPan_Translate("Author: %s"), MIKUPAN_AUTHOR);
+        igTextLinkOpenURL(MikuPan_Translate("GitHub repository"), MIKUPAN_REPOSITORY_URL);
+        if (igButton(MikuPan_Translate("Copy version to clipboard"), ImVec2{0.0f, 0.0f}))
         {
-            igSetClipboardText(version_line);
+            igSetClipboardText(MIKUPAN_DISPLAY_VERSION);
         }
 
         igEndMenu();

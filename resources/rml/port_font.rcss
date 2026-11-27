@@ -1,0 +1,28 @@
+body.font-wenkai,
+body.font-wenkai .mode-select-film-title,
+body.font-wenkai .mode-select-main-label,
+body.font-wenkai .mode-select-story-label,
+body.font-wenkai .mode-select-story-selector,
+body.font-wenkai .mode-select-story-action,
+body.font-wenkai .mode-select-story-bracket,
+body.font-wenkai .mode-select-story-value,
+body.font-wenkai .mode-select-story-arrow-glyph,
+body.font-wenkai #mode-select-message-text,
+body.font-wenkai #title,
+body.font-wenkai #panel-title,
+body.font-wenkai #save-load-title,
+body.font-wenkai .save-list-item,
+body.font-wenkai #save-load-exit,
+body.font-wenkai #save-load-confirm-buttons .save-load-confirm-button,
+body.font-wenkai .save-point-option,
+body.font-wenkai .save-point-confirm-button,
+body.font-wenkai .title-bottom-text,
+body.font-wenkai .title-menu-button,
+body.font-wenkai #title-exit-message,
+body.font-wenkai #title-exit-buttons .title-exit-button,
+body.font-wenkai #title-build-info,
+body.font-wenkai #title-copyright
+{
+    font-family: MikuPanRmlWenKai;
+    font-weight: normal;
+}

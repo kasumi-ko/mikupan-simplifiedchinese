@@ -53,6 +53,7 @@ void IngameMenuMain();
 void IngameMenuModeSlct();
 int Get4Byte(u_char *addr);
 int64_t GetIngameMSGAddr(u_char type, int msg_no);
+int64_t GetIngameMSGAddrInGroup(u_char type, int group, int msg_no);
 void IngameMenuModeSlctDispInit();
 void IngameMenuModeSlctDisp();
 void DspTopMenu(short int pos_x, short int pos_y, short int alpha, u_short anm);

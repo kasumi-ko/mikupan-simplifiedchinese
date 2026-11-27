@@ -1,9 +1,13 @@
 #include "mikupan_i18n.h"
 
 #include "mikupan/io/mikupan_file.h"
+#include "mikupan/mikupan_config.h"
 #include "mikupan/mikupan_utils.h"
 
 #include <array>
+#include <cstring>
+#include <cstdlib>
+#include <filesystem>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -13,18 +17,26 @@ namespace
 
 /* Index matches MikuPan_GetUiLanguage(): 0=EN, 1=FR, 2=DE, 3=ES, 4=IT.
  * English has no .po file - MikuPan_Translate falls back to msgid for it. */
-constexpr const char *kLanguagePoFile[5] = {
+constexpr int kChinese = 5;
+constexpr size_t kLanguageCount = 6;
+constexpr const char *kLanguagePoFile[kLanguageCount] = {
     nullptr,
     "resources/lang/fr.po",
     "resources/lang/de.po",
     "resources/lang/es.po",
     "resources/lang/it.po",
+    "resources/lang/zh-Hans.po",
 };
 
 using TranslationTable = std::unordered_map<std::string, std::string>;
 
-std::array<TranslationTable, 5> g_translations;
-std::array<bool, 5> g_translations_loaded = {};
+std::array<TranslationTable, kLanguageCount> g_translations;
+std::array<bool, kLanguageCount> g_translations_loaded = {};
+
+bool UsesChineseUi()
+{
+    return std::strcmp(mikupan_configuration.ui_language, "zh-Hans") == 0;
+}
 
 std::string UnescapePoString(const std::string &raw)
 {
@@ -226,8 +238,8 @@ const char *MikuPan_Translate(const char *msgid)
         return msgid;
     }
 
-    const int lang = MikuPan_GetUiLanguage();
-    if (lang < 0 || lang >= 5 || kLanguagePoFile[lang] == nullptr)
+    const int lang = UsesChineseUi() ? kChinese : MikuPan_GetUiLanguage();
+    if (lang < 0 || size_t(lang) >= kLanguageCount || kLanguagePoFile[lang] == nullptr)
     {
         return msgid;
     }
@@ -243,9 +255,49 @@ const char *MikuPan_Translate(const char *msgid)
 
 void MikuPan_TranslationsReset(void)
 {
-    for (int i = 0; i < 5; i++)
+    for (size_t i = 0; i < kLanguageCount; i++)
     {
         g_translations[i].clear();
         g_translations_loaded[i] = false;
     }
+}
+
+const char *MikuPan_GetChineseUiFont(void)
+{
+    if (!UsesChineseUi())
+    {
+        return nullptr;
+    }
+
+    namespace fs = std::filesystem;
+    static const std::string font = []() -> std::string {
+#ifdef _WIN32
+        const char *windows_dir = std::getenv("WINDIR");
+        if (windows_dir != nullptr)
+        {
+            const fs::path fonts = fs::path(windows_dir) / "Fonts";
+            for (const char *name : {"Deng.ttf", "msyh.ttc", "simhei.ttf"})
+            {
+                const fs::path path = fonts / name;
+                std::error_code error;
+                if (fs::is_regular_file(path, error))
+                {
+                    return path.generic_string();
+                }
+            }
+        }
+#endif
+        char fallback[1024];
+        if (MikuPan_ResolveBasePath("resources/fonts/NotoSansSC-Regular.ttf",
+                                    fallback, sizeof(fallback)))
+        {
+            std::error_code error;
+            if (fs::is_regular_file(fallback, error))
+            {
+                return fallback;
+            }
+        }
+        return {};
+    }();
+    return font.empty() ? nullptr : font.c_str();
 }

@@ -20,6 +20,7 @@
 #include "mikupan/io/mikupan_controller.h"
 #include "mikupan/mikupan_memory.h"
 #include "mikupan/mikupan_utils.h"
+#include "mikupan/rendering/mikupan_font_textures.h"
 #include "mikupan/rendering/mikupan_gpu.h"
 #include "mikupan/rendering/mikupan_renderer.h"
 #include "mikupan/ui/mikupan_ui.h"
@@ -1463,48 +1464,50 @@ static void DspLayOut(short int pos_x, short int pos_y, u_char alpha)
 #endif
     PutSpriteYW(MAP_FNT_ZOOM, MAP_FNT_MOOV, pos_x, pos_y + 30, 0.0f, 0x808080, alpha, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
 
-    DrawButtonTex(0x1e000, 1, pos_x + 475, pos_y + 25, alpha);
+    if (!MikuPanFonts::UsesChineseGlyphGrid())
+    {
+        DrawButtonTex(0x1e000, 1, pos_x + 475, pos_y + 25, alpha);
 
-#ifdef BUILD_EU_VERSION
-#else
-    ssd = spr_dat[MAP_FNT_DOT1];
+#ifndef BUILD_EU_VERSION
+        ssd = spr_dat[MAP_FNT_DOT1];
 
-    CopySprDToSpr(&ds, &ssd);
+        CopySprDToSpr(&ds, &ssd);
 
-    ds.x = 514.0f;
-    ds.y = 35.0f;
+        ds.x = 514.0f;
+        ds.y = 35.0f;
 
-    ds.pri = 0xa000;
-    ds.z = 0xfffffff - ds.pri;
+        ds.pri = 0xa000;
+        ds.z = 0xfffffff - ds.pri;
 
-    ds.alpha = alpha;
+        ds.alpha = alpha;
 
-    DispSprD(&ds);
+        DispSprD(&ds);
 #endif
 
-    ssd = spr_dat[MNU_GRB_CAP_EXIT];
+        ssd = spr_dat[MNU_GRB_CAP_EXIT];
 
-    CopySprDToSpr(&ds, &ssd);
+        CopySprDToSpr(&ds, &ssd);
 
-    ds.pri = 0xa000;
-    ds.z = 0xfffffff - ds.pri;
+        ds.pri = 0xa000;
+        ds.z = 0xfffffff - ds.pri;
 
 #ifdef BUILD_EU_VERSION
-    ds.x = 524.0f;
+        ds.x = 524.0f;
 #else
-    ds.scw = 0.9f;
-    ds.sch = 1.0f;
+        ds.scw = 0.9f;
+        ds.sch = 1.0f;
 
-    ds.csx = 548.0f;
-    ds.csy = 22.0f;
+        ds.csx = 548.0f;
+        ds.csy = 22.0f;
 
-    ds.x = 548.0f;
+        ds.x = 548.0f;
 #endif
-    ds.y = 22.0f;
+        ds.y = 22.0f;
 
-    ds.alpha = alpha;
+        ds.alpha = alpha;
 
-    DispSprD(&ds);
+        DispSprD(&ds);
+    }
 
     if (map.visit_flr > 1)
     {

@@ -3,12 +3,14 @@
 #include "enums.h"
 #include "graphics/graph2d/compress.h"
 #include "graphics/graph2d/message.h"
+#include "graphics/graph2d/tim2.h"
 #include "ingame/menu/ig_file.h"
 #include "ingame/menu/ig_menu.h"
 #include "ingame/menu/item.h"
 #include "ingame/photo/photo.h"
 #include "ingame/photo/pht_make.h"
 #include "main/glob.h"
+#include "mikupan/io/mikupan_file.h"
 #include "mikupan/mikupan_memory.h"
 #include "os/eeiop/eese.h"
 #include "typedefs.h"
@@ -1078,6 +1080,7 @@ static void IngameAlbumMenuDsp(u_char *csr0, u_char *csr1, u_char *pic, u_char *
     short int smx;
     short int smy;
     short int mnx;
+    const bool japanese = MikuPan_IsJapaneseGameData();
 
     if (ingame_wrk.clear_count != 0)
     {
@@ -1085,7 +1088,7 @@ static void IngameAlbumMenuDsp(u_char *csr0, u_char *csr1, u_char *pic, u_char *
         {
             if (*csr1 != 0xff)
             {
-                DrawMessageBox(0xa000, 26.0f, 163.0f, 585.0f, 80.0f, 0x80);
+                DrawMessageBox(0xa000, 26.0f, 163.0f, 585.0f, 80.0f, 0x80, japanese);
 
                 if (pfile_wrk.pic[*pic].status & 0x2)
                 {
@@ -1096,12 +1099,16 @@ static void IngameAlbumMenuDsp(u_char *csr0, u_char *csr1, u_char *pic, u_char *
                     PutStringYW(IGMSG_MENU_ALBUM, 1, 48, 179, 0x808080, 0x80, 0x5000, 0);
                 }
 
-                PutStringYW(IGMSG_MENU_ALBUM, 4, 48, 205, 0x808080, 0x80, 0x5000, 0);
+                if (PutChineseChoiceMessageYW(IGMSG_MENU_ALBUM, 4, *csr1, 48, 205, 0x80, 0x5000))
+                    return;
+
+                PutStringYW(IGMSG_MENU_ALBUM, 4, japanese ? 64 : 48, 205, 0x808080, 0x80, 0x5000, 0);
 
 #ifdef BUILD_EU_VERSION
                 YesNoCrslOKR(0xa000, *csr1 * 132 + 178, 203.0f, 0x808080, 128.0f, 2.0f);
 #else
-                YesNoCrslOKR(0xa000, *csr1 * 132 + 178, 201.0f, 0x808080, 128.0f, 2.0f);
+                YesNoCrslOKR(0xa000, japanese ? *csr1 * 105 + 211 : *csr1 * 132 + 178,
+                             japanese ? 203.0f : 201.0f, 0x808080, 128.0f, japanese ? 1.5f : 2.0f);
 #endif
 
                 return;
@@ -1129,6 +1136,22 @@ static void IngameAlbumMenuDsp(u_char *csr0, u_char *csr1, u_char *pic, u_char *
             }
         break;
         case ALBM_MODE_LST:
+            if (japanese)
+            {
+                constexpr short command_x = 552;
+                constexpr short command_y = 64;
+                if (*csr1 != 0xff && (*csr0 == NRM_ALBM_CMD_MODE || *csr0 == NRM_ALBM_CMD_SORT))
+                {
+                    DspSideMenu(*csr0, *csr1, *mode, command_x, command_y, 0x80);
+                }
+                else
+                {
+                    albm_wrk.smenu_tmr = 0;
+                    albm_wrk.menu_csr_bak = 0xff;
+                    DspMainMenu(*csr0, *csr1, *mode, command_x, command_y, 0x80);
+                }
+                return;
+            }
             mmx = 485;
             mmy = 54;
             smx = mmx - 120;
@@ -1152,7 +1175,7 @@ static void IngameAlbumMenuDsp(u_char *csr0, u_char *csr1, u_char *pic, u_char *
     {
         if (*csr1 != 0xff)
         {
-            DrawMessageBox(0xa000, 26.0f, 163.0f, 585.0f, 80.0f, 0x80);
+            DrawMessageBox(0xa000, 26.0f, 163.0f, 585.0f, 80.0f, 0x80, japanese);
 
             if (pfile_wrk.pic[*pic].status & 0x2)
             {
@@ -1163,9 +1186,13 @@ static void IngameAlbumMenuDsp(u_char *csr0, u_char *csr1, u_char *pic, u_char *
                 PutStringYW(IGMSG_MENU_ALBUM, 1, 48, 179, 0x808080, 0x80, 0x5000, 0);
             }
 
-            PutStringYW(IGMSG_MENU_ALBUM, 4, 48, 205, 0x808080, 0x80, 0x5000, 0);
+            if (PutChineseChoiceMessageYW(IGMSG_MENU_ALBUM, 4, *csr1, 48, 205, 0x80, 0x5000))
+                return;
 
-            YesNoCrslOKR(0xa000, *csr1 * 132 + 184, 203.0f, 0x808080, 128.0f, 2.0f);
+            PutStringYW(IGMSG_MENU_ALBUM, 4, japanese ? 64 : 48, 205, 0x808080, 0x80, 0x5000, 0);
+
+            YesNoCrslOKR(0xa000, japanese ? *csr1 * 105 + 211 : *csr1 * 132 + 184,
+                         203.0f, 0x808080, 128.0f, japanese ? 1.5f : 2.0f);
 
             return;
         }
@@ -1210,13 +1237,9 @@ void IngameAlbumDisp(u_char csr, u_char csr_top, u_char mode, char is_outgame)
     {
         DrawAlbum(csr, csr_top, mode, 0);
 
-        if (mode == ALBM_MODE_BIG)
+        if (!MikuPan_IsJapaneseGameData())
         {
-            DispCaption(11, yw2d.io_a[4]);
-        }
-        else
-        {
-            DispCaption(10, yw2d.io_a[4]);
+            DispCaption(mode == ALBM_MODE_BIG ? 11 : 10, yw2d.io_a[4]);
         }
     }
     else
@@ -1481,6 +1504,26 @@ u_char* GetSubjectNameAddr(u_short kind, u_short no, u_short show)
 {
     int *addr;
 
+    if (MikuPan_IsJapaneseGameData())
+    {
+        if (kind >= 1 && kind <= 3 && show < 5)
+        {
+            return reinterpret_cast<u_char*>(
+                GetIngameMSGAddrInGroup(IGMSG_ENE_NAME, (kind - 1) * 5 + show, no));
+        }
+        if (kind == 4)
+        {
+            return reinterpret_cast<u_char*>(GetIngameMSGAddr(IGMSG_FURN_NAME, no));
+        }
+        if (kind == 5)
+        {
+            return reinterpret_cast<u_char*>(no < 0x80
+                ? GetIngameMSGAddr(IGMSG_RARE_NAME, no)
+                : GetIngameMSGAddr(IGMSG_PZL_NAME, no - 0x80));
+        }
+        return reinterpret_cast<u_char*>(GetIngameMSGAddr(IGMSG_MENU_ALBUM, 3));
+    }
+
     switch(kind)
     {
     case 0:
@@ -1537,7 +1580,7 @@ u_char* GetSubjectNameAddr(u_short kind, u_short no, u_short show)
     break;
     }
 
-    // missing return!
+    return (u_char *)GetIngameMSGAddr(IGMSG_MENU_ALBUM, 3);
 }
 
 static void IngameAlbumSort()
@@ -1758,7 +1801,6 @@ static void DspMenuWin(u_char type, u_char csr, u_char mode, short int pos_x, sh
     short int mode_char;
     short int char_posy;
     int rgb;
-    int j; // not in STAB
     int y_off_1;
     int y_off_2;
     int v_off;
@@ -1820,14 +1862,7 @@ static void DspMenuWin(u_char type, u_char csr, u_char mode, short int pos_x, sh
         PutSpriteYW(MNU_MAIN_BASE_VAT4, MNU_MAIN_BASE_VAT4_B, pos_x + 17, pos_y + 105 + pos_v, 0.0f, 0x808080, alp2, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
         PutSpriteYW(MNU_MAIN_BASE_VAT4, MNU_MAIN_BASE_VAT4_B, pos_x + 108, pos_y + 105 - pos_v, 0.0f, 0x808080, alp2, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
 
-        if (mode == ALBM_MODE_ALL)
-        {
-            mode_char = 300;
-        }
-        else if (mode == ALBM_MODE_LST)
-        {
-            mode_char = 299;
-        }
+        mode_char = mode == ALBM_MODE_ALL ? PHT_DETAILS_ACT : PHT_ALL_ACT;
 
         switch (csr)
         {
@@ -1898,9 +1933,7 @@ static void DspMenuWin(u_char type, u_char csr, u_char mode, short int pos_x, sh
 
         for (i = 0; i < 3; i++)
         {
-            j = i + 1;
-
-            mode_char = (mode + j) % 3 + 299;
+            mode_char = PHT_ALL_ACT + (mode + i + 1) % 3;
             char_posy = pos_y + i * 38;
 
             if (i == csr)
@@ -1948,6 +1981,23 @@ static void DspMenuWin(u_char type, u_char csr, u_char mode, short int pos_x, sh
     }
 }
 
+static void DrawJapanesePhotoInfoLabel(float x, float y, short alpha, float second_y)
+{
+    static SPRT_DAT glyphs[] = {
+        {0x2005efa55940af79, 1, 1, 24, 24, 0, 0, 163840, 128},
+        {0x2005efa55940af79, 27, 1, 24, 24, 0, 24, 163840, 128},
+    };
+    for (int i = 0; i < 2; ++i)
+    {
+        DISP_SPRT sprite;
+        CopySprDToSpr(&sprite, &glyphs[i]);
+        sprite.x = x - i;
+        sprite.y = y + (i == 1 ? second_y : 0.0f);
+        sprite.alpha = alpha;
+        DispSprD(&sprite);
+    }
+}
+
 static void DspDetail(u_char csr, short int pos_x, short int pos_y, short int alpha, u_char dsp)
 {
     int i;
@@ -1961,11 +2011,15 @@ static void DspDetail(u_char csr, short int pos_x, short int pos_y, short int al
     };
     int width;
 
+    const bool japanese = MikuPan_IsJapaneseGameData();
     if (dsp == 0 || dsp == 1)
     {
         CmnWindow(5, pos_x, pos_y, alpha, 0x80);
 
-        PutSpriteYW(PHT_FNT_JOHO, PHT_FNT_JOHO, 15.0f, 332.0f, -90.0f, 0x808080, alpha, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
+        if (japanese)
+            DrawJapanesePhotoInfoLabel(29.0f, 287.0f, alpha, 86.0f);
+        else
+            PutSpriteYW(PHT_FNT_JOHO, PHT_FNT_JOHO, 15.0f, 332.0f, -90.0f, 0x808080, alpha, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
         PutSpriteYW(PHT_MNU_FNT_TARGET, PHT_MNU_FNT_POINT, pos_x, pos_y, 0.0f, 0x505050, alpha, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
 
         if (csr < pfile_wrk.pic_num)
@@ -2009,7 +2063,7 @@ static void DspDetail(u_char csr, short int pos_x, short int pos_y, short int al
 
                         CopyStrDToStr(&disp_str, &ig_menu_str);
 
-                        disp_str.pos_x = (pos_x + 482) - (width / 2);
+                        disp_str.pos_x = japanese ? pos_x + 380 : (pos_x + 482) - (width / 2);
                         disp_str.pos_y = obj_py[obj_num][i] + 267 + pos_y;
 
                         disp_str.r = 0x80;
@@ -2025,20 +2079,53 @@ static void DspDetail(u_char csr, short int pos_x, short int pos_y, short int al
             }
             else
             {
-                PutStringYW(IGMSG_MENU_ALBUM, 3, (u_short)pos_x + 452, obj_py[0][0] + 267 + pos_y, 0x808080, alpha, 0x28000, 0);
+                PutStringYW(IGMSG_MENU_ALBUM, 3, pos_x + (japanese ? 440 : 452), obj_py[0][0] + 267 + pos_y, 0x808080, alpha, 0x28000, 0);
             }
+        }
+
+        if (csr >= pfile_wrk.pic_num)
+        {
+            return;
         }
 
         PutDate(pfile_wrk.pic + csr, pos_x + 0x172, pos_y + 0x154, alpha, 0x28000);
 
-        PutStringYW(IGMSG_ROOM_NAME, pfile_wrk.pic[csr].room, pos_x + 482, pos_y + 371, 0x808080, alpha, 0x28000, 1);
-        PutNumberYW(0, pfile_wrk.pic[csr].score, pos_x + 421, pos_y + 399, 1.0f, 1.0f, 0x808080, alpha, 0x28000, 7, 0);
+        PutStringYW(IGMSG_ROOM_NAME, pfile_wrk.pic[csr].room, pos_x + (japanese ? 385 : 482),
+                    pos_y + (japanese ? 369 : 371), 0x808080, alpha, 0x28000, japanese ? 0 : 1);
+        PutNumberYW(0, pfile_wrk.pic[csr].score, pos_x + 421, pos_y + (japanese ? 397 : 399),
+                    1.0f, 1.0f, 0x808080, alpha, 0x28000, 7, 0);
     }
 }
 
 static void DspNotice(short int pos_x, short int pos_y, short int alpha, u_char now, u_char max, u_char btn)
 {
-    return;
+    if (!MikuPan_IsJapaneseGameData())
+    {
+        return;
+    }
+
+    if (ingame_wrk.clear_count != 0)
+    {
+        PutSpriteYW(PHT_LIST_BASE11, PHT_LIST_BASE12, pos_x + 33, pos_y, 0.0f,
+                    0x808080, alpha, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
+        const int sort_label = PHT_FNT_DATE + pfile_wrk.sort_key;
+        PutSpriteYW(sort_label, sort_label, pos_x + 33, pos_y, 0.0f,
+                    pfile_wrk.skey_bak ? 0x909090 : 0x707070,
+                    alpha, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
+    }
+
+    if (now <= max)
+    {
+        PutSpriteYW(PHT_LIST_BASE21, PHT_LIST_BASE22, pos_x + 66, pos_y, 0.0f,
+                    0x808080, alpha, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
+        PutNumberYW(4, now, pos_x + 515, pos_y + 57, 1.0f, 1.0f,
+                    0x808080, alpha, 0x2d000, 2, 1);
+    }
+
+    PutSpriteYW(PHT_SML_SEP, PHT_SML_SEP, pos_x + 66, pos_y, 0.0f,
+                0x808080, alpha, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
+    PutNumberYW(4, max, pos_x + 563, pos_y + 57, 1.0f, 1.0f,
+                0x808080, alpha, 0x2d000, 2, 1);
 }
 
 static void DspSumnale(u_char csr, short int pos_x, short int pos_y, short int alpha)
@@ -2087,6 +2174,12 @@ static void DspPhtLst(u_char csr, u_char csr_top, short int pos_x, short int pos
     u_char csr_top_1; // HACK: fixes stack swap
     u_int csr_top_2; // HACK: fixes stack swap
 
+    const bool japanese = MikuPan_IsJapaneseGameData();
+    if (japanese && (ig_menu_wrk.csr[5] != 0xff || albm_wrk.mmenu_tmr != 0))
+    {
+        pos_x -= 44;
+    }
+
     y_off_1 = 94;
     y_off_2 = 95;
     y_off_3 = 116;
@@ -2111,7 +2204,8 @@ static void DspPhtLst(u_char csr, u_char csr_top, short int pos_x, short int pos
         pic_num = pfile_wrk.pic_num - csr_top_1;
     }
 
-    SideBar(pfile_wrk.pic_num, 6, 149, csr_top_1, 366, alpha, 0, 0);
+    SideBar(pfile_wrk.pic_num, 6, 149, csr_top_1,
+            PHT_SCRBAR_PICK_U, alpha, pos_x, pos_y);
 
     AlbmTrFlsh(pos_x, pos_y, alpha);
 
@@ -2204,7 +2298,11 @@ static void DspBtmDtl(u_char csr, short int pos_x, short int pos_y, short int al
     int width;
 
     CmnWindow(6, pos_x, pos_y, alpha, 0x80);
-    PutSpriteYW(PHT_FNT_JOHO, PHT_FNT_JOHO, 14.0f, 369.0f, -90.0f, 0x808080, alpha, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
+    const bool japanese = MikuPan_IsJapaneseGameData();
+    if (japanese)
+        DrawJapanesePhotoInfoLabel(27.0f, 350.0f, alpha, 38.0f);
+    else
+        PutSpriteYW(PHT_FNT_JOHO, PHT_FNT_JOHO, 14.0f, 369.0f, -90.0f, 0x808080, alpha, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
     PutSpriteYW(PHT_ZOOM_FNT_TARGET, PHT_ZOOM_FNT_POINT, pos_x, pos_y, 0.0f, 0x505050, alpha, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
 
     obj_num = 0;
@@ -2232,7 +2330,7 @@ static void DspBtmDtl(u_char csr, short int pos_x, short int pos_y, short int al
 
                 CopyStrDToStr(&disp_str, &ig_menu_str);
 
-                disp_str.pos_x = (pos_x + 216) - (width / 2);
+                disp_str.pos_x = japanese ? pos_x + 120 : (pos_x + 216) - (width / 2);
                 disp_str.pos_y = obj_py[obj_num][i] + 347 + pos_y;
 
                 disp_str.r = 0x80;
@@ -2248,11 +2346,13 @@ static void DspBtmDtl(u_char csr, short int pos_x, short int pos_y, short int al
     }
     else
     {
-        PutStringYW(IGMSG_MENU_ALBUM, 3, (u_short)pos_x + 192, obj_py[0][0] + 347 + pos_y, 0x808080, alpha, 0x28000, 0);
+        PutStringYW(IGMSG_MENU_ALBUM, 3, pos_x + (japanese ? 185 : 192), obj_py[0][0] + 347 + pos_y, 0x808080, alpha, 0x28000, 0);
     }
     PutDate(pfile_wrk.pic + csr, pos_x + 386, pos_y + 340, alpha, 0x28000);
-    PutStringYW(IGMSG_ROOM_NAME, pfile_wrk.pic[csr].room, pos_x + 496, pos_y + 371, 0x808080, alpha, 0x28000, 1);
-    PutNumberYW(0, pfile_wrk.pic[csr].score, pos_x + 435, pos_y + 399, 1.0f, 1.0f, 0x808080, alpha, 0x28000, 7, 0);
+    PutStringYW(IGMSG_ROOM_NAME, pfile_wrk.pic[csr].room, pos_x + (japanese ? 399 : 496),
+                pos_y + (japanese ? 369 : 371), 0x808080, alpha, 0x28000, japanese ? 0 : 1);
+    PutNumberYW(0, pfile_wrk.pic[csr].score, pos_x + 435, pos_y + (japanese ? 396 : 399),
+                1.0f, 1.0f, 0x808080, alpha, 0x28000, 7, 0);
 }
 
 static void DspCherry(short int pos_x, short int pos_y, short int alpha)
@@ -2291,10 +2391,6 @@ static void AlbmTrFlsh(short int pos_x, short int pos_y, short int alpha)
     }
     else
     {
-        FlashStarYW(&flsh[6], 64, 192, 60, 0xff);
-
-        CLRtoRGB(&rgb, flsh[6].alpha, flsh[6].alpha, flsh[6].alpha); // OOB access!
-
         PutSpriteYW(PHT_SCR_TRIANGLE_U, PHT_SCR_TRIANGLE_D, pos_x, pos_y, 0.0f, 0x404040, alpha, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
     }
 }

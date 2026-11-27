@@ -17,6 +17,7 @@
 #include "ingame/menu/ig_map.h"
 #include "ingame/menu/ig_menu.h"
 #include "ingame/menu/item.h"
+#include "mikupan/io/mikupan_file_c.h"
 #include "ingame/menu/sp_menu.h"
 #include "ingame/plyr/plyr_ctl.h"
 #include "main/glob.h"
@@ -1818,7 +1819,10 @@ void DspMemSavePoint(u_char msk, u_char msg, u_char fdt, u_char svp, u_char alt,
     if (sv_dsp_sw.msg_alp != 0 && msg != 0xff
         && mc_ctrl.step == mc_ctrl.stepbak)
     {
-        if (csr0 != 0xff)
+        const bool aligned_choice = csr0 != 0xff
+            && PutChineseChoiceMessageYW(IGMSG_SV_PNT_MSG, msg, csr0, 48, 356,
+                                         sv_dsp_sw.msg_alp / 100.0f, 0xf000);
+        if (csr0 != 0xff && !aligned_choice)
         {
             if (mc_ctrl.step == 2)
             {
@@ -1842,7 +1846,7 @@ void DspMemSavePoint(u_char msk, u_char msg, u_char fdt, u_char svp, u_char alt,
             }
         }
 
-        if (mc_ctrl.mode == 2 && mc_ctrl.step == 6)
+        if (!aligned_choice && mc_ctrl.mode == 2 && mc_ctrl.step == 6)
         {
             if (mc_ctrl.album.sta[mc_ctrl.now_cur] == 3)
             {
@@ -1873,7 +1877,7 @@ void DspMemSavePoint(u_char msk, u_char msg, u_char fdt, u_char svp, u_char alt,
                 }
             }
         }
-        else
+        else if (!aligned_choice)
         {
             PutStringYW(8, msg, 48, 356, 0x808080, sv_dsp_sw.msg_alp / 100.0f,
                         0xf000, 0);
@@ -1918,9 +1922,11 @@ void DspMemSavePoint(u_char msk, u_char msg, u_char fdt, u_char svp, u_char alt,
     WarningMsg(alt, csr0, sv_dsp_sw.alt_alp / 100.0f,
                sv_dsp_sw.yno_alp / 100.0f);
 
-    SetSprFile(MikuPan_GetHostAddress(0x1ce0000));
-
-    DispCaption(9, alp_max);
+    if (!MikuPan_IsJapaneseGameData())
+    {
+        SetSprFile(MikuPan_GetHostAddress(0x1ce0000));
+        DispCaption(9, alp_max);
+    }
 }
 
 static void WarningMsg(u_char msg, u_char csr0, u_char alp, u_char ha)
@@ -1968,8 +1974,12 @@ static void WarningMsg(u_char msg, u_char csr0, u_char alp, u_char ha)
 #else
         PolySquareYW(35.0f, 198.0f, 570, 120, 0, alp, 1.0f, 1.0f, 0x4000, 0, 0,
                      0);
-        DrawMessageBox(0x3000, 26.0f, 195.0f, 585.0f, 125.0f, alp);
+        DrawMessageBox(0x3000, 26.0f, 195.0f, 585.0f, 125.0f, alp,
+                       MikuPan_IsJapaneseGameData());
 #endif
+
+        const bool aligned_choice = ha != 0
+            && PutChineseChoiceMessageYW(IGMSG_SV_PNT_MSG, msg, csr0, 48, 211, alp, 0x1000);
 
         if (msg == 12)
         {
@@ -1998,7 +2008,7 @@ static void WarningMsg(u_char msg, u_char csr0, u_char alp, u_char ha)
             pos_y = 255.0f;
         }
 
-        if (mc_ctrl.step == 2)
+        if (!aligned_choice && ha != 0 && mc_ctrl.step == 2)
         {
 #ifdef BUILD_EU_VERSION
             YesNoCrslOKR(0x2000, csr0 * 132 + 114, pos_y + 3.0f, 0x808080, ha,
@@ -2008,7 +2018,7 @@ static void WarningMsg(u_char msg, u_char csr0, u_char alp, u_char ha)
                          2.0f);
 #endif
         }
-        else
+        else if (!aligned_choice && ha != 0)
         {
 #ifdef BUILD_EU_VERSION
             YesNoCrslOKR(0x2000, csr0 * 132 + 184, pos_y - 1.0f, 0x808080, ha,
@@ -2024,7 +2034,8 @@ static void WarningMsg(u_char msg, u_char csr0, u_char alp, u_char ha)
 #ifdef BUILD_EU_VERSION
             PutStringYW(8, msg, 48, 209, 0x808080, alp, 0x1000, 0);
 #else
-            PutStringYW(8, msg, 48, 211, 0x808080, alp, 0x1000, 0);
+            if (!aligned_choice)
+                PutStringYW(8, msg, 48, 211, 0x808080, alp, 0x1000, 0);
 #endif
 
             if (mcCheckDrawButton(msg) != 0)
@@ -2237,13 +2248,10 @@ static void DspSpCate(u_char csr1, u_char csr2, u_char alp)
     PutSpriteYW(SV_LNZ_HDD3, SV_LNZ_HDD3, 36.0f, 295.0f, 0.0f, 0x808080, alp,
                 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
 
-    if (csr2 == 0xff)
+    if (csr1 < 3)
     {
-        CmnCursol(33, csr1 * 38 + 218, 122, 30, flsh[1].alpha, alp, 0xa000);
-    }
-    else
-    {
-        CmnCursol(33, csr1 * 38 + 218, 122, 30, 64.0f, alp, 0xa000);
+        CmnCursol(33, csr1 * 38 + 218, 122, 30,
+                  csr2 == 0xff ? flsh[1].alpha : 64.0f, alp, 0xa000);
     }
 }
 

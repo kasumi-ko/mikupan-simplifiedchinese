@@ -15,6 +15,7 @@
 #include "mc/mc_disp.h"
 #include "mc/mc_exec.h"
 #include "mc/mc_icon.h"
+#include "mikupan/rendering/mikupan_font_textures.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -337,7 +338,7 @@ char mcLoadMain()
         }
     break;
     case MC_SEL_NEW_OR_LOAD:
-        switch (mcCtrl3taku(1))
+        switch (MikuPanFonts::UsesChineseGlyphGrid() ? mcCtrlYesno(1) : mcCtrl3taku(1))
         {
         case 0:
             // do nothing ...

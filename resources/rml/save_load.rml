@@ -2,6 +2,7 @@
 <head>
     <title>Save and Load</title>
     <link type="text/rcss" href="save_load.rcss"/>
+    <link type="text/rcss" href="port_font.rcss"/>
     <link type="text/rcss" href="message_box.rcss"/>
 </head>
 <body>

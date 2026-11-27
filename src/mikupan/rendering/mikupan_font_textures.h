@@ -8,6 +8,7 @@ void ResetLoads();
 void LoadRequested(int id, int file, void *destination, int sector, int size);
 void LoadCompleted(int id);
 int LoadedLanguage();
+bool UsesChineseGlyphGrid();
 unsigned int Texture(int bank, int width, int height);
 void ShutdownGpu();
 }

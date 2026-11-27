@@ -51,6 +51,7 @@ extern TITLE_WRK title_wrk;
 
 void TitleCtrl();
 void TitleWaitMode();
+void TitleHandlePressInput();
 void TitleStartSlct();
 void TitleStartSlctYW(u_char pad_off, u_char alp_max);
 void TitleLoadCtrl();

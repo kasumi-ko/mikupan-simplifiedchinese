@@ -46,6 +46,14 @@ int MikuPan_IsPs2MemoryPointer(int64_t address)
     return (ptr >= ps2_ram_start && ptr < ps2_ram_end);
 }
 
+bool MikuPan_IsPs2MemorySpan(const void* address, size_t size)
+{
+    const uintptr_t ptr = (uintptr_t)address;
+    const uintptr_t begin = (uintptr_t)ps2_virtual_ram;
+    const uintptr_t end = begin + sizeof(ps2_virtual_ram);
+    return ptr >= begin && ptr < end && size <= end - ptr;
+}
+
 /**
  *
  * @param address PS2 memory address

@@ -2983,9 +2983,7 @@ void UpdateFilm(void)
 
 void ApplyFontClass(int font)
 {
-    /* The third font is URW Chancery, standing in for the PS2 menus'
-     * Zapf Chancery; the others are Century Old Style. */
-    SetBodyClass("font-zapf", font == 2);
+    SetBodyClass("font-zapf", font == MIKUPAN_UI_FONT_CHANCERY);
 }
 
 void ResetForOpen(bool in_game)

@@ -2,6 +2,7 @@
 <head>
     <title>Mode Select</title>
     <link type="text/rcss" href="mode_select.rcss"/>
+    <link type="text/rcss" href="port_font.rcss"/>
     <link type="text/rcss" href="message_box.rcss"/>
 </head>
 <body>

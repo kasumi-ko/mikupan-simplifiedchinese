@@ -318,7 +318,8 @@ SDL_AppResult MikuPan_Init()
 {
     MikuPan_InitLogging();
 
-    SDL_SetAppMetadata("MikuPan", MIKUPAN_GIT_DESCRIBE, "MikuPan");
+    SDL_SetAppMetadata(MIKUPAN_PROJECT_NAME, MIKUPAN_DISPLAY_VERSION,
+                       "io.github.kasumi-ko.mikupan-simplifiedchinese");
 
     info_log("Initializing SDL");
 
@@ -363,11 +364,11 @@ SDL_AppResult MikuPan_Init()
         mikupan_configuration.renderer.window.height = desired_window_height;
     }
 
-    int config_window_flags =
+    SDL_WindowFlags config_window_flags =
 #ifdef __ANDROID__
         SDL_WINDOW_FULLSCREEN;
 #else
-        SDL_WINDOW_RESIZABLE;
+        SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 #endif
 
     int startup_window_mode = mikupan_configuration.renderer.window_mode;
@@ -394,7 +395,7 @@ SDL_AppResult MikuPan_Init()
     }
 
     mikupan_render.window = SDL_CreateWindow(
-        "MikuPan",
+        "\u96F6\uFF5Ezero\uFF5E [" MIKUPAN_PROJECT_NAME "]",
         desired_window_width,
         desired_window_height,
         config_window_flags

@@ -89,7 +89,8 @@ void MesPassCheck();
 int MesStatusCheck();
 void DrawButtonTex(u_int pri, int type, float x, float y, u_char alp);
 void DrawButtonTexNZ(u_int pri, int type, float x, float y, u_char alp);
-void DrawMessageBox(u_int pri, float x, float y, float sizew, float sizeh, u_char alp);
+void DrawMessageBox(u_int pri, float x, float y, float sizew, float sizeh, u_char alp,
+                    bool modal = false);
 int GetStrLength(u_char *str);
 
 #ifdef BUILD_EU_VERSION

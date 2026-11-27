@@ -378,10 +378,14 @@ static char McAtAlbmMainLoop()
             {
                 mc_album_type = csr3;
             }
-            else
+            else if (csr2 < mc_ctrl.album.file_num
+                     && csr2 < sizeof(mc_ctrl.album.file_no) / sizeof(mc_ctrl.album.file_no[0]))
             {
                 u_char no = mc_ctrl.album.file_no[csr2];
-                mc_album_type = mc_header_buf[no].album.type;
+                if (no < sizeof(mc_header_buf) / sizeof(mc_header_buf[0]))
+                {
+                    mc_album_type = mc_header_buf[no].album.type;
+                }
             }
 
             rtrn = 2;

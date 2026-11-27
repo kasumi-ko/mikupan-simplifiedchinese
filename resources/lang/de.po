@@ -19,8 +19,8 @@ msgstr "Einstellungen"
 msgid "Exit Game"
 msgstr "Spiel Beenden"
 
-msgid "Press Start"
-msgstr "Start drücken"
+msgid "Press any key"
+msgstr "Beliebige Taste drücken"
 
 msgid "Exit the game?"
 msgstr "Spiel beenden?"

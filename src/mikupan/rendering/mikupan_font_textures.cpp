@@ -105,6 +105,12 @@ int LoadedLanguage()
     return active_file==FNT001_PK2 ? 0 : -1;
 #endif
 }
+bool UsesChineseGlyphGrid()
+{
+    return active >= 0
+        && sets[active].hash == "53c4d79a594591d336dc7056653598d50c1977009725d99c190526d26656bc06";
+}
+
 unsigned int Texture(int bank,int width,int height)
 {
     if (active<0 || size_t(active)>=sets.size() || bank<0 || size_t(bank)>=BankCount) return 0;

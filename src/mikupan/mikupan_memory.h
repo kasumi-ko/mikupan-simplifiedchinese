@@ -2,6 +2,7 @@
 #define MIKUPAN_MEMORY_ADDRESSES_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 extern unsigned char ps2_virtual_ram[];
 extern unsigned char ps2_virtual_scratchpad[];
@@ -10,6 +11,7 @@ int64_t MikuPan_GetHostAddress(int offset);
 void* MikuPan_GetHostPointer(int offset);
 void MikuPan_InitPs2Memory();
 int MikuPan_IsPs2MemoryPointer(int64_t address);
+bool MikuPan_IsPs2MemorySpan(const void* address, size_t size);
 int MikuPan_SanitizePs2Address(int address);
 int MikuPan_IsPs2AddressMainMemoryRange(int address);
 int MikuPan_IsPs2AddressMainMemoryRange64(uint64_t address);

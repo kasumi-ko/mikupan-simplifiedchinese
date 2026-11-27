@@ -224,6 +224,8 @@ bool TryLoadConfigurationFile(const std::filesystem::path& path)
     ApplyValue(ini, "ui", "selected_theme", mikupan_configuration.selected_theme);
     ApplyValue(ini, "ui", "selected_font", mikupan_configuration.selected_font);
     ApplyValue(ini, "ui", "font_scale", mikupan_configuration.font_scale);
+    ApplyString(ini, "ui", "language", mikupan_configuration.ui_language,
+                sizeof(mikupan_configuration.ui_language));
     ApplyValue(ini, "ui", "show_fps", mikupan_configuration.show_fps);
     ApplyValue(ini, "ui", "minimap_enabled",
                mikupan_configuration.minimap_enabled);
@@ -447,6 +449,7 @@ bool TrySaveConfigurationFile(const std::filesystem::path& path)
     SetValue(ini, "ui", "selected_theme", mikupan_configuration.selected_theme);
     SetValue(ini, "ui", "selected_font", mikupan_configuration.selected_font);
     SetValue(ini, "ui", "font_scale", mikupan_configuration.font_scale);
+    ini.sections["ui"]["language"] = mikupan_configuration.ui_language;
     SetValue(ini, "ui", "show_fps", mikupan_configuration.show_fps);
     SetValue(ini, "ui", "minimap_enabled",
              mikupan_configuration.minimap_enabled);

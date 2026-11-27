@@ -8,6 +8,8 @@
 #include "mikupan/mikupan_memory.h"
 #include "mikupan/mikupan_textoverride.h"
 #include "mikupan/io/mikupan_controller.h"
+#include "mikupan/io/mikupan_file.h"
+#include "mikupan/rendering/mikupan_font_textures.h"
 #include "mikupan/ui/mikupan_rml_options.h"
 #include "graphics/graph2d/effect.h"
 #include "graphics/graph2d/effect_sub.h"
@@ -551,6 +553,77 @@ int Get4Byte(u_char *addr)
     return ((u_int)addr[3] << 24) + ((u_int)addr[2] << 16) + ((u_int)addr[1] << 8) + (u_int)addr[0];
 }
 
+#ifndef BUILD_EU_VERSION
+static uint32_t GetJapaneseMessageOffset(u_char* data, uint32_t size,
+                                        uint32_t table, int index)
+{
+    if (table == 0 || table > size - 4 || index < 0)
+    {
+        return 0;
+    }
+
+    const uint32_t first = Get4Byte(data + table);
+    const uint64_t entry = uint64_t(table) + uint64_t(index) * 4;
+    if (first > size || entry + 4 > first)
+    {
+        return 0;
+    }
+
+    const uint32_t target = Get4Byte(data + entry);
+    return target >= first && target < size ? target : 0;
+}
+
+static int64_t GetJapaneseIngameMessage(u_char type, int msg_no, int group = -1)
+{
+    static u_char empty_message[] = {0xff};
+    const int64_t empty = reinterpret_cast<int64_t>(empty_message);
+    auto *data = static_cast<u_char *>(MikuPan_GetHostPointer(MSN_FILE_ADDRESS));
+    const uint32_t size = GetImgArrangementP(IG_MSG_OBJ)->size;
+    if (size < 4 || msg_no < 0)
+    {
+        return empty;
+    }
+
+    // This Chinese revision moves the first event string past an earlier
+    // text block. Exactly 131 words at the start are offsets.
+    if (type == IGMSG_SPEV_MSG && MikuPanFonts::UsesChineseGlyphGrid() && msg_no >= 131)
+    {
+        return empty;
+    }
+
+    const uint32_t categories_end = Get4Byte(data);
+    const uint32_t category_entry = type * 4;
+    if (categories_end > size || category_entry + 4 > categories_end)
+    {
+        return empty;
+    }
+
+    uint32_t category = Get4Byte(data + category_entry);
+    if (category < categories_end || category > size - 4)
+    {
+        return empty;
+    }
+
+    if (group >= 0)
+    {
+        category = GetJapaneseMessageOffset(data, size, category, group);
+    }
+
+    const uint32_t message = GetJapaneseMessageOffset(data, size, category, msg_no);
+    return message != 0
+        ? reinterpret_cast<int64_t>(data + message) : empty;
+}
+#endif
+
+int64_t GetIngameMSGAddrInGroup(u_char type, int group, int msg_no)
+{
+#ifndef BUILD_EU_VERSION
+    return GetJapaneseIngameMessage(type, msg_no, group);
+#else
+    return 0;
+#endif
+}
+
 int64_t GetIngameMSGAddr(u_char type, int msg_no)
 {
     int64_t addr;
@@ -565,6 +638,11 @@ int64_t GetIngameMSGAddr(u_char type, int msg_no)
 
 #ifdef BUILD_EU_VERSION
     if (type == 53 && sys_wrk.language == 0) return 0;
+#else
+    if (MikuPan_IsJapaneseGameData())
+    {
+        return GetJapaneseIngameMessage(type, msg_no);
+    }
 #endif
     addr = MikuPan_GetHostAddress(MSN_FILE_ADDRESS + type * 4);
     addr = MikuPan_GetHostAddress(MSN_FILE_ADDRESS + Get4Byte((u_char *)addr) + msg_no * 4);
@@ -1037,6 +1115,45 @@ static void ComingOut(short int pos_x, short int pos_y, float alp, u_char shadow
     m = TimeIsMoney(tmp.month);
     dy = TimeIsMoney(tmp.day);
     h = TimeIsMoney(tmp.hour);
+
+#ifndef BUILD_EU_VERSION
+    if (MikuPan_IsJapaneseGameData())
+    {
+        PutNumberYW(3, y, pos_x + 223, pos_y + 130, 1.0f, 1.0f, rgb, alp, pri, 2, 1);
+        PutNumberYW(3, m, pos_x + 278, pos_y + 130, 1.0f, 1.0f, rgb, alp, pri, 2, 0);
+        PutNumberYW(3, dy, pos_x + 333, pos_y + 130, 1.0f, 1.0f, rgb, alp, pri, 2, 0);
+        PutStringYW(IGMSG_MENU_TOP, 0, pos_x + 250, pos_y + 130, rgb, alp, pri, 0);
+        PutStringYW(IGMSG_MENU_TOP, 1, pos_x + 305, pos_y + 130, rgb, alp, pri, 0);
+        PutStringYW(IGMSG_MENU_TOP, 2, pos_x + 360, pos_y + 130, rgb, alp, pri, 0);
+        PutStringYW(IGMSG_MENU_TOP, h < 12 ? 3 : 4, pos_x + 385, pos_y + 130, rgb, alp, pri, 0);
+
+        MenuPlayTime(&tmp);
+        PutStringYW(IGMSG_MENU_TOP, 5, pos_x + 220, pos_y + 185, rgb, alp, pri, 0);
+        PutNumberYW(3, TimeIsMoney(tmp.hour), pos_x + 270, pos_y + 217, 1.0f, 1.0f, rgb, alp, pri, 2, 0);
+        PutNumberYW(3, TimeIsMoney(tmp.minute), pos_x + 352, pos_y + 217, 1.0f, 1.0f, rgb, alp, pri, 2, 0);
+        PutNumberYW(3, TimeIsMoney(tmp.second), pos_x + 405, pos_y + 217, 1.0f, 1.0f, rgb, alp, pri, 2, 0);
+        PutStringYW(IGMSG_MENU_TOP, 6, pos_x + 300, pos_y + 215, rgb, alp, pri, 0);
+        PutStringYW(IGMSG_MENU_TOP, 7, pos_x + 380, pos_y + 215, rgb, alp, pri, 0);
+        PutStringYW(IGMSG_MENU_TOP, 8, pos_x + 435, pos_y + 215, rgb, alp, pri, 0);
+
+        PutStringYW(IGMSG_MENU_TOP, 9, pos_x + 220, pos_y + 255, rgb, alp, pri, 0);
+        PutStringYW(IGMSG_MENU_TOP, 10, pos_x + 500, pos_y + 255, rgb, alp, pri, 0);
+        PutNumberYW(0, ingame_wrk.pht_cnt, pos_x + 371, pos_y + 255, 1.0f, 1.0f, rgb, alp, pri, 7, 0);
+        PutStringYW(IGMSG_MENU_TOP, 11, pos_x + 220, pos_y + 295, rgb, alp, pri, 0);
+        PutStringYW(IGMSG_MENU_TOP, 12, pos_x + 500, pos_y + 295, rgb, alp, pri, 0);
+        PutNumberYW(0, ingame_wrk.ghost_cnt, pos_x + 407, pos_y + 295, 1.0f, 1.0f, rgb, alp, pri, 5, 0);
+        if (ingame_wrk.clear_count != 0)
+        {
+            PutStringYW(IGMSG_MENU_TOP, 15, pos_x + 220, pos_y + 335, rgb, alp, pri, 0);
+            PutStringYW(IGMSG_MENU_TOP, 16, pos_x + 500, pos_y + 335, rgb, alp, pri, 0);
+            PutNumberYW(0, ingame_wrk.clear_count, pos_x + 442, pos_y + 335, 1.0f, 1.0f, rgb, alp, pri, 3, 0);
+            PutStringYW(IGMSG_MENU_TOP, 17, pos_x + 220, pos_y + 375, rgb, alp, pri, 0);
+            PutStringYW(IGMSG_MENU_TOP, 18, pos_x + 500, pos_y + 375, rgb, alp, pri, 0);
+            PutNumberYW(0, save_rank.best_score, pos_x + 368, pos_y + 375, 1.0f, 1.0f, rgb, alp, pri, 7, 0);
+        }
+        return;
+    }
+#endif
 
 #ifdef BUILD_EU_VERSION
 

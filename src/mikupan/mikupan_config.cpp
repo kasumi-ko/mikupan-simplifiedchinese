@@ -3,7 +3,6 @@
 #include "mikupan/io/mikupan_finder_gyro.h"
 
 #define MIKUPAN_CONFIG_THEME_COUNT 7
-#define MIKUPAN_CONFIG_FONT_COUNT 3
 #define MIKUPAN_CONFIG_DEFAULT_WINDOW_WIDTH 1280
 #define MIKUPAN_CONFIG_DEFAULT_WINDOW_HEIGHT 720
 #define MIKUPAN_CONFIG_MSAA_COUNT 4
@@ -109,7 +108,8 @@ MikuPan_Config mikupan_configuration = {
         }
     },
     "",
-    1
+    1,
+    ""
 };
 
 static int MikuPan_ConfigClampIndex(int value, int count, int fallback)
@@ -392,7 +392,7 @@ void MikuPan_ConfigurationValidate(void)
                                  MIKUPAN_CONFIG_THEME_COUNT, 0);
     mikupan_configuration.selected_font =
         MikuPan_ConfigClampIndex(mikupan_configuration.selected_font,
-                                 MIKUPAN_CONFIG_FONT_COUNT, 1);
+                                 MIKUPAN_UI_FONT_COUNT, MIKUPAN_UI_FONT_CENTURY);
     mikupan_configuration.font_scale =
         MikuPan_ClampFloat(mikupan_configuration.font_scale, 0.5f, 3.0f);
     mikupan_configuration.show_fps = mikupan_configuration.show_fps ? 1 : 0;

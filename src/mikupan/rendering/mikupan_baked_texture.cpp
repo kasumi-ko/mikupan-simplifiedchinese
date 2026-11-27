@@ -83,7 +83,8 @@ std::string PackPath()
 {
     char path[1024];
 
-    if (!MikuPan_ResolveUserPath(kPackFileName, path, sizeof(path)))
+    const char* filename = MikuPan_IsJapaneseGameData() ? "IMG_TEX_JP.BIN" : kPackFileName;
+    if (!MikuPan_ResolveUserPath(filename, path, sizeof(path)))
     {
         return std::string();
     }

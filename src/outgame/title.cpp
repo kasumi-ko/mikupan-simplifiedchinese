@@ -45,6 +45,7 @@
 #include "mikupan/mikupan_config.h"
 #include "mikupan/debug/mikupan_logging_c.h"
 #include "mikupan/mikupan_i18n.h"
+#include "mikupan/io/mikupan_file.h"
 #include "mikupan/mikupan_memory.h"
 #include "mikupan/mikupan_rng.h"
 #include "mikupan/rendering/mikupan_renderer.h"
@@ -79,6 +80,7 @@ OUT_DITHER_STR out_dither = {0};
 extern FOD_EFF_PARAM eff_param;
 
 static int exit_prompt_open = 0;
+static bool title_press_requested = false;
 static int exit_prompt_sel = 1;
 
 #define PI 3.1415927f
@@ -92,7 +94,7 @@ static int TitleDebugSelectionMenuActive(void)
 
 static int TitleRmlScreenActive(void)
 {
-    return MikuPan_TitleUseRoomBackground() != 0
+    return (MikuPan_IsJapaneseGameData() || MikuPan_TitleUseRoomBackground() != 0)
            && MikuPan_RmlTitleIsAvailable() != 0;
 }
 
@@ -267,7 +269,7 @@ static void TitleDrawClassicBackground(int use_alpha, u_char alpha)
     int i;
     DISP_SPRT ds;
 
-    if (TitleDebugSelectionMenuActive() != 0)
+    if (TitleDebugSelectionMenuActive() != 0 && !MikuPan_IsJapaneseGameData())
     {
         return;
     }
@@ -504,13 +506,14 @@ void TitleCtrl()
         MikuPan_TitleResetSceneColourState();
         ttl_dsp = {};
         exit_prompt_open = 0;
+        title_press_requested = false;
 
 #ifdef BUILD_EU_VERSION
         title_wrk.load_id = LoadReqLanguage(TITLE_E_PK2, SPRITE_ADDRESS);
 #else
         title_wrk.load_id = LoadReq(TITLE_PK2, SPRITE_ADDRESS);
 #endif
-        if (mikupan_configuration.title_room_background != 0)
+        if (mikupan_configuration.title_room_background != 0 && !MikuPan_IsJapaneseGameData())
         {
             MikuPan_TitleBackgroundBeginRoomLoad();
         }
@@ -628,7 +631,7 @@ void TitleCtrl()
         /* Kick off on the configured setting, not MikuPan_TitleUseRoomBackground(): the
          * latter reads 0 after a prior watchdog give-up, which would stop us from
          * ever retrying the room background. MikuPan_TitleBackgroundBeginRoomLoad clears the flag. */
-        if (mikupan_configuration.title_room_background != 0)
+        if (mikupan_configuration.title_room_background != 0 && !MikuPan_IsJapaneseGameData())
         {
             MikuPan_TitleBackgroundBeginRoomLoad();
         }
@@ -1309,6 +1312,15 @@ static void TitleExitPrompt()
     }
 }
 
+void TitleHandlePressInput()
+{
+    if (sys_wrk.game_mode == GAME_MODE_OUTGAME && outgame_wrk.mode == OUTGAME_MODE_TITLE
+        && title_wrk.mode == TITLE_TITLE && !exit_prompt_open)
+    {
+        title_press_requested = true;
+    }
+}
+
 void TitleWaitMode()
 {
     /* f20 58 */ float alp;
@@ -1370,9 +1382,10 @@ void TitleWaitMode()
     rml_command = rml_title != 0 ? MikuPan_RmlTitleConsumeCommand()
                                  : MIKUPAN_RML_TITLE_COMMAND_NONE;
 
-    if (CROSS_PRESSED() == 1 || START_PRESSED() == 1
+    if (title_press_requested || CROSS_PRESSED() == 1 || START_PRESSED() == 1
         || rml_command == MIKUPAN_RML_TITLE_COMMAND_PRESS_START)
     {
+        title_press_requested = false;
         ttl_dsp.mode = 1;
 
         title_wrk.mode = TITLE_TITLE_SEL_INIT;
@@ -1952,6 +1965,10 @@ void TitleStartSlctYW(u_char pad_off, u_char alp_max)
 
     if (rml_title != 0)
     {
+        if (MikuPan_IsJapaneseGameData())
+        {
+            TitleDrawClassicBackground(1, alp_max);
+        }
         rml_selection = MikuPan_RmlTitleConsumeSelection();
         if (rml_selection >= 0 && rml_selection < rml_menu_count
             && rml_selection != title_wrk.csr)

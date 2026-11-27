@@ -19,6 +19,7 @@
 #include "mikupan/mikupan_utils.h"
 #include "mikupan/mikupan_screenshot.h"
 #include "mikupan/io/mikupan_file.h"
+#include "mikupan/rendering/mikupan_font_textures.h"
 #include "os/eeiop/cdvd/eecdvd.h"
 
 #include "RmlUi/Core.h"
@@ -521,19 +522,24 @@ static char MikuPan_RmlSaveLoadGlyphToAscii(u_char glyph)
 
 static std::string MikuPan_RmlSaveLoadGameText(u_char kind, int number)
 {
-    const auto* source = reinterpret_cast<const u_char*>(
-        GetIngameMSGAddr(kind, number));
-    if (source == nullptr)
+    if (MikuPanFonts::UsesChineseGlyphGrid())
+    {
+        return {};
+    }
+    const int64_t start = GetIngameMSGAddr(kind, number);
+    const int64_t end = GetIngameMSGAddr(kind, number + 1);
+    if (start == 0 || end <= start || end - start > 512)
     {
         return {};
     }
 
     std::string result;
     bool previous_space = true;
-    for (int consumed = 0; consumed < 512;)
+    const auto* source = reinterpret_cast<const u_char*>(start);
+    const int length = static_cast<int>(end - start);
+    for (int consumed = 0; consumed < length;)
     {
-        const u_char code = *source++;
-        consumed++;
+        const u_char code = source[consumed++];
 
         if (code == 0xff)
         {
@@ -548,21 +554,17 @@ static std::string MikuPan_RmlSaveLoadGameText(u_char kind, int number)
         case 0xf3:
         case 0xf7:
         case 0xf8:
-            source++;
             consumed++;
             continue;
         case 0xf5:
         case 0xf9:
         case 0xfd:
-            source += 3;
             consumed += 3;
             continue;
         case 0xf6:
-            source += 4;
             consumed += 4;
             continue;
         case 0xfb:
-            source += 2;
             consumed += 2;
             continue;
         case 0xfa:

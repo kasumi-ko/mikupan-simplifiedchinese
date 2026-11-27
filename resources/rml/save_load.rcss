@@ -1070,6 +1070,11 @@ body {
 
 #save-load-root.modal-open #save-load-panel {
     pointer-events: none;
+    opacity: 0.25;
+}
+
+#save-load-root.modal-open #save-load-backdrop {
+    background-color: #070503df;
 }
 
 #save-load-confirm {

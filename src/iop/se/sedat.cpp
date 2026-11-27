@@ -552,7 +552,11 @@
 
 };
 
+#include "sedat_jp.h"
+#include "mikupan/io/mikupan_file.h"
+
 #define SE_PARAM_COUNT ((int)(sizeof(se_param_tbl) / sizeof(se_param_tbl[0])))
+static_assert(sizeof(se_param_tbl_jp) == sizeof(se_param_tbl));
 
 SE_PARAM* SeGetSeParamTbl(int num)
 {
@@ -560,14 +564,12 @@ SE_PARAM* SeGetSeParamTbl(int num)
         return 0;
     }
 
-    return &se_param_tbl[num];
+    SE_PARAM* table = MikuPan_IsJapaneseGameData() ? se_param_tbl_jp : se_param_tbl;
+    return &table[num];
 }
 
 int GetSeAdrs(int se_no)
 {
-    if (se_no < 0 || se_no >= SE_PARAM_COUNT) {
-        return 0;
-    }
-
-    return se_param_tbl[se_no].adrs;
+    const SE_PARAM* param = SeGetSeParamTbl(se_no);
+    return param ? param->adrs : 0;
 }

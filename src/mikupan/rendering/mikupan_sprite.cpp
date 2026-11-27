@@ -34,6 +34,7 @@ typedef struct
     u_char b;
     u_char a;
     float depth;
+    unsigned int priority;
     int depth_enabled;
     MikuPan_TextureInfo *texture_info;
 } MikuPan_QueuedMessageSprite;
@@ -66,6 +67,13 @@ static float g_textured_sprite_cpu_buf[TEXTURED_SPRITE_BATCH_MAX * 6 * 12];
 static MikuPan_QueuedMessageSprite
     g_message_sprite_queue[MESSAGE_SPRITE_QUEUE_MAX];
 static int g_message_sprite_queue_count = 0;
+struct MessageMask
+{
+    MikuPan_Rect rect;
+    unsigned int priority;
+};
+static MessageMask g_message_masks[8];
+static unsigned int g_message_mask_count = 0;
 static MikuPan_Late2DOverlayPrimitive
     g_late_2d_overlay_queue[LATE_2D_OVERLAY_QUEUE_MAX];
 static int g_late_2d_overlay_queue_count = 0;
@@ -180,7 +188,7 @@ static int MikuPan_QueueLate2DMessageOverlay(MikuPan_Rect src,
     return 1;
 }
 
-void MikuPan_Render2DMessage(DISP_SPRT *sprite)
+void MikuPan_Render2DMessage(DISP_SPRT *sprite, float scale)
 {
     MikuPan_Rect dst_rect = {0};
     MikuPan_Rect src_rect = {0};
@@ -195,8 +203,8 @@ void MikuPan_Render2DMessage(DISP_SPRT *sprite)
     dst_rect.x = (float) sprite->x;
     dst_rect.y = (float) sprite->y;
 
-    dst_rect.w = (float) sprite->w;
-    dst_rect.h = (float) sprite->h;
+    dst_rect.w = sprite->w * scale;
+    dst_rect.h = sprite->h * scale;
 
     if (texture_info == NULL)
     {
@@ -240,9 +248,30 @@ void MikuPan_Render2DMessage(DISP_SPRT *sprite)
         queued->b = sprite->b;
         queued->a = sprite->alpha;
         queued->depth = depth;
+        queued->priority = 0x0fffffff - sprite->z;
         queued->depth_enabled = 1;
         queued->texture_info = texture_info;
     }
+}
+
+void MikuPan_Mask2DMessages(float x, float y, float width, float height, unsigned int priority)
+{
+    if (g_message_mask_count < sizeof(g_message_masks) / sizeof(g_message_masks[0]))
+        g_message_masks[g_message_mask_count++] = {{x, y, width, height}, priority};
+}
+
+static bool IsMessageBehindModal(const MikuPan_QueuedMessageSprite& sprite)
+{
+    const auto& dst = sprite.dst;
+    for (unsigned int i = 0; i < g_message_mask_count; ++i)
+    {
+        const auto& mask = g_message_masks[i];
+        if (sprite.priority >= mask.priority
+            && dst.x < mask.rect.x + mask.rect.w && dst.x + dst.w > mask.rect.x
+            && dst.y < mask.rect.y + mask.rect.h && dst.y + dst.h > mask.rect.y)
+            return true;
+    }
+    return false;
 }
 
 void MikuPan_Flush2DMessageQueue(void)
@@ -252,6 +281,9 @@ void MikuPan_Flush2DMessageQueue(void)
         const MikuPan_QueuedMessageSprite *queued =
             &g_message_sprite_queue[i];
 
+        if (IsMessageBehindModal(*queued))
+            continue;
+
         MikuPan_RenderSpriteInternal(queued->src, queued->dst,
                                      queued->r, queued->g, queued->b,
                                      queued->a, queued->texture_info,
@@ -260,6 +292,7 @@ void MikuPan_Flush2DMessageQueue(void)
     }
 
     g_message_sprite_queue_count = 0;
+    g_message_mask_count = 0;
     MikuPan_FlushTexturedSpriteBatch();
 }
 

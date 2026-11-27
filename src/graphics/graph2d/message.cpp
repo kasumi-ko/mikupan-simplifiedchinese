@@ -6,6 +6,7 @@
 #include "tim2_new.h"
 #include "mikupan/mikupan_memory.h"
 #include "mikupan/io/mikupan_controller.h"
+#include "mikupan/rendering/mikupan_font_textures.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -50,17 +51,47 @@ int *mes_ex_nums[] = { &mc_ctrl.port_mes };
 
 static MES_DAT msdat;
 static MESV22 mesv22;
+static int message_font_bank = -1;
+
+// The Chinese atlas keeps the first four rows of bank 1 at 24 pixels.
+// Its Han character rows use 25 cells of 20 pixels, including banks 2-5.
+static constexpr int chinese_cell_size = 20;
+static constexpr int chinese_columns = 25;
+static constexpr int chinese_draw_size = 18;
+static constexpr int latin_cell_size = 24;
+static constexpr int latin_columns = 21;
+static constexpr int latin_rows = 4;
+static constexpr int latin_glyphs = latin_columns * latin_rows;
+
+static bool IsChineseGlyph(int bank, int glyph)
+{
+    return MikuPanFonts::UsesChineseGlyphGrid()
+        && (bank > 1 || (bank == 1 && glyph >= latin_glyphs));
+}
+
+static int MessageGlyphWidth(int bank, int glyph)
+{
+    if (IsChineseGlyph(bank, glyph))
+    {
+        return chinese_draw_size;
+    }
+
+    const int *const widths[] = {
+        font_w_b0, font_w_b1, font_w_b2, font_w_b3, font_w_b4
+    };
+    return glyph >= 0 && glyph < 210 ? widths[bank - 1][glyph] : latin_cell_size;
+}
 
 static void SetMesFrame2(int pri, float bx, float by, float sw, float sh);
 static void SetFontPacketHeader(int n, int type, u_char alp);
 static void SetFont(int pri, int type, int no, int x, int y, u_char r, u_char g, u_char b, u_char a);
 static void FontInit();
 #ifdef BUILD_EU_VERSION
-static void SetFontTex(int path, int flg, int bank);
+static void SetFontTex(int path, int flg, int bank, bool encoded_bank = true);
 static void SetFontEnv(int path);
 static void SetFontPat(int path, int pri, int fn, int x, int y, int fw, u_char r, u_char g, u_char b, u_char a);
 #else
-static void SetFontTex(int flg, int bank);
+static void SetFontTex(int flg, int bank, bool encoded_bank = true);
 static void SetFontEnv();
 static void SetFontPat(int pri, int fn, int x, int y, int fw, u_char r, u_char g, u_char b, u_char a);
 static void SetUnderLine(int sw, int pri, int x, int y, int fw, u_char r, u_char g, u_char b, u_char a);
@@ -880,7 +911,7 @@ static void SetFont(int pri, int type, int no, int x, int y, u_char r, u_char g,
     s.h = Font_H;
     s.z = z;
 
-    MikuPan_Render2DMessage(&s);
+    MikuPan_Render2DMessage(&s, 1.0f);
 
     mpbuf[nmdpkt].ui32[0] = r;
     mpbuf[nmdpkt].ui32[1] = g;
@@ -945,22 +976,31 @@ static void FontInit()
 }
 
 #ifdef BUILD_EU_VERSION
-static void SetFontTex(int path, int flg, int bank)
+static void SetFontTex(int path, int flg, int bank, bool encoded_bank)
 #else
-static void SetFontTex(int flg, int bank)
+static void SetFontTex(int flg, int bank, bool encoded_bank)
 #endif
 {
-    static int obank = -1;
+    static int selected_bank = -1;
     sceGsTex0 tex0;
 
-    if (flg != 0 && bank == obank)
+    if (encoded_bank)
+    {
+        message_font_bank = bank;
+        if (flg != 0 && MikuPanFonts::UsesChineseGlyphGrid())
+        {
+            return;
+        }
+    }
+
+    if (flg != 0 && bank == selected_bank)
     {
         return;
     }
 
     MikuPan_SetFontTexture(bank);
 
-    obank = bank;
+    selected_bank = bank;
 
     tex0 = *(sceGsTex0 *)&fntdat[bank].tex0;
 
@@ -1068,8 +1108,51 @@ static void SetFontPat(int pri, int fn, int x, int y, int fw, u_char r, u_char g
     int dh;
     u_int z;
 
-    Font_W = 24;
-    Num_W = 21;
+    int atlas_y = 0;
+    const bool chinese = IsChineseGlyph(message_font_bank, fn);
+    Font_W = latin_cell_size;
+    Num_W = latin_columns;
+    if (chinese)
+    {
+        Font_W = chinese_cell_size;
+        Num_W = chinese_columns;
+
+        // The message bytes encode one continuous glyph number. The atlas
+        // has 200 Han glyphs below its Latin rows and 300 on each following page.
+        constexpr int first_page_han = 8 * chinese_columns;
+        constexpr int page_han = 12 * chinese_columns;
+        const int number = message_font_bank == 1 ? fn
+            : 0xf0 + (message_font_bank - 2) * 256 + fn;
+        fn = number - latin_glyphs;
+        int atlas_bank = 1;
+        if (fn < first_page_han)
+        {
+            atlas_y = latin_rows * latin_cell_size;
+        }
+        else
+        {
+            fn -= first_page_han;
+            atlas_bank = 2 + fn / page_han;
+            fn %= page_han;
+        }
+        if (atlas_bank >= 6)
+        {
+            return;
+        }
+#ifdef BUILD_EU_VERSION
+        SetFontTex(path, 1, atlas_bank, false);
+#else
+        SetFontTex(1, atlas_bank, false);
+#endif
+    }
+    else if (MikuPanFonts::UsesChineseGlyphGrid())
+    {
+#ifdef BUILD_EU_VERSION
+        SetFontTex(path, 1, message_font_bank, false);
+#else
+        SetFontTex(1, message_font_bank, false);
+#endif
+    }
 
     div = g_bInterlace ? 2 : 1;
 
@@ -1078,15 +1161,15 @@ static void SetFontPat(int pri, int fn, int x, int y, int fw, u_char r, u_char g
     dx = (x + 0x6c0) * 16;
     dy = (((y - 0xe0) / div) + 0x800) * 16;
     dw = fw * 16;
-    dh = (Font_W / div) * 16;
+    dh = ((chinese ? chinese_draw_size : Font_W) / div) * 16;
 
     px2 = dx + dw;
     py2 = dy + dh;
 
     tw1 = ((fn % Num_W) * Font_W)       * 16;
-    th1 = (((fn / Num_W) * Font_W)) * 16;
-    tw2 = (((fn % Num_W) * Font_W) + fw) * 16;
-    th2 = (((fn / Num_W) * Font_W)) * 16 + (Font_W * 16);
+    th1 = (atlas_y + (fn / Num_W) * Font_W) * 16;
+    tw2 = tw1 + (chinese ? Font_W : fw) * 16;
+    th2 = th1 + Font_W * 16;
 
 
     DISP_SPRT dq = {0};
@@ -1103,7 +1186,8 @@ static void SetFontPat(int pri, int fn, int x, int y, int fw, u_char r, u_char g
     dq.v = th1/16;
     dq.z = z;
 
-    MikuPan_Render2DMessage(&dq);
+    const float scale = chinese ? float(chinese_draw_size) / chinese_cell_size : 1.0f;
+    MikuPan_Render2DMessage(&dq, scale);
 
 #ifdef BUILD_EU_VERSION
     if (path == 1)
@@ -1308,88 +1392,22 @@ int SetMessageV2_2(DISP_STR *s)
         switch(*c)
         {
         case 0xf0:
-            c++;
-            nfn = *c++;
-            nfw = font_w_b1[nfn];
-#ifdef BUILD_EU_VERSION
-            SetFontTex(0, 1, 2);
-#else
-            SetFontTex(1, 2);
-#endif
-            if (column <= mesv22.cnt - line)
-            {
-                mesv22.mes_alps[line][column] = mesv22.mes_alps[line][column] + 4 > 0x80 ? 0x80 : mesv22.mes_alps[line][column] + 4;
-            }
-#ifdef BUILD_EU_VERSION
-            SetFontPat(0, npri, nfn, nx, ny, nfw, nr, ng, nb, mesv22.mes_alps[line][column] * na >> 7);
-#else
-            SetFontPat(npri, nfn, nx, ny, nfw, nr, ng, nb, mesv22.mes_alps[line][column] * na >> 7);
-#endif
-            nx += nfw + nxw;
-            if (sflg != 0)
-            {
-                pw[selnum-1] += nfw + nxw;
-            }
-            column++;
-        break;
         case 0xf1:
-            c++;
-            nfn = *c++;
-            nfw = font_w_b2[nfn];
-#ifdef BUILD_EU_VERSION
-            SetFontTex(0, 1, 3);
-#else
-            SetFontTex(1, 3);
-#endif
-            if (column <= mesv22.cnt - line)
-            {
-                mesv22.mes_alps[line][column] = mesv22.mes_alps[line][column] + 4 > 0x80 ? 0x80 : mesv22.mes_alps[line][column] + 4;
-            }
-#ifdef BUILD_EU_VERSION
-            SetFontPat(0, npri, nfn, nx, ny, nfw, nr, ng, nb, mesv22.mes_alps[line][column] * na >> 7);
-#else
-            SetFontPat(npri, nfn, nx, ny, nfw, nr, ng, nb,  mesv22.mes_alps[line][column] * na >> 7);
-#endif
-            nx += nfw + nxw;
-            if (sflg != 0)
-            {
-                pw[selnum-1] += nfw + nxw;
-            }
-            column++;
-        break;
         case 0xf2:
-            c++;
-            nfn = *c++;
-            nfw = font_w_b3[nfn];
-#ifdef BUILD_EU_VERSION
-            SetFontTex(0, 1, 4);
-#else
-            SetFontTex(1, 4);
-#endif
-            if (column <= mesv22.cnt - line)
-            {
-                mesv22.mes_alps[line][column] = mesv22.mes_alps[line][column] + 4 > 0x80 ? 0x80 : mesv22.mes_alps[line][column] + 4;
-            }
-#ifdef BUILD_EU_VERSION
-            SetFontPat(0, npri, nfn, nx, ny, nfw, nr, ng, nb, mesv22.mes_alps[line][column] * na >> 7);
-#else
-            SetFontPat(npri, nfn, nx, ny, nfw, nr, ng, nb, mesv22.mes_alps[line][column] * na >> 7);
-#endif
-            nx += nfw + nxw;
-            if (sflg != 0)
-            {
-                pw[selnum-1] += nfw + nxw;
-            }
-            column++;
-        break;
         case 0xf3:
-            c++;
+        case 0xf4:
+        {
+            const int bank = 2 + *c++ - 0xf0;
+            if (bank == 6 && !MikuPanFonts::UsesChineseGlyphGrid())
+            {
+                break;
+            }
             nfn = *c++;
-            nfw = font_w_b4[nfn];
+            nfw = MessageGlyphWidth(bank, nfn);
 #ifdef BUILD_EU_VERSION
-            SetFontTex(0, 1, 5);
+            SetFontTex(0, 1, bank);
 #else
-            SetFontTex(1, 5);
+            SetFontTex(1, bank);
 #endif
             if (column <= mesv22.cnt - line)
             {
@@ -1406,6 +1424,7 @@ int SetMessageV2_2(DISP_STR *s)
                 pw[selnum-1] += nfw + nxw;
             }
             column++;
+        }
         break;
         case 0xf7:
             c++;
@@ -1465,10 +1484,10 @@ int SetMessageV2_2(DISP_STR *s)
             {
                 nfn = m != 0 ? cwo[i] + 5 :  cwo[i] + 15;
 #ifdef BUILD_EU_VERSION
-                nfw = sys_wrk.language == 0 ? font_w_b0_e[nfn] : font_w_b0[nfn];
+                nfw = sys_wrk.language == 0 ? font_w_b0_e[nfn] : MessageGlyphWidth(1, nfn);
                 SetFontTex(0, 1, 1);
 #else
-                nfw = font_w_b0[nfn];
+                nfw = MessageGlyphWidth(1, nfn);
                 SetFontTex(1, 1);
 #endif
                 if (column <= mesv22.cnt - line)
@@ -1489,6 +1508,7 @@ int SetMessageV2_2(DISP_STR *s)
             }
         break;
         case 0xfc:
+            ++c;
         break;
         case 0xfd:
             nr = *++c;
@@ -1514,10 +1534,10 @@ int SetMessageV2_2(DISP_STR *s)
         default:
             nfn = *c++;
 #ifdef BUILD_EU_VERSION
-            nfw = sys_wrk.language == 0 ? font_w_b0_e[nfn] : font_w_b0[nfn];
+            nfw = sys_wrk.language == 0 ? font_w_b0_e[nfn] : MessageGlyphWidth(1, nfn);
             SetFontTex(0, 1, 1);
 #else
-            nfw = font_w_b0[nfn];
+            nfw = MessageGlyphWidth(1, nfn);
             SetFontTex(1, 1);
 #endif
             if (column <= mesv22.cnt - line)
@@ -1703,65 +1723,23 @@ int SetMessageV2(DISP_STR *s)
         switch(*c)
         {
         case 0xf0:
-            c++;
-            nfn = *c++;
-            nfw = font_w_b1[nfn];
-#ifdef BUILD_EU_VERSION
-            SetFontTex(0, 1, 2);
-            SetFontPat(0, npri, nfn, nx, ny, nfw, nr, ng, nb, na);
-#else
-            SetFontTex(1, 2);
-            SetFontPat(npri, nfn, nx, ny, nfw, nr, ng, nb, na);
-#endif
-            nx += nfw + nxw;
-            if (sflg != 0)
-            {
-                pw[selnum-1] += nfw + nxw;
-            }
-        break;
         case 0xf1:
-            c++;
-            nfn = *c++;
-            nfw = font_w_b2[nfn];
-#ifdef BUILD_EU_VERSION
-            SetFontTex(0, 1, 3);
-            SetFontPat(0, npri, nfn, nx, ny, nfw, nr, ng, nb, na);
-#else
-            SetFontTex(1, 3);
-            SetFontPat(npri, nfn, nx, ny, nfw, nr, ng, nb, na);
-#endif
-            nx += nfw + nxw;
-            if (sflg != 0)
-            {
-                pw[selnum-1] += nfw + nxw;
-            }
-        break;
         case 0xf2:
-            c++;
-            nfn = *c++;
-            nfw = font_w_b3[nfn];
-#ifdef BUILD_EU_VERSION
-            SetFontTex(0, 1, 4);
-            SetFontPat(0, npri, nfn, nx, ny, nfw, nr, ng, nb, na);
-#else
-            SetFontTex(1, 4);
-            SetFontPat(npri, nfn, nx, ny, nfw, nr, ng, nb, na);
-#endif
-            nx += nfw + nxw;
-            if (sflg != 0)
-            {
-                pw[selnum-1] += nfw + nxw;
-            }
-        break;
         case 0xf3:
-            c++;
+        case 0xf4:
+        {
+            const int bank = 2 + *c++ - 0xf0;
+            if (bank == 6 && !MikuPanFonts::UsesChineseGlyphGrid())
+            {
+                break;
+            }
             nfn = *c++;
-            nfw = font_w_b4[nfn];
+            nfw = MessageGlyphWidth(bank, nfn);
 #ifdef BUILD_EU_VERSION
-            SetFontTex(0, 1, 5);
+            SetFontTex(0, 1, bank);
             SetFontPat(0, npri, nfn, nx, ny, nfw, nr, ng, nb, na);
 #else
-            SetFontTex(1, 5);
+            SetFontTex(1, bank);
             SetFontPat(npri, nfn, nx, ny, nfw, nr, ng, nb, na);
 #endif
             nx += nfw + nxw;
@@ -1769,6 +1747,7 @@ int SetMessageV2(DISP_STR *s)
             {
                 pw[selnum-1] += nfw + nxw;
             }
+        }
         break;
         case 0xf7:
             c++;
@@ -1826,11 +1805,11 @@ int SetMessageV2(DISP_STR *s)
             {
                 nfn = m != 0 ? cwo[i] + 5 :  cwo[i] + 15;
 #ifdef BUILD_EU_VERSION
-                nfw = sys_wrk.language == 0 ? font_w_b0_e[nfn] : font_w_b0[nfn];
+                nfw = sys_wrk.language == 0 ? font_w_b0_e[nfn] : MessageGlyphWidth(1, nfn);
                 SetFontTex(0, 1, 1);
                 SetFontPat(0, npri, nfn, nx, ny, nfw, nr, ng, nb, na);
 #else
-                nfw = font_w_b0[nfn];
+                nfw = MessageGlyphWidth(1, nfn);
                 SetFontTex(1, 1);
                 SetFontPat(npri, nfn, nx, ny, nfw, nr, ng, nb, na);
 #endif
@@ -1843,6 +1822,7 @@ int SetMessageV2(DISP_STR *s)
             }
         break;
         case 0xfc:
+            ++c;
         break;
         case 0xfd:
             nr = *++c;
@@ -1864,11 +1844,11 @@ int SetMessageV2(DISP_STR *s)
         default:
             nfn = *c++;
 #ifdef BUILD_EU_VERSION
-            nfw = sys_wrk.language == 0 ? font_w_b0_e[nfn] : font_w_b0[nfn];
+            nfw = sys_wrk.language == 0 ? font_w_b0_e[nfn] : MessageGlyphWidth(1, nfn);
             SetFontTex(0, 1, 1);
             SetFontPat(0, npri, nfn, nx, ny, nfw, nr, ng, nb, na);
 #else
-            nfw = font_w_b0[nfn];
+            nfw = MessageGlyphWidth(1, nfn);
             SetFontTex(1, 1);
             SetFontPat(npri, nfn, nx, ny, nfw, nr, ng, nb, na);
 #endif
@@ -2106,14 +2086,23 @@ int SubMessageV3(u_char *s, int pri, int delflg)
         switch(*c)
         {
         case 0xf0:
-            c++;
+        case 0xf1:
+        case 0xf2:
+        case 0xf3:
+        case 0xf4:
+        {
+            const int bank = 2 + *c++ - 0xf0;
+            if (bank == 6 && !MikuPanFonts::UsesChineseGlyphGrid())
+            {
+                break;
+            }
             nfn = *c++;
-            nfw = font_w_b1[nfn];
+            nfw = MessageGlyphWidth(bank, nfn);
 #ifdef BUILD_EU_VERSION
-            SetFontTex(0, 1, 2);
+            SetFontTex(0, 1, bank);
             SetFontPat(0, npri, nfn, nx, ny, nfw, nr, ng, nb, na);
 #else
-            SetFontTex(1, 2);
+            SetFontTex(1, bank);
             SetFontPat(npri, nfn, nx, ny, nfw, nr, ng, nb, na);
 #endif
             SetUnderLine(nul, npri, nx, ny, nfw, msdat.usrgb[1], msdat.usrgb[2], msdat.usrgb[3], (u_int)na);
@@ -2123,63 +2112,7 @@ int SubMessageV3(u_char *s, int pri, int delflg)
             {
                 pw[msdat.selnum-1] += nfw + nxw;
             }
-        break;
-        case 0xf1:
-            c++;
-            nfn = *c++;
-            nfw = font_w_b2[nfn];
-#ifdef BUILD_EU_VERSION
-            SetFontTex(0, 1, 3);
-            SetFontPat(0, npri, nfn, nx, ny, nfw, nr, ng, nb, na);
-#else
-            SetFontTex(1, 3);
-            SetFontPat(npri, nfn, nx, ny, nfw, nr, ng, nb, na);
-#endif
-            SetUnderLine(nul, npri, nx, ny, nfw, msdat.usrgb[1], msdat.usrgb[2], msdat.usrgb[3], na);
-            nx += nfw + nxw;
-            msdat.fntcnt++;
-            if (sflg != 0)
-            {
-                pw[msdat.selnum-1] += nfw + nxw;
-            }
-        break;
-        case 0xf2:
-            c++;
-            nfn = *c++;
-            nfw = font_w_b3[nfn];
-#ifdef BUILD_EU_VERSION
-            SetFontTex(0, 1, 4);
-            SetFontPat(0, npri, nfn, nx, ny, nfw, nr, ng, nb, na);
-#else
-            SetFontTex(1, 4);
-            SetFontPat(npri, nfn, nx, ny, nfw, nr, ng, nb, na);
-#endif
-            SetUnderLine(nul, npri, nx, ny, nfw, msdat.usrgb[1], msdat.usrgb[2], msdat.usrgb[3], na);
-            nx += nfw + nxw;
-            msdat.fntcnt++;
-            if (sflg != 0)
-            {
-                pw[msdat.selnum-1] += nfw + nxw;
-            }
-        break;
-        case 0xf3:
-            c++;
-            nfn = *c++;
-            nfw = font_w_b4[nfn];
-#ifdef BUILD_EU_VERSION
-            SetFontTex(0, 1, 5);
-            SetFontPat(0, npri, nfn, nx, ny, nfw, nr, ng, nb, na);
-#else
-            SetFontTex(1, 5);
-            SetFontPat(npri, nfn, nx, ny, nfw, nr, ng, nb, na);
-#endif
-            SetUnderLine(nul, npri, nx, ny, nfw, msdat.usrgb[1], msdat.usrgb[2], msdat.usrgb[3], na);
-            nx += nfw + nxw;
-            msdat.fntcnt++;
-            if (sflg != 0)
-            {
-                pw[msdat.selnum-1] += nfw + nxw;
-            }
+        }
         break;
         case 0xf5:
             i = *++c;
@@ -2274,11 +2207,11 @@ int SubMessageV3(u_char *s, int pri, int delflg)
             {
                 nfn = m != 0 ? cwo[i] + 5 :  cwo[i] + 15;
 #ifdef BUILD_EU_VERSION
-                nfw = sys_wrk.language == 0 ? font_w_b0_e[nfn] : font_w_b0[nfn];
+                nfw = sys_wrk.language == 0 ? font_w_b0_e[nfn] : MessageGlyphWidth(1, nfn);
                 SetFontTex(0, 1, 1);
                 SetFontPat(0, npri, nfn & 0xff, nx, ny, nfw, nr, ng, nb, na);
 #else
-                nfw = font_w_b0[nfn];
+                nfw = MessageGlyphWidth(1, nfn);
                 SetFontTex(1, 1);
                 SetFontPat(npri, nfn & 0xff, nx, ny, nfw, nr, ng, nb, na);
 #endif
@@ -2297,6 +2230,7 @@ int SubMessageV3(u_char *s, int pri, int delflg)
             }
         break;
         case 0xfc:
+            ++c;
         break;
         case 0xfd:
             nr = *++c;
@@ -2329,11 +2263,11 @@ int SubMessageV3(u_char *s, int pri, int delflg)
         default:
             nfn = *c++;
 #ifdef BUILD_EU_VERSION
-            nfw = sys_wrk.language == 0 ? font_w_b0_e[nfn] : font_w_b0[nfn];
+            nfw = sys_wrk.language == 0 ? font_w_b0_e[nfn] : MessageGlyphWidth(1, nfn);
             SetFontTex(0, 1, 1);
             SetFontPat(0, npri, nfn, nx, ny, nfw, nr, ng, nb, na);
 #else
-            nfw = font_w_b0[nfn];
+            nfw = MessageGlyphWidth(1, nfn);
             SetFontTex(1, 1);
             SetFontPat(npri, nfn, nx, ny, nfw, nr, ng, nb, na);
 #endif
@@ -2587,7 +2521,7 @@ void DrawButtonTexNZ(u_int pri, int type, float x, float y, u_char alp)
     DispSprD(&ds);
 }
 
-void DrawMessageBox(u_int pri, float x, float y, float sizew, float sizeh, u_char alp)
+void DrawMessageBox(u_int pri, float x, float y, float sizew, float sizeh, u_char alp, bool modal)
 {
     int i;
     float ssw;
@@ -2659,6 +2593,12 @@ void DrawMessageBox(u_int pri, float x, float y, float sizew, float sizeh, u_cha
     alp1 = (alp * 80) / 128.0f;
 #endif
     alp2 = (alp * 4) / 128.0f;
+
+    if (modal && alp != 0)
+    {
+        alp1 = alp;
+        MikuPan_Mask2DMessages(x, y, sizew, sizeh, pri);
+    }
 
     MikuPan_BeginLate2DOverlayQueue();
 
@@ -2737,6 +2677,10 @@ int GetStrLength(u_char *str)
             c += 2;
             num++;
         break;
+        case 0xf4:
+            c += MikuPanFonts::UsesChineseGlyphGrid() ? 2 : 1;
+            num++;
+        break;
         case 0xf6:
             c += 5;
         break;
@@ -2745,9 +2689,13 @@ int GetStrLength(u_char *str)
             c += 2;
         break;
         case 0xf9:
+            c += 4;
+        break;
         case 0xfb:
+            c += 3;
+        break;
         case 0xfc:
-            // do nothing ... no increment => endless loop ??
+            ++c;
         break;
         case 0xfa:
         case 0xfe:
@@ -2790,24 +2738,17 @@ int GetStrWidthMain(u_char *str, int type)
         switch(*c)
         {
         case 0xf0:
-            n = c[1];
-            c += 2;
-            w += font_w_b1[n];
-        break;
         case 0xf1:
-            n = c[1];
-            c += 2;
-            w += font_w_b2[n];
-        break;
         case 0xf2:
-            n = c[1];
-            c += 2;
-            w += font_w_b3[n];
-        break;
         case 0xf3:
-            n = c[1];
-            c += 2;
-            w += font_w_b4[n];
+        case 0xf4:
+        {
+            const int bank = 2 + *c++ - 0xf0;
+            if (bank != 6 || MikuPanFonts::UsesChineseGlyphGrid())
+            {
+                w += MessageGlyphWidth(bank, *c++);
+            }
+        }
         break;
         case 0xf6:
             c += 5;
@@ -2817,9 +2758,13 @@ int GetStrWidthMain(u_char *str, int type)
             c += 2;
         break;
         case 0xf9:
+            c += 4;
+        break;
         case 0xfb:
+            c += 3;
+        break;
         case 0xfc:
-            // do nothing ... no increment => endless loop ??
+            ++c;
         break;
         case 0xf5:
         case 0xfd:
@@ -2835,7 +2780,7 @@ int GetStrWidthMain(u_char *str, int type)
             n = c[0];
             if (type != 0)
             {
-                w += font_w_b1[n];
+                w += MessageGlyphWidth(2, n);
             }
             else if (sys_wrk.language == 0)
             {
@@ -2843,7 +2788,7 @@ int GetStrWidthMain(u_char *str, int type)
             }
             else
             {
-                w += font_w_b0[n];
+                w += MessageGlyphWidth(1, n);
             }
             c += 1;
         break;
@@ -2875,24 +2820,17 @@ int GetStrWidth(u_char *str)
         switch(*c)
         {
         case 0xf0:
-            n = c[1];
-            c += 2;
-            w += font_w_b1[n];
-        break;
         case 0xf1:
-            n = c[1];
-            c += 2;
-            w += font_w_b2[n];
-        break;
         case 0xf2:
-            n = c[1];
-            c += 2;
-            w += font_w_b3[n];
-        break;
         case 0xf3:
-            n = c[1];
-            c += 2;
-            w += font_w_b4[n];
+        case 0xf4:
+        {
+            const int bank = 2 + *c++ - 0xf0;
+            if (bank != 6 || MikuPanFonts::UsesChineseGlyphGrid())
+            {
+                w += MessageGlyphWidth(bank, *c++);
+            }
+        }
         break;
         case 0xf6:
             c += 5;
@@ -2902,9 +2840,13 @@ int GetStrWidth(u_char *str)
             c += 2;
         break;
         case 0xf9:
+            c += 4;
+        break;
         case 0xfb:
+            c += 3;
+        break;
         case 0xfc:
-            // do nothing ... no increment => endless loop ??
+            ++c;
         break;
         case 0xfa:
         case 0xfe:
@@ -2921,7 +2863,7 @@ int GetStrWidth(u_char *str)
         default:
             n = c[0];
             c += 1;
-            w += font_w_b0[n];
+            w += MessageGlyphWidth(1, n);
         break;
         }
     }
@@ -3036,36 +2978,22 @@ int SetMessageMov(int path, int type, DISP_STR *s)
         switch(*c)
         {
         case 0xf0:
-            c++;
-            nfn = *c++;
-            nfw = font_w_b1[nfn];
-            SetFontTex(path, 1, 2);
-            SetFontPat(path, npri, nfn, nx, ny, nfw, nr, ng, nb, na);
-            nx += nfw + nxw;
-        break;
         case 0xf1:
-            c++;
-            nfn = *c++;
-            nfw = font_w_b2[nfn];
-            SetFontTex(path, 1, 3);
-            SetFontPat(path, npri, nfn, nx, ny, nfw, nr, ng, nb, na);
-            nx += nfw + nxw;
-        break;
         case 0xf2:
-            c++;
-            nfn = *c++;
-            nfw = font_w_b3[nfn];
-            SetFontTex(path, 1, 4);
-            SetFontPat(path, npri, nfn, nx, ny, nfw, nr, ng, nb, na);
-            nx += nfw + nxw;
-        break;
         case 0xf3:
-            c++;
+        case 0xf4:
+        {
+            const int bank = 2 + *c++ - 0xf0;
+            if (bank == 6 && !MikuPanFonts::UsesChineseGlyphGrid())
+            {
+                break;
+            }
             nfn = *c++;
-            nfw = font_w_b4[nfn];
-            SetFontTex(path, 1, 5);
+            nfw = MessageGlyphWidth(bank, nfn);
+            SetFontTex(path, 1, bank);
             SetFontPat(path, npri, nfn, nx, ny, nfw, nr, ng, nb, na);
             nx += nfw + nxw;
+        }
         break;
         case 0xfd:
             nr = *++c;
@@ -3092,7 +3020,7 @@ int SetMessageMov(int path, int type, DISP_STR *s)
         break;
         default:
             nfn = *c++;
-            nfw = font_w_b1[nfn];
+            nfw = MessageGlyphWidth(2, nfn);
             SetFontTex(path, 1, 2);
             SetFontPat(path, npri, nfn, nx, ny, nfw, nr, ng, nb, na);
             nx += nfw + nxw;

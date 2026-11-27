@@ -111,6 +111,8 @@ void FlashStarYW(FLSH_CORE *flsh, u_char flsh_max, u_char flsh_min, u_char flsh_
 void CLRtoRGB(int *rgb, u_char r, u_char g, u_char b);
 void RGBtoCLR(int rgb, u_char *r, u_char *g, u_char *b);
 void PutStringYW(u_char msg_knd, u_char msg_no, short int pos_x, short int pos_y, int rgb, u_char alpha, int pri, u_char type);
+bool PutChineseChoiceMessageYW(u_char kind, u_char message, u_char selected,
+                              short x, short y, u_char alpha, int priority);
 void RstMessageYW();
 u_char PutMessageYW(u_char msg_knd, u_char msg_no, short int pos_x, short int pos_y, int rgb, u_char alpha, int pri);
 char ChkChrNumYW(u_char msg_knd, u_char msg_no);

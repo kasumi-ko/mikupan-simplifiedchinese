@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.25)
-project(MikuPan LANGUAGES C CXX)
+project(MikuPan-SimplifiedChinese VERSION 0.1.0 LANGUAGES C CXX)
+
+set(MIKUPAN_DISPLAY_VERSION "${PROJECT_VERSION} beta")
+set(MIKUPAN_REPOSITORY_URL "https://github.com/kasumi-ko/mikupan-simplifiedchinese")
 
 if (NOT MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-implicit-function-declaration -fno-fast-math -fno-trapping-math -Wno-int-conversion")
@@ -409,10 +412,9 @@ elseif(MSVC)
             COMPILE_OPTIONS "/permissive;/Zc:strictStrings-")
 endif()
 
-# --- Build version info (git tag + commit) -------------------------------------
 set(MIKUPAN_GENERATED_DIR ${CMAKE_BINARY_DIR}/generated)
-set(MIKUPAN_VERSION_HEADER ${MIKUPAN_GENERATED_DIR}/mikupan_version.h)
 file(MAKE_DIRECTORY ${MIKUPAN_GENERATED_DIR})
+configure_file(cmake/mikupan_version.h.in ${MIKUPAN_GENERATED_DIR}/mikupan_version.h @ONLY)
 
 if(BUILD_EU_VERSION)
     set(MIKUPAN_DATA_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/data_eu")
@@ -453,34 +455,12 @@ add_custom_target(mikupan_data_headers
 )
 message(STATUS "MikuPan data headers: ${MIKUPAN_DATA_SOURCE_DIR}")
 
-# Generate once at configure time so the header always exists for compilation.
-execute_process(
-        COMMAND ${CMAKE_COMMAND}
-        -DSRC=${CMAKE_CURRENT_SOURCE_DIR}/cmake/mikupan_version.h.in
-        -DDST=${MIKUPAN_VERSION_HEADER}
-        -DGIT_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-        -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersion.cmake
-)
-
-# Regenerate before every build so it reflects the actual built commit even when
-# CMake isn't re-run. configure_file inside the script no-ops if nothing changed.
-add_custom_target(mikupan_version
-        COMMAND ${CMAKE_COMMAND}
-        -DSRC=${CMAKE_CURRENT_SOURCE_DIR}/cmake/mikupan_version.h.in
-        -DDST=${MIKUPAN_VERSION_HEADER}
-        -DGIT_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-        -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersion.cmake
-        BYPRODUCTS ${MIKUPAN_VERSION_HEADER}
-        COMMENT "Updating MikuPan build version info"
-)
-
 if(ANDROID)
     add_library(MikuPan SHARED ${MIKUPAN_SOURCES})
     set_target_properties(MikuPan PROPERTIES OUTPUT_NAME main)
 else()
     add_executable(MikuPan ${MIKUPAN_SOURCES} ${APP_ICON_RESOURCE_WINDOWS})
 endif()
-add_dependencies(MikuPan mikupan_version)
 add_dependencies(MikuPan mikupan_data_headers)
 add_dependencies(MikuPan compile_shaders)
 if(TARGET ffmpeg_build)

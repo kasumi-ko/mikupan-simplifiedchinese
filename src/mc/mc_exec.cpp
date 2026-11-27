@@ -519,42 +519,32 @@ char mcCheckFileList()
 
 char mcCheckRootList()
 {
-    u_int i;
-    u_int j;
-    u_int file_num;
-    char str[256];
-
-    for (i = 0; i < mc_ctrl.dir.file_num; i++)
+    constexpr char prefix[] = KEYCODE PRODUCT_CODE "albm";
+    bool found[5]{};
+    for (int i = 0; i < mc_ctrl.dir.file_num; ++i)
     {
-       // debug code ?
-    }
-
-    file_num = 0;
-
-    for (i = 0; i < 5; i++)
-    {
-        mc_ctrl.album.file_no[i] = 0xff;
-        mc_ctrl.album.sta[i] = 0xff;
-    }
-
-    for (i = 0; i < mc_ctrl.dir.file_num; i++)
-    {
-        if (strindex((char *)mc_ctrl.dir.table[i].EntryName, KEYCODE PRODUCT_CODE "albm") >= 0)
+        const char *name = reinterpret_cast<const char *>(mc_ctrl.dir.table[i].EntryName);
+        constexpr size_t digit = sizeof(prefix) - 1;
+        if (strncmp(name, prefix, digit) == 0 && name[digit + 1] == '\0')
         {
-            j = 0;
-
-            while (mc_ctrl.dir.table[i].EntryName[j] != '\0')
+            const int index = name[digit] - '0';
+            if (index >= 0 && index < 5)
             {
-                j++;
+                found[index] = true;
             }
-
-            mc_ctrl.album.file_no[file_num] = mc_ctrl.dir.table[i].EntryName[j-1] - '0';
-
-            file_num++;
         }
     }
 
-    mc_ctrl.album.file_num = file_num;
+    memset(mc_ctrl.album.file_no, 0xff, sizeof(mc_ctrl.album.file_no));
+    memset(mc_ctrl.album.sta, 0xff, sizeof(mc_ctrl.album.sta));
+    mc_ctrl.album.file_num = 0;
+    for (int i = 0; i < 5; ++i)
+    {
+        if (found[i])
+        {
+            mc_ctrl.album.file_no[mc_ctrl.album.file_num++] = i;
+        }
+    }
 
     return 0;
 }

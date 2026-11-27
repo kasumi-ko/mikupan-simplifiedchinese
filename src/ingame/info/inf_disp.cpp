@@ -82,6 +82,44 @@ static char KanKinoSyogai(short int pos_x, short int pos_y);
 #include "data/raze_sprt.h"
 #include "data/flip_table.h"
 
+void MikuPan_ApplyJapaneseMenuSpriteLayout()
+{
+#ifndef BUILD_EU_VERSION
+    // The album and map assets in SLPS-25074 use these texture regions.
+    static const struct
+    {
+        int label;
+        SPRT_DAT sprite;
+        u_short flip;
+    } layout[] = {
+        {PHT_FNT_DATE, {0x20059e05dd30acb0, 3, 2, 64, 28, 253, 32, 184320, 128}, 0},
+        {PHT_FNT_POINT, {0x20059e05dd30acb0, 3, 34, 64, 28, 253, 32, 184320, 128}, 0},
+        {PHT_FNT_SAVE, {0x20059e05dd30acb0, 3, 66, 64, 28, 253, 32, 184320, 128}, 0},
+        {PHT_ZOOM_FNT_TARGET, {0x2005a2859d30acf4, 0, 0, 52, 26, 53, 368, 163840, 128}, 0},
+        {PHT_FNT_HOZ, {0x2005f1c59d40af7e, 1, 1, 46, 22, 49, 73, 163840, 128}, 0},
+        {PHT_FNT_HRD, {0x2005f1c59d40af7e, 49, 1, 46, 22, 148, 73, 163840, 128}, 0},
+        {PHT_FNT_PLC, {0x2005f1c59d40af7e, 1, 25, 46, 22, 379, 73, 163840, 128}, 0},
+        {PHT_FNT_PNT, {0x2005f1c59d40af7e, 49, 25, 46, 22, 543, 73, 163840, 128}, 0},
+        {MAP_FNT_CHANGE, {0x200592a59d40ac85, 4, 39, 50, 20, 552, 87, 40960, 128}, 0},
+        {ALBM_FNT_TARGET, {0x2004e9459d30a72a, 0, 0, 52, 26, 53, 368, 122880, 128}, 0},
+        {OA_TP_FNT_MNU, {0x2004e00625322500, 90, 74, 72, 24, 390, 61, 163840, 128}, 0},
+        {OA_TP_FNT_MOV, {0x2004e00625322500, 87, 146, 48, 24, 573, 61, 163840, 128}, 0},
+        {OA_TP_FNT_ZOM, {0x2004e00625322500, 87, 122, 48, 24, 500, 61, 163840, 128}, 0},
+        {SV_LNZ_NO1, {0x2004f686213126b4, 1, 149, 32, 32, 0, 0, 102400, 128}, 0},
+        {SV_LNZ_NO2, {0x2004f686213126b4, 33, 149, 32, 32, 0, 0, 102400, 128}, 0},
+        {SV_LNZ_SLT1, {0x2004f686213126b4, 1, 183, 116, 24, 0, 0, 61440, 128}, 0},
+        {SV_LNZ_SLT2, {0x2004f686213126b4, 1, 207, 116, 24, 0, 0, 61440, 128}, 0},
+        {SV_LNZ_HDD3, {0x2004f686213126b4, 1, 231, 116, 24, 0, 0, 61440, 128}, 0},
+        {OA_LD_FNT2_NEW, {0x2005a925e1412d09, 1, 76, 106, 26, 241, 49, 40960, 128}, 0},
+    };
+    for (const auto& entry : layout)
+    {
+        spr_dat[entry.label] = entry.sprite;
+        flip_table[entry.label] = entry.flip;
+    }
+#endif
+}
+
 INFO_WRK info_wrk = {0};
 
 static FLSH_CORE flsh_lgt;

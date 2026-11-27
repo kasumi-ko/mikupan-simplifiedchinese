@@ -1,5 +1,6 @@
 #include "mikupan_ui_saves.h"
 #include "mc/mc_main.h"
+#include "mikupan/mikupan_i18n.h"
 #include "mikupan/save/mikupan_save_paths.h"
 #include "mikupan/save/mikupan_save_transfer.h"
 #include "mikupan_rml_save_load.h"
@@ -150,7 +151,7 @@ void Refresh()
                                    target_error);
         if (!valid_external)
         {
-            target_error = "Open a card/folder or choose New blank card.";
+            target_error = MikuPan_Translate("Open a card/folder or choose New blank card.");
         }
     }
     else
@@ -165,22 +166,22 @@ void Refresh()
         }
         if (!valid_external || ps2_kind == StorageKind::BlankCard)
         {
-            source_error = "Open a PS2 card or extracted save folder.";
+            source_error = MikuPan_Translate("Open a PS2 card or extracted save folder.");
         }
         target_ok = ReadStorage(PcFolder(), StorageKind::Folder, true, target,
                                 target_error);
     }
     if (source_ok && !source.has_save)
     {
-        source_error = "No supported Fatal Frame saves found.";
+        source_error = MikuPan_Translate("No supported Fatal Frame saves found.");
     }
     if (!source_error.empty())
     {
-        source_error = std::string(exporting ? "PC source: " : "PS2 source: ") + source_error;
+        source_error = std::string(exporting ? MikuPan_Translate("PC source: ") : MikuPan_Translate("PS2 source: ")) + source_error;
     }
     if (!target_error.empty())
     {
-        target_error = std::string(exporting ? "PS2 destination: " : "PC destination: ") + target_error;
+        target_error = std::string(exporting ? MikuPan_Translate("PS2 destination: ") : MikuPan_Translate("PC destination: ")) + target_error;
     }
     ClearSelection();
     initialized = true;
@@ -247,7 +248,7 @@ bool ApplyOutputExtension()
     const auto text = PathUtf8(CardOutputPath());
     if (text.size() >= sizeof(output))
     {
-        message = "Output path is too long.";
+        message = MikuPan_Translate("Output path is too long.");
         return false;
     }
     SetText(output, sizeof(output), text);
@@ -258,24 +259,24 @@ std::string Unavailable(bool require_selection = true,
 {
     if (pending)
     {
-        return "Transferring saves...";
+        return MikuPan_Translate("Transferring saves...");
     }
     if (path_dirty)
     {
-        return "Finish editing the path to open its saves.";
+        return MikuPan_Translate("Finish editing the path to open its saves.");
     }
     if (picking.load())
     {
-        return "Finish choosing the file or folder.";
+        return MikuPan_Translate("Finish choosing the file or folder.");
     }
     if (check_busy && (mcIsInUse() || MikuPan_RmlSaveLoadIsOpen()))
     {
-        return "Close the game's save/load screen; startup card access must "
-               "also finish.";
+        return MikuPan_Translate("Close the game's save/load screen; startup card access must "
+               "also finish.");
     }
     if (!source_ok || !source.has_save)
     {
-        return source_error.empty() ? "Open a source containing saves."
+        return source_error.empty() ? MikuPan_Translate("Open a source containing saves.")
                                     : source_error;
     }
     if (!target_ok)
@@ -288,45 +289,45 @@ std::string Unavailable(bool require_selection = true,
     }
     if (!target.save.issue.empty())
     {
-        return "Destination saves are damaged: " + target.save.issue;
+        return MikuPan_Translate("Destination saves are damaged: ") + target.save.issue;
     }
     const auto slots = Mappings();
     if (slots.empty())
     {
         const bool any = std::any_of(source.save.slots.begin(), source.save.slots.end(),
             [](const SlotInfo& slot) { return slot.occupied && slot.issue.empty(); });
-        return any ? "Select one or more source saves."
-                   : "No compatible saves. Open a warning icon for details.";
+        return any ? MikuPan_Translate("Select one or more source saves.")
+                   : MikuPan_Translate("No compatible saves. Open a warning icon for details.");
     }
     if (exporting && slots.size() > 3)
-        return "A PS2 save can contain at most three gameplay slots.";
+        return MikuPan_Translate("A PS2 save can contain at most three gameplay slots.");
     std::set<int> used;
     for (const auto& s : slots)
     {
         if (exporting && s.destination < 0)
         {
-            return "Assign a destination slot to each selected save.";
+            return MikuPan_Translate("Assign a destination slot to each selected save.");
         }
         if (s.destination >= 0 && !used.insert(s.destination).second)
         {
-            return "Each destination slot can be used only once.";
+            return MikuPan_Translate("Each destination slot can be used only once.");
         }
     }
     if (require_output && WritesCard())
     {
         if (!output[0])
         {
-            return "Choose a filename for the new card.";
+            return MikuPan_Translate("Choose a filename for the new card.");
         }
         if (PathUtf8(CardOutputPath()).size() >= sizeof(output))
         {
-            return "Output path is too long.";
+            return MikuPan_Translate("Output path is too long.");
         }
         std::error_code ec;
         if (fs::exists(CardOutputPath(), ec) || ec)
         {
-            return "Choose a new filename; existing cards are never "
-                   "overwritten.";
+            return MikuPan_Translate("Choose a new filename; existing cards are never "
+                   "overwritten.");
         }
     }
     return {};
@@ -356,11 +357,11 @@ void Browse(SDL_Window* window, Dialog dialog)
             [](void* data) {
                 const auto& r = *static_cast<Request*>(data);
                 static const SDL_DialogFileFilter filter {
-                    "PS2 cards or save archives",
+                    MikuPan_Translate("PS2 cards or save archives"),
                     "ps2;mcd;bin;vmc;psu;max;xps;sps;cbs"};
                 static const SDL_DialogFileFilter outputs[] = {
-                    {"PCSX2 / ECC memory card",     "ps2"},
-                    {  "OPL / raw memory card",     "bin"},
+                    {MikuPan_Translate("PCSX2 / ECC memory card"),     "ps2"},
+                    {  MikuPan_Translate("OPL / raw memory card"),     "bin"},
                     { "PSU / EMS - uLaunchELF",     "psu"},
                     {      "Action Replay MAX",     "max"},
                     {     "X-Port / SharkPort", "xps;sps"},
@@ -395,7 +396,7 @@ void Browse(SDL_Window* window, Dialog dialog)
             &request, true))
     {
         picking.store(false, std::memory_order_release);
-        message = std::string("Cannot open file picker: ") + SDL_GetError();
+        message = std::string(MikuPan_Translate("Cannot open file picker: ")) + SDL_GetError();
     }
 }
 void AdoptPicker()
@@ -409,7 +410,7 @@ void AdoptPicker()
     {
         if (picked.size() >= sizeof(external))
         {
-            message = "Selected path is too long.";
+            message = MikuPan_Translate("Selected path is too long.");
         }
         else if (picked_kind == Dialog::Output)
         {
@@ -431,8 +432,8 @@ void AdoptPicker()
             else if (folder.exists)
             {
                 message =
-                    "A save folder already exists there; choose another output "
-                    "folder.";
+                    MikuPan_Translate("A save folder already exists there; choose another output "
+                    "folder.");
             }
             else
             {
@@ -494,11 +495,14 @@ void Commit()
     if (TransferBatch(source, target, slots, exporting, fs::u8path(output),
                       error, output_ecc, output_archive, output_region))
     {
-        message = (exporting ? "Exported " : "Imported ")
-                  + std::to_string(slots.size()) + " save(s).";
+        char result[96];
+        std::snprintf(result, sizeof(result),
+                      MikuPan_Translate(exporting ? "Exported %zu save(s)." : "Imported %zu save(s)."),
+                      slots.size());
+        message = result;
         if (exporting && ps2_kind != StorageKind::Folder)
         {
-            message += " New card: " + std::string(output);
+            message += MikuPan_Translate(" New card: ") + std::string(output);
             SetText(external, sizeof(external), output);
             ps2_kind = StorageKind::Card;
             SuggestOutput();
@@ -506,7 +510,7 @@ void Commit()
         if (!exporting)
         {
             message +=
-                " Current session unchanged; load the imported save normally.";
+                MikuPan_Translate(" Current session unchanged; load the imported save normally.");
         }
         if (!error.empty())
         {
@@ -519,29 +523,29 @@ void Commit()
     }
     else
     {
-        message = "Transfer failed: " + error;
+        message = MikuPan_Translate("Transfer failed: ") + error;
     }
 }
 void DestinationChoice(int i)
 {
     char label[64];
     std::snprintf(label, sizeof(label), "Destination##%d", i);
-    std::string preview = exporting ? "Choose slot" : "New PC save";
+    std::string preview = exporting ? MikuPan_Translate("Choose slot") : MikuPan_Translate("New PC save");
     if (destination[i] >= 0)
-        preview = exporting ? "Slot " + std::to_string(destination[i] + 1)
+        preview = exporting ? MikuPan_Translate("Slot ") + std::to_string(destination[i] + 1)
                             : target.save.slots[destination[i]].filename;
     ImGui::SetNextItemWidth(-1);
     if (ImGui::BeginCombo((std::string("##") + label).c_str(), preview.c_str()))
     {
-        if (!exporting && ImGui::Selectable("New PC save", destination[i] == -1))
+        if (!exporting && ImGui::Selectable(MikuPan_Translate("New PC save"), destination[i] == -1))
             destination[i] = -1;
         for (int slot = 0; slot < int(target.save.slots.size()); ++slot)
         {
             const auto& save = target.save.slots[slot];
             const std::string text = exporting
-                ? "Slot " + std::to_string(slot + 1)
-                      + (save.occupied ? " (replace)" : " (empty)")
-                : save.filename + " (replace)";
+                ? MikuPan_Translate("Slot ") + std::to_string(slot + 1)
+                      + (save.occupied ? MikuPan_Translate(" (replace)") : MikuPan_Translate(" (empty)"))
+                : save.filename + MikuPan_Translate(" (replace)");
             if (ImGui::Selectable(text.c_str(), destination[i] == slot))
                 destination[i] = slot;
             if (save.occupied && ImGui::IsItemHovered())
@@ -658,19 +662,19 @@ void Rows(bool is_source)
         ImGui::BeginGroup();
         if (preview.description == "Unavailable save")
         {
-            ImGui::TextDisabled("Unavailable save");
+            ImGui::TextDisabled(MikuPan_Translate("Unavailable save"));
         }
         else if (preview.occupied)
         {
             const auto& title = exporting && is_source ? preview.filename : preview.player;
             ImGui::TextUnformatted(title.c_str());
-            ImGui::Text("Chapter %u / Room %d", preview.chapter, preview.area);
+            ImGui::Text(MikuPan_Translate("Chapter %u / Room %d"), preview.chapter, preview.area);
             ImGui::TextDisabled("%02u:%02u:%02u", preview.hours,
                                 preview.minutes, preview.seconds);
         }
         else
         {
-            ImGui::TextDisabled("Empty slot");
+            ImGui::TextDisabled(MikuPan_Translate("Empty slot"));
         }
         ImGui::EndGroup();
         ImGui::SetCursorPosY(row_top + 66);
@@ -684,13 +688,13 @@ void Rows(bool is_source)
         {
             ImGui::TextColored(slot.occupied ? ImVec4(1, .7f, .3f, 1)
                                              : ImVec4(.5f, .9f, .6f, 1),
-                               "%s <- source %d",
-                               slot.occupied ? "Replace" : "Add", incoming + 1);
+                               MikuPan_Translate("%s <- source %d"),
+                               slot.occupied ? MikuPan_Translate("Replace") : MikuPan_Translate("Add"), incoming + 1);
         }
         else
         {
-            ImGui::TextDisabled("%s", slot.occupied ? "Keep existing save"
-                                                    : "Empty slot");
+            ImGui::TextDisabled("%s", slot.occupied ? MikuPan_Translate("Keep existing save")
+                                                    : MikuPan_Translate("Empty slot"));
         }
         if (is_source && slot.occupied && slot.issue.empty() && source_ok
             && (!exporting || selected[i] || std::count(selected.begin(), selected.end(), true) < 3)
@@ -728,7 +732,7 @@ bool IsOpen()
 }
 void MenuItem()
 {
-    if (ImGui::MenuItem("PS2 save transfer..."))
+    if (ImGui::MenuItem(MikuPan_Translate("PS2 save transfer...")))
     {
         show = true;
         step = Step::Operation;
@@ -819,18 +823,18 @@ void Draw(SDL_Window* window)
         ImVec2(std::min(1080.f, viewport->WorkSize.x * .96f),
                std::min(800.f, viewport->WorkSize.y * .94f)),
         ImGuiCond_FirstUseEver);
-    if (!ImGui::Begin("PS2 save transfer", &show))
+    if (!ImGui::Begin(MikuPan_Translate("PS2 save transfer###ps2-save-transfer"), &show))
     {
         ImGui::End();
         return;
     }
-    const char* titles[] = {"Choose direction", "Choose PS2 storage",
-                            "Select saves and slots", "Choose PS2 region",
-                            "Choose output format"};
+    const char* titles[] = {MikuPan_Translate("Choose direction"), MikuPan_Translate("Choose PS2 storage"),
+                            MikuPan_Translate("Select saves and slots"), MikuPan_Translate("Choose PS2 region"),
+                            MikuPan_Translate("Choose output format")};
     const int page = step == Step::Operation ? 1
                      : exporting             ? int(step)
                                              : int(step) + 1;
-    ImGui::Text("Step %d of %d: %s", page, exporting ? 4 : 3,
+    ImGui::Text(MikuPan_Translate("Step %d of %d: %s"), page, exporting ? 4 : 3,
                 titles[int(step)]);
     ImGui::Separator();
     ImGui::BeginDisabled(picking.load());
@@ -857,14 +861,14 @@ void Draw(SDL_Window* window)
     }
     if (step == Step::Operation)
     {
-        ImGui::TextUnformatted("Where would you like to send your saves?");
+        ImGui::TextUnformatted(MikuPan_Translate("Where would you like to send your saves?"));
         ImGui::Spacing();
         const float available = ImGui::GetContentRegionAvail().x;
         const bool side_by_side = available >= 650.f;
         const float width =
             side_by_side ? (available - ImGui::GetStyle().ItemSpacing.x) * .5f
                          : available;
-        if (ChoiceCard("Import to PC\n\nBring your PS2 progress to this PC",
+        if (ChoiceCard(MikuPan_Translate("Import to PC\n\nBring your PS2 progress to this PC"),
                        width))
         {
             ChooseDirection(false);
@@ -874,7 +878,7 @@ void Draw(SDL_Window* window)
             ImGui::SameLine();
         }
         if (ChoiceCard(
-                "Export to PS2\n\nTake your PC progress to a memory card",
+                MikuPan_Translate("Export to PS2\n\nTake your PC progress to a memory card"),
                 width))
         {
             ChooseDirection(true);
@@ -882,16 +886,16 @@ void Draw(SDL_Window* window)
     }
     else if (step == Step::Location)
     {
-        ImGui::TextUnformatted("Choose where your PS2 saves are stored");
+        ImGui::TextUnformatted(MikuPan_Translate("Choose where your PS2 saves are stored"));
         ImGui::Spacing();
         const float width = ImGui::GetContentRegionAvail().x;
-        if (ChoiceCard("Open a card or save archive\n\nPCSX2 / OPL card or "
-                       "single-game save archive",
+        if (ChoiceCard(MikuPan_Translate("Open a card or save archive\n\nPCSX2 / OPL card or "
+                       "single-game save archive"),
                        width))
         {
             ChooseStorage(window, StorageKind::Card);
         }
-        if (ChoiceCard("Open a save folder\n\nUse extracted PS2 save files",
+        if (ChoiceCard(MikuPan_Translate("Open a save folder\n\nUse extracted PS2 save files"),
                        width))
         {
             ChooseStorage(window, StorageKind::Folder);
@@ -900,11 +904,11 @@ void Draw(SDL_Window* window)
     else if (step == Step::Slots)
     {
         ImGui::TextUnformatted(
-            "Select source saves, then choose a destination slot for each.");
+            MikuPan_Translate("Select source saves, then choose a destination slot for each."));
         if (!exporting && source_ok)
         {
-            ImGui::Text("%s -> %s", RegionLabel(source.save.region),
-                        RegionLabel(BuildRegion));
+            ImGui::Text("%s -> %s", MikuPan_Translate(RegionLabel(source.save.region)),
+                        MikuPan_Translate(RegionLabel(BuildRegion)));
             const auto notes = RegionNotes(source.save.region, BuildRegion);
             if (!notes.empty())
             {
@@ -913,11 +917,11 @@ void Draw(SDL_Window* window)
         }
         if (!exporting && source.regions.size() > 1)
         {
-            if (ImGui::BeginCombo("Card save region", RegionLabel(import_region)))
+            if (ImGui::BeginCombo(MikuPan_Translate("Card save region"), MikuPan_Translate(RegionLabel(import_region))))
             {
                 const auto regions = source.regions;
                 for (const auto region : regions)
-                    if (ImGui::Selectable(RegionLabel(region), region == import_region))
+                    if (ImGui::Selectable(MikuPan_Translate(RegionLabel(region)), region == import_region))
                     {
                         import_region = region;
                         import_region_selected = true;
@@ -933,9 +937,9 @@ void Draw(SDL_Window* window)
                                                 [](const SlotInfo& slot) {
                                                     return slot.occupied && slot.issue.empty();
                                                 }));
-        ImGui::Text("%d of %d saves selected", count, available);
+        ImGui::Text(MikuPan_Translate("%d of %d saves selected"), count, available);
         ImGui::SameLine();
-        if (ImGui::SmallButton("Select all"))
+        if (ImGui::SmallButton(MikuPan_Translate("Select all")))
         {
             ClearSelection();
             int chosen = 0;
@@ -950,7 +954,7 @@ void Draw(SDL_Window* window)
             AssignEmptySlots();
         }
         ImGui::SameLine();
-        if (ImGui::SmallButton("Clear selection"))
+        if (ImGui::SmallButton(MikuPan_Translate("Clear selection")))
         {
             ClearSelection();
         }
@@ -959,11 +963,11 @@ void Draw(SDL_Window* window)
                                   | ImGuiTableFlags_BordersInnerV))
         {
             ImGui::TableNextColumn();
-            ImGui::TextUnformatted(exporting ? "Source: PC saves"
-                                             : "Source: PS2 saves");
+            ImGui::TextUnformatted(exporting ? MikuPan_Translate("Source: PC saves")
+                                             : MikuPan_Translate("Source: PS2 saves"));
             ImGui::TableNextColumn();
-            ImGui::TextUnformatted(exporting ? "Destination: PS2 saves"
-                                             : "Destination: PC saves");
+            ImGui::TextUnformatted(exporting ? MikuPan_Translate("Destination: PS2 saves")
+                                             : MikuPan_Translate("Destination: PC saves"));
             ImGui::TableNextRow();
             const float height =
                 std::max(120.f, ImGui::GetContentRegionAvail().y
@@ -982,9 +986,9 @@ void Draw(SDL_Window* window)
     }
     else if (step == Step::Region)
     {
-        ImGui::TextUnformatted("Choose the original game's region");
+        ImGui::TextUnformatted(MikuPan_Translate("Choose the original game's region"));
         ImGui::TextWrapped(
-            "The output will use that release's save data and filenames.");
+            MikuPan_Translate("The output will use that release's save data and filenames."));
         ImGui::Spacing();
         const float width = ImGui::GetContentRegionAvail().x;
         const float height = std::max(60.f,
@@ -993,10 +997,10 @@ void Draw(SDL_Window* window)
         for (auto region : AllRegions)
         {
             const std::string label =
-                std::string(RegionLabel(region)) + "\n\n"
+                std::string(MikuPan_Translate(RegionLabel(region))) + "\n\n"
                 + (region == SaveRegion::EU
-                       ? "PAL release; English for cross-region exports"
-                       : "Original release");
+                       ? MikuPan_Translate("PAL release; English for cross-region exports")
+                       : MikuPan_Translate("Original release"));
             if (ChoiceCard(label.c_str(), width, height))
             {
                 Folder checked;
@@ -1012,17 +1016,17 @@ void Draw(SDL_Window* window)
     }
     else if (step == Step::Format)
     {
-        ImGui::Text("Region: %s", RegionLabel(output_region));
+        ImGui::Text(MikuPan_Translate("Region: %s"), MikuPan_Translate(RegionLabel(output_region)));
         const auto notes = RegionNotes(BuildRegion, output_region);
         if (!notes.empty())
         {
             ImGui::TextWrapped("%s", notes.c_str());
         }
-        ImGui::TextUnformatted("Choose the output format");
+        ImGui::TextUnformatted(MikuPan_Translate("Choose the output format"));
         ImGui::TextWrapped(
-            "Choose a format, then confirm the destination in the file picker "
+            MikuPan_Translate("Choose a format, then confirm the destination in the file picker "
             "to "
-            "export immediately.");
+            "export immediately."));
         ImGui::Spacing();
         const float width = ImGui::GetContentRegionAvail().x;
         const float height =
@@ -1030,45 +1034,45 @@ void Draw(SDL_Window* window)
                            - ImGui::GetStyle().ItemSpacing.y,
                        60.f, 110.f);
         int format = -1;
-        if (ChoiceCard("PCSX2 / ECC\n\nStandard .ps2 memory card", width,
+        if (ChoiceCard(MikuPan_Translate("PCSX2 / ECC\n\nStandard .ps2 memory card"), width,
                        height))
         {
             format = 1;
         }
-        if (ChoiceCard("OPL / raw\n\nNon-ECC .bin memory card", width, height))
+        if (ChoiceCard(MikuPan_Translate("OPL / raw\n\nNon-ECC .bin memory card"), width, height))
         {
             format = 0;
         }
-        if (ChoiceCard("Extracted save folder\n\nCreate save files inside the "
-                       "chosen folder",
+        if (ChoiceCard(MikuPan_Translate("Extracted save folder\n\nCreate save files inside the "
+                       "chosen folder"),
                        width, height))
         {
             format = 2;
         }
-        if (ChoiceCard("PSU / EMS\n\nuLaunchELF and PS2 save-transfer tools",
+        if (ChoiceCard(MikuPan_Translate("PSU / EMS\n\nuLaunchELF and PS2 save-transfer tools"),
                        width, height))
         {
             format = 3;
         }
-        if (ChoiceCard("Action Replay MAX\n\nSingle-game .max save archive",
+        if (ChoiceCard(MikuPan_Translate("Action Replay MAX\n\nSingle-game .max save archive"),
                        width, height))
         {
             format = 4;
         }
         if (ChoiceCard(
-                "X-Port / SharkPort\n\nSingle-game .xps / .sps save archive",
+                MikuPan_Translate("X-Port / SharkPort\n\nSingle-game .xps / .sps save archive"),
                 width, height))
         {
             format = 5;
         }
-        if (ChoiceCard("CodeBreaker\n\nSingle-game .cbs save archive", width,
+        if (ChoiceCard(MikuPan_Translate("CodeBreaker\n\nSingle-game .cbs save archive"), width,
                        height))
         {
             format = 6;
         }
         ImGui::TextWrapped(
-            "Save archives contain this game's selected saves, not a whole "
-            "memory card.");
+            MikuPan_Translate("Save archives contain this game's selected saves, not a whole "
+            "memory card."));
         if (format >= 0)
         {
             message.clear();
@@ -1095,7 +1099,7 @@ void Draw(SDL_Window* window)
                     const auto text = PathUtf8(path);
                     if (text.size() >= sizeof(output))
                     {
-                        message = "Output path is too long.";
+                        message = MikuPan_Translate("Output path is too long.");
                     }
                     else
                     {
@@ -1132,7 +1136,7 @@ void Draw(SDL_Window* window)
         reason = Unavailable(true, false, final_step || step == Step::Format);
     }
     ImGui::BeginDisabled(step == Step::Operation);
-    if (ImGui::Button("Back", ImVec2(120, 0)))
+    if (ImGui::Button(MikuPan_Translate("Back"), ImVec2(120, 0)))
     {
         step = exporting && step == Step::Slots ? Step::Operation
                                                 : Step(int(step) - 1);
@@ -1145,12 +1149,19 @@ void Draw(SDL_Window* window)
         ImGui::SetCursorPosX(
             std::max(ImGui::GetCursorPosX(),
                      ImGui::GetWindowContentRegionMax().x - 180.f));
-        const std::string action =
-            final_step ? (exporting ? "Export " : "Import ")
-                             + std::to_string(slots.size()) + " save(s)"
-                       : "Next";
+        char action[96];
+        if (final_step)
+        {
+            std::snprintf(action, sizeof(action),
+                          MikuPan_Translate(exporting ? "Export %zu save(s)" : "Import %zu save(s)"),
+                          slots.size());
+        }
+        else
+        {
+            SDL_strlcpy(action, MikuPan_Translate("Next"), sizeof(action));
+        }
         ImGui::BeginDisabled(!reason.empty());
-        if (ImGui::Button(action.c_str(), ImVec2(180, 0)))
+        if (ImGui::Button(action, ImVec2(180, 0)))
         {
             message.clear();
             if (final_step)
@@ -1172,16 +1183,16 @@ void Draw(SDL_Window* window)
         }
     }
     ImGui::EndDisabled();
-    if (!message.empty() && !ImGui::IsPopupOpen("Save transfer message"))
+    if (!message.empty() && !ImGui::IsPopupOpen(MikuPan_Translate("Save transfer message###save-transfer-message")))
     {
-        ImGui::OpenPopup("Save transfer message");
+        ImGui::OpenPopup(MikuPan_Translate("Save transfer message###save-transfer-message"));
     }
     ImGui::SetNextWindowSize(ImVec2(std::min(480.f, viewport->WorkSize.x * .9f), 0),
                              ImGuiCond_Appearing);
-    if (ImGui::BeginPopupModal("Save transfer message", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    if (ImGui::BeginPopupModal(MikuPan_Translate("Save transfer message###save-transfer-message"), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
         ImGui::TextWrapped("%s", message.c_str());
-        if (ImGui::Button("OK", ImVec2(120, 0)) || ImGui::IsKeyPressed(ImGuiKey_Escape))
+        if (ImGui::Button(MikuPan_Translate("OK"), ImVec2(120, 0)) || ImGui::IsKeyPressed(ImGuiKey_Escape))
         {
             message.clear();
             ImGui::CloseCurrentPopup();

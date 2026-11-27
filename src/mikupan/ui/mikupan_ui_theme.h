@@ -2,9 +2,9 @@
 #define MIKUPAN_MIKUPAN_UI_THEME_H
 
 #include "SDL3/SDL_video.h"
+#include "mikupan/mikupan_config.h"
 
 #define MIKUPAN_UI_THEME_COUNT 7
-#define MIKUPAN_UI_FONT_COUNT 3
 
 typedef struct ImFont ImFont;
 
@@ -12,6 +12,7 @@ extern const char* const MikuPan_UiThemeLabels[MIKUPAN_UI_THEME_COUNT];
 extern const char* const MikuPan_UiFontLabels[MIKUPAN_UI_FONT_COUNT];
 
 void MikuPan_UiThemeInit(SDL_Window* window);
+void MikuPan_UiThemeUpdateScale(SDL_Window* window);
 float MikuPan_UiThemeGetDisplayScale(void);
 
 int MikuPan_ClampThemeIndex(int theme);

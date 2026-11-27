@@ -32,6 +32,7 @@ void MikuPan_LoadImgHdFile();
 void MikuPan_ServiceMissingDataFolderDialog();
 void MikuPan_RequestDataFolderSelection(const char *missing_path);
 bool MikuPan_HasRequiredDataFiles(char *missing_file, size_t missing_file_size);
+bool MikuPan_IsJapaneseGameData(void);
 /* Records that file data was loaded at a PS2 main-memory offset; requests a
    texture-cache flush only when an address is loaded over a second time. */
 void MikuPan_ReadFullFile(const char *filename, char *buffer);

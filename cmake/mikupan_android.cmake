@@ -8,11 +8,11 @@ option(MIKUPAN_ANDROID_APK
 
 set(MIKUPAN_ANDROID_PACKAGE "io.github.mikompilation.mikupan"
         CACHE STRING "Android application package name.")
-set(MIKUPAN_ANDROID_LABEL "MikuPan"
+set(MIKUPAN_ANDROID_LABEL "${PROJECT_NAME}"
         CACHE STRING "Android launcher label.")
 set(MIKUPAN_ANDROID_VERSION_CODE "1"
         CACHE STRING "Android application versionCode.")
-set(MIKUPAN_ANDROID_VERSION_NAME "0.1"
+set(MIKUPAN_ANDROID_VERSION_NAME "${MIKUPAN_DISPLAY_VERSION}"
         CACHE STRING "Android application versionName.")
 set(MIKUPAN_ANDROID_MIN_SDK "21"
         CACHE STRING "Android minimum SDK version.")

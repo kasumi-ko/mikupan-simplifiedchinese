@@ -69,6 +69,7 @@ u_char file_kind[] = { 0,  2,  1, 0xff };
 #include "data/rel_dat.h" // RELATION_DAT rel_dat[];
 #include "data/rel_yaj.h" // RELATION_YAJI rel_yaj[];
 #include "data/caption_list.h" // CAPTION_LIST caption_list[];
+#include "mikupan/rendering/mikupan_font_textures.h"
 #include "data/caption_data.h" // CAPTION_DATA caption_data[];
 
 RELATION_CSR rel_csr = {0};
@@ -1033,7 +1034,11 @@ void SideBar(u_char hav_now, u_char dsp_max, u_short mov_lng, u_char lst_top, u_
             now_lng = mov_lng;
         }
 
-        pos_y = dy + (int)(((float)(mov_lng - now_lng) / csr_top) * lst_top);
+        pos_y = dy;
+        if (csr_top != 0)
+        {
+            pos_y += static_cast<int>(mov_lng - now_lng) * lst_top / csr_top;
+        }
 
         PutBarScale(dx, pos_y, now_lng, alp, chr_top);
     }
@@ -2836,21 +2841,24 @@ void RelDspBackGrd()
 
     DispSprD(&ds);
 
-    DrawButtonTex(0x14000, 1, spr_dat[MAP_DIRECTION].x - 45, spr_dat[MAP_DIRECTION].y + rel_csr.offy + 43, 0x64);
+    if (!MikuPanFonts::UsesChineseGlyphGrid())
+    {
+        DrawButtonTex(0x14000, 1, spr_dat[MAP_DIRECTION].x - 45, spr_dat[MAP_DIRECTION].y + rel_csr.offy + 43, 0x64);
 
-    ssd = spr_dat[MNU_GRB_CAP_EXIT];
+        ssd = spr_dat[MNU_GRB_CAP_EXIT];
 
-    CopySprDToSpr(&ds, &ssd);
+        CopySprDToSpr(&ds, &ssd);
 
-    ds.pri = 0x14000;
-    ds.z = 0xfffffff - ds.pri;
+        ds.pri = 0x14000;
+        ds.z = 0xfffffff - ds.pri;
 
-    ds.alpha = alpha;
+        ds.alpha = alpha;
 
-    ds.x = 474.0f;
-    ds.y = rel_csr.offy + 96;
+        ds.x = 474.0f;
+        ds.y = rel_csr.offy + 96;
 
-    DispSprD(&ds);
+        DispSprD(&ds);
+    }
 
     DspMenuTitle(yw2d.io_x[1], yw2d.io_y[1] + rel_csr.offy - 22.0f, 128.0f, 30, 4);
 
@@ -3074,9 +3082,14 @@ void DispCaption(int no, u_char alp)
         DispSqrD(&dq);
     }
 
-    for (i = 0; cdp->cds[i].str != 0 && i < 4; i++)
+    for (i = 0; i < 4 && cdp->cds[i].str != 0; i++)
     {
         cdsp = &cdp->cds[i];
+        if (MikuPanFonts::UsesChineseGlyphGrid()
+            && cdsp->str >= MNU_GRB_CAP_MENU && cdsp->str <= MNU_GRB_CAP_PROTECT)
+        {
+            continue;
+        }
 
         DrawButtonTexNZ(0xa000, cdsp->mark, clp->x + cdsp->x, clp->y + cdsp->y + 1, alp);
 

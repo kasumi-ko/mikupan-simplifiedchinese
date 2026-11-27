@@ -74,11 +74,15 @@ static void CdvdInitResetIop()
 
 int LoadReq(int file_no, uint64_t ps2_addr)
 {
-    IMG_ARRANGEMENT *img_arng;
-    
-    info_log("File No: %d %s", file_no, file_name[file_no]);
-   
-    img_arng = GetImgArrangementP(file_no);
+    const char *name = GetCdFileName(file_no);
+    if (name == nullptr)
+    {
+        info_log("Invalid CD resource number: %d", file_no);
+        return -1;
+    }
+
+    info_log("File No: %d %s", file_no, name);
+    const IMG_ARRANGEMENT *img_arng = GetImgArrangementP(file_no);
 
     return LoadReqNSector(file_no, img_arng->start, img_arng->size, ps2_addr);
 }
@@ -88,13 +92,27 @@ int GetFileNameCount()
     return (int)(sizeof(file_name) / sizeof(file_name[0]));
 }
 
+const char* GetCdFileName(int file_no)
+{
+    if (file_no < 0 || file_no >= GetFileNameCount())
+    {
+        return nullptr;
+    }
+
+    return file_name[file_no];
+}
+
 int LoadReqToHostPointer(int file_no, void *host_addr)
 {
-    IMG_ARRANGEMENT *img_arng;
+    const char *name = GetCdFileName(file_no);
+    if (name == nullptr)
+    {
+        info_log("Invalid CD resource number: %d", file_no);
+        return -1;
+    }
 
-    info_log("File No: %d %s", file_no, file_name[file_no]);
-
-    img_arng = GetImgArrangementP(file_no);
+    info_log("File No: %d %s", file_no, name);
+    const IMG_ARRANGEMENT *img_arng = GetImgArrangementP(file_no);
 
     return (int)LoadReqNSectorToHostPointer(file_no, img_arng->start,
                                             img_arng->size, host_addr);
@@ -105,9 +123,8 @@ int64_t LoadReqGetHostPointerEnd(int file_no, void *host_addr, int *id)
     IMG_ARRANGEMENT *img_arng;
     int64_t ret;
 
+    *id = LoadReqToHostPointer(file_no, host_addr);
     img_arng = GetImgArrangementP(file_no);
-    *id = (int)LoadReqNSectorToHostPointer(file_no, img_arng->start,
-                                           img_arng->size, host_addr);
     ret = (int64_t)(uintptr_t)host_addr + img_arng->size;
     
     if (ret % 16)
@@ -122,6 +139,12 @@ int LoadReqSe(int file_no, u_char se_type)
 {
     IMG_ARRANGEMENT *img_arng;
     int ret;
+
+    if (GetCdFileName(file_no) == nullptr)
+    {
+        info_log("Invalid sound resource number: %d", file_no);
+        return -1;
+    }
     
     img_arng = GetImgArrangementP(file_no);
     
@@ -154,6 +177,14 @@ int64_t LoadReqNSector(int file_no, int sector, int size, int64_t ps2_addr)
 int64_t LoadReqNSectorToHostPointer(int file_no, int sector, int size, void *host_addr)
 {
     int ret;
+
+    if (host_addr == nullptr || sector < 0 || size < 0
+        || (MikuPan_IsPs2MemoryPointer((int64_t)(uintptr_t)host_addr)
+            && !MikuPan_IsPs2MemorySpan(host_addr, size)))
+    {
+        info_log("Invalid CD load destination or range for resource %d", file_no);
+        return -1;
+    }
 
     ret = GetFreeId();
 
@@ -336,6 +367,13 @@ static void RetireLoadIdsThrough(int id)
 unsigned char* LoadImgHdFile();
 IMG_ARRANGEMENT *GetImgArrangementP(int file_no)
 {
+    if (file_no < 0 || file_no >= GetFileNameCount())
+    {
+        // Size-only callers expect an entry, including when it is absent.
+        static IMG_ARRANGEMENT missing;
+        return &missing;
+    }
+
     return &((IMG_ARRANGEMENT*)MikuPan_GetHostPointer(ImgHdAddress))[file_no];
 }
 

@@ -21,6 +21,7 @@
 #include "ingame/map/map_ctrl.h"
 #include "main/glob.h"
 #include "mikupan/debug/mikupan_logging_c.h"
+#include "mikupan/io/mikupan_file.h"
 #include "mikupan/mikupan_memory.h"
 #include "os/eeiop/adpcm/ea_cmd.h"
 #include "os/eeiop/adpcm/ea_ctrl.h"
@@ -706,6 +707,32 @@ void MissionTitleDisp(int msn_no)
     for (i = 0; i < 11; i++)
     {
         SimpleDispSprt(&msn_title_sp_bak[i], MikuPan_GetHostAddress(MISSION_TITLE_CARD_ADDRESS), i, NULL, NULL, alp_rate);
+    }
+
+    if (MikuPan_IsJapaneseGameData())
+    {
+        // SLPS-25074: two regions of picture 11 over the flare in picture 12.
+        static SPRT_SDAT titles[5][2] = {
+            {{87, 0, 51, 115, 573, 317, 10, 128}, {0, 0, 88, 242, 493, 159, 10, 128}},
+            {{80, 0, 49, 133, 552, 35, 10, 128}, {0, 0, 78, 212, 471, 98, 10, 128}},
+            {{80, 0, 49, 153, 132, 280, 10, 128}, {0, 0, 78, 224, 52, 148, 10, 128}},
+            {{84, 0, 48, 158, 574, 0, 10, 128}, {0, 0, 84, 174, 490, 107, 10, 128}},
+            {{84, 0, 53, 166, 118, 46, 10, 128}, {0, 0, 84, 230, 34, 100, 10, 128}},
+        };
+        static SPRT_SDAT flares[5] = {
+            {0, 0, 156, 381, 483, 67, 20, 128},
+            {0, 0, 156, 426, 458, 0, 20, 128},
+            {0, 0, 156, 426, 38, 22, 20, 128},
+            {0, 0, 156, 426, 482, 0, 20, 128},
+            {0, 0, 156, 426, 25, 0, 20, 128},
+        };
+        const int64_t pack = MikuPan_GetHostAddress(MISSION_TITLE_CARD_ADDRESS);
+        SimpleDispAlphaSprt(&flares[msn_no], pack, 12, alp_rate * 70 / 100, 0);
+        for (auto& title : titles[msn_no])
+        {
+            SimpleDispSprt(&title, pack, 11, nullptr, nullptr, alp_rate);
+        }
+        return;
     }
 
     for (i = 0; i < msn_title_flr_sp_num[msn_no]; i++) {

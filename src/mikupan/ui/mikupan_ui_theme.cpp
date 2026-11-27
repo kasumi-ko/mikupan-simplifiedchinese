@@ -5,8 +5,10 @@
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include "cimgui.h"
 #include "mikupan/mikupan_config.h"
+#include "mikupan/mikupan_i18n.h"
 #include "mikupan/io/mikupan_file_c.h"
 #include "mikupan/mikupan_utils.h"
+#include <cmath>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,12 +23,14 @@ const char* const MikuPan_UiFontLabels[MIKUPAN_UI_FONT_COUNT] = {
     "ImGui Default Monospace",
     "Century Old Style",
     "Zapf Chancery",
+    "LXGW WenKai Medium",
 };
 
 static ImFont* ui_fonts[MIKUPAN_UI_FONT_COUNT] = {0};
+static ImGuiStyle ui_default_style;
 static float ui_display_scale = 1.0f;
-static float ui_font_default_size = 13.0f;
-static float ui_font_regular_size = 14.0f;
+static constexpr float ui_font_default_size = 13.0f;
+static constexpr float ui_font_regular_size = 14.0f;
 
 int MikuPan_ClampThemeIndex(int theme)
 {
@@ -42,7 +46,7 @@ int MikuPan_ClampFontIndex(int font)
 {
     if (font < 0 || font >= MIKUPAN_UI_FONT_COUNT)
     {
-        return 1;
+        return MIKUPAN_UI_FONT_CENTURY;
     }
 
     return font;
@@ -50,46 +54,18 @@ int MikuPan_ClampFontIndex(int font)
 
 static float MikuPan_CalculateUiDisplayScale(SDL_Window* window)
 {
-    SDL_DisplayID display = 0;
-    const SDL_DisplayMode* mode = NULL;
-    float content_scale = 1.0f;
-    float resolution_scale = 1.0f;
-    float scale;
-
-    if (window != NULL)
+    int height = 0;
+    if (!window || !SDL_GetWindowSizeInPixels(window, nullptr, &height) || height <= 0)
     {
-        display = SDL_GetDisplayForWindow(window);
-        content_scale = SDL_GetWindowDisplayScale(window);
+        return ui_display_scale;
     }
 
-    if (display == 0)
-    {
-        display = SDL_GetPrimaryDisplay();
-    }
-
-    if (display != 0)
-    {
-        mode = SDL_GetCurrentDisplayMode(display);
-        if (content_scale <= 0.0f)
-        {
-            content_scale = SDL_GetDisplayContentScale(display);
-        }
-    }
-
-    if (mode != NULL && mode->w > 0 && mode->h > 0)
-    {
-        const float sx = (float) mode->w / 1920.0f;
-        const float sy = (float) mode->h / 1080.0f;
-        resolution_scale = sx < sy ? sx : sy;
-    }
-
-    if (content_scale <= 0.0f)
-    {
-        content_scale = 1.0f;
-    }
-
-    scale = content_scale > resolution_scale ? content_scale : resolution_scale;
-    return MikuPan_ClampFloat(scale, 0.85f, 2.25f);
+    const float pixel_density = SDL_GetWindowPixelDensity(window);
+    const float density = pixel_density > 0.0f ? pixel_density : 1.0f;
+    const float display_scale = SDL_GetWindowDisplayScale(window);
+    const float content_scale = display_scale > 0.0f ? display_scale / density : 1.0f;
+    // ImGui sizes are in window coordinates. Its SDL backend applies pixel density.
+    return MikuPan_ClampFloat(height / (720.0f * density) * content_scale, 0.60f, 3.0f);
 }
 
 void MikuPan_ApplyUiFont(int font)
@@ -112,7 +88,11 @@ void MikuPan_ApplyUiFontScale(void)
 
 ImFont* MikuPan_GetTitleBlockFont(void)
 {
-    return ui_fonts[1] != NULL ? ui_fonts[1] : ui_fonts[0];
+    if (mikupan_configuration.selected_font == MIKUPAN_UI_FONT_WENKAI)
+    {
+        return ui_fonts[MIKUPAN_UI_FONT_WENKAI];
+    }
+    return ui_fonts[MIKUPAN_UI_FONT_CENTURY];
 }
 
 ImFont* MikuPan_GetTitleFont(void)
@@ -165,22 +145,20 @@ static void MikuPan_LoadUiFonts(void)
     ImGuiIO* io = igGetIO_Nil();
     ImFontConfig* default_font_config = ImFontConfig_ImFontConfig();
 
-    ui_font_default_size = 13.0f * ui_display_scale;
-    ui_font_regular_size = 14.0f * ui_display_scale;
-
     if (default_font_config != NULL)
     {
         default_font_config->SizePixels = ui_font_default_size;
     }
 
-    ui_fonts[0] = ImFontAtlas_AddFontDefault(io->Fonts, default_font_config);
+    ui_fonts[MIKUPAN_UI_FONT_MONOSPACE] =
+        ImFontAtlas_AddFontDefault(io->Fonts, default_font_config);
 
     if (default_font_config != NULL)
     {
         ImFontConfig_destroy(default_font_config);
     }
 
-    ui_fonts[1] = MikuPan_LoadUiFontTtf(
+    ui_fonts[MIKUPAN_UI_FONT_CENTURY] = MikuPan_LoadUiFontTtf(
         "resources/fonts/CenturyOldStyle.ttf", ui_font_regular_size);
 
     if (ui_fonts[1] == NULL)
@@ -188,12 +166,42 @@ static void MikuPan_LoadUiFonts(void)
         ui_fonts[1] = ui_fonts[0];
     }
 
-    ui_fonts[2] = MikuPan_LoadUiFontTtf(
+    ui_fonts[MIKUPAN_UI_FONT_CHANCERY] = MikuPan_LoadUiFontTtf(
         "resources/fonts/URW Chancery L Medium Italic U.ttf", ui_font_regular_size);
 
     if (ui_fonts[2] == NULL)
     {
         ui_fonts[2] = ui_fonts[0];
+    }
+
+    ui_fonts[MIKUPAN_UI_FONT_WENKAI] =
+        MikuPan_LoadUiFontTtf(MIKUPAN_WENKAI_FONT_PATH, ui_font_regular_size);
+
+    if (const char *chinese_font = MikuPan_GetChineseUiFont())
+    {
+        ImFontConfig *merge = ImFontConfig_ImFontConfig();
+        if (merge != nullptr)
+        {
+            merge->MergeMode = true;
+            for (int i = MIKUPAN_UI_FONT_MONOSPACE; i < MIKUPAN_UI_FONT_WENKAI; ++i)
+            {
+                if (ui_fonts[i] == nullptr || (i != 0 && ui_fonts[i] == ui_fonts[0]))
+                {
+                    continue;
+                }
+                merge->DstFont = ui_fonts[i];
+                ImFontAtlas_AddFontFromFileTTF(
+                    io->Fonts, chinese_font,
+                    i == 0 ? ui_font_default_size : ui_font_regular_size,
+                    merge, nullptr);
+            }
+            ImFontConfig_destroy(merge);
+        }
+    }
+
+    if (ui_fonts[MIKUPAN_UI_FONT_WENKAI] == nullptr)
+    {
+        ui_fonts[MIKUPAN_UI_FONT_WENKAI] = ui_fonts[MIKUPAN_UI_FONT_CENTURY];
     }
 
     MikuPan_ConfigurationValidate();
@@ -230,6 +238,12 @@ void MikuPan_ApplyFatalFrameStyle(int theme)
     theme = MikuPan_ClampThemeIndex(theme);
 
     ImGuiStyle* s = igGetStyle();
+    const float base_font_size = s->FontSizeBase;
+    const float user_font_scale = s->FontScaleMain;
+    *s = ui_default_style;
+    s->FontSizeBase = base_font_size;
+    s->FontScaleMain = user_font_scale;
+    s->FontScaleDpi = ui_display_scale;
     ImVec4* c = s->Colors;
 
     s->Alpha = 0.96f;
@@ -901,10 +915,21 @@ void MikuPan_ApplyFatalFrameStyle(int theme)
 void MikuPan_UiThemeInit(SDL_Window* window)
 {
     MikuPan_ConfigurationValidate();
+    ui_default_style = *igGetStyle();
     ui_display_scale = MikuPan_CalculateUiDisplayScale(window);
     MikuPan_LoadUiFonts();
     MikuPan_ApplyUiFontScale();
     MikuPan_ApplyFatalFrameStyle(mikupan_configuration.selected_theme);
+}
+
+void MikuPan_UiThemeUpdateScale(SDL_Window* window)
+{
+    const float scale = MikuPan_CalculateUiDisplayScale(window);
+    if (std::abs(scale - ui_display_scale) >= 0.001f)
+    {
+        ui_display_scale = scale;
+        MikuPan_ApplyFatalFrameStyle(mikupan_configuration.selected_theme);
+    }
 }
 
 float MikuPan_UiThemeGetDisplayScale(void)

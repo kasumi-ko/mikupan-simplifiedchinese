@@ -32,6 +32,7 @@ void MikuPan_LoadImgHdFile();
 void MikuPan_ServiceMissingDataFolderDialog();
 void MikuPan_RequestDataFolderSelection(const char *missing_path);
 bool MikuPan_HasRequiredDataFiles(char *missing_file, size_t missing_file_size);
+bool MikuPan_IsJapaneseGameData();
 void MikuPan_ReadFullFile(const char *filename, char *buffer);
 void MikuPan_ReadFileInArchive(int sector, int size, u_int *address);
 void MikuPan_BufferFile(int sector, int size, int64_t address);

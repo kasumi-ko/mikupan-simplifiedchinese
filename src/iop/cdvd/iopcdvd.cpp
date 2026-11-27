@@ -12,6 +12,7 @@
 #include "mikupan/mikupan_memory.h"
 #include "mikupan/rendering/mikupan_baked_texture.h"
 #include "memory.h"
+#include "os/eeiop/cdvd/eecdvd.h"
 #include "sif.h"
 #include "string.h"
 #include "sysmem.h"
@@ -20,9 +21,6 @@
 #include <SDL3/SDL_mutex.h>
 #include <stdint.h>
 #include <spdlog/spdlog.h>
-//#include <os/eeiop/cdvd/fnameee.h>
-
-extern char* file_name[];
 
 CDVD_STAT cdvd_stat;
 CDVD_REQ_BUF cdvd_req[32];
@@ -46,6 +44,8 @@ static void ICdvdExecCmd();
 static void ICdvdDataReadOnceSector();
 static void ICdvdStrLoad();
 static int ICdvdTryWholeFileLoad(CDVD_REQ_BUF* req_bufp);
+static bool ICdvdReadNamedRange(const char* name, u_int offset, void* target,
+                               u_int requested_size);
 static int ICdvdCheckLoadError();
 static void ICdvdTransFinishedData();
 static void ICdvdMainLocked();
@@ -634,54 +634,13 @@ static void ICdvdAdpcmLoad()
     }
 
     CDVD_ADPCM* adpcm = &cdvd_stat.adpcm[pos];
-    const char* name = NULL;
+    const char* name = GetCdFileName(adpcm->file_no);
+    const u_int read_offset = adpcm->read_now > 0 ? adpcm->read_now : 0;
+    const u_int sectors = (adpcm->size_now + 2047u) / 2048u;
 
-    if (adpcm->file_no >= 0)
+    if (!ICdvdReadNamedRange(name, read_offset, adpcm->taddr, sectors * 2048u))
     {
-        name = file_name[adpcm->file_no];
-    }
-
-    sceCdlFILE file_info = {0};
-
-    if (name != NULL && sceCdSearchFile(&file_info, name))
-    {
-        int read_offset = adpcm->read_now;
-
-        if (read_offset < 0)
-        {
-            read_offset = 0;
-        }
-
-        int read_bytes = ((adpcm->size_now + 2047) / 2048) * 2048;
-
-        sceCdReadFile(
-            name,
-            read_offset,
-            adpcm->taddr,
-            read_bytes);
-
-        int file_bytes = (int)file_info.size - read_offset;
-
-        if (file_bytes < 0)
-        {
-            file_bytes = 0;
-        }
-
-        if (file_bytes < read_bytes)
-        {
-            memset(
-                (u_char*)adpcm->taddr + file_bytes,
-                0,
-                read_bytes - file_bytes);
-        }
-    }
-    else
-    {
-        sceCdRead(
-            adpcm->start,
-            (adpcm->size_now + 2047) / 2048,
-            adpcm->taddr,
-            &cdvd_stat.rmode);
+        sceCdRead(adpcm->start, sectors, adpcm->taddr, &cdvd_stat.rmode);
     }
 
     adpcm->now_load = 1;
@@ -690,19 +649,7 @@ static void ICdvdAdpcmLoad()
 
 static void ICdvdStrLoad()
 {
-    spdlog::info("Loading file {} by name", file_name[cdvd_stat.file_no]);
-
-    sceCdlFILE file_info = {0};
-
-    if (sceCdSearchFile(&file_info, file_name[cdvd_stat.file_no]))
-    {
-        spdlog::info("File {} found in CDVD", file_name[cdvd_stat.file_no]);
-    }
-    else
-    {
-        ICdvdDataReadOnceSector();
-        return;
-    }
+    const char* name = GetCdFileName(cdvd_stat.file_no);
 
     cdvd_stat.now_size = cdvd_stat.size - cdvd_stat.end_size;
 
@@ -718,25 +665,10 @@ static void ICdvdStrLoad()
 
     int read_bytes = ((cdvd_stat.now_size + 2047) / 2048) * 2048;
 
-    sceCdReadFile(
-        file_name[cdvd_stat.file_no],
-        cdvd_stat.end_size,
-        load_buf_table[cdvd_stat.now_lbuf],
-        read_bytes);
-
-    int file_bytes = (int)file_info.size - cdvd_stat.end_size;
-
-    if (file_bytes < 0)
+    if (!ICdvdReadNamedRange(name, cdvd_stat.end_size,
+                             load_buf_table[cdvd_stat.now_lbuf], read_bytes))
     {
-        file_bytes = 0;
-    }
-
-    if (file_bytes < read_bytes)
-    {
-        memset(
-            (u_char*)load_buf_table[cdvd_stat.now_lbuf] + file_bytes,
-            0,
-            read_bytes - file_bytes);
+        ICdvdDataReadOnceSector();
     }
 }
 
@@ -804,8 +736,8 @@ static void ICdvdFinishWholeFileLoad(CDVD_REQ_BUF* req_bufp)
     cdvd_stat.stat = CDVD_STAT_FREE;
 }
 
-static int ICdvdReadWholeNamedFile(
-    const char* name, void* target, u_int requested_size)
+static bool ICdvdReadNamedRange(const char* name, u_int offset, void* target,
+                               u_int requested_size)
 {
     sceCdlFILE file_info = {0};
 
@@ -814,13 +746,13 @@ static int ICdvdReadWholeNamedFile(
         return 0;
     }
 
-    u_int read_size = file_info.size;
+    u_int read_size = file_info.size > offset ? file_info.size - offset : 0;
     if (read_size > requested_size)
     {
         read_size = requested_size;
     }
 
-    if (read_size != 0 && !sceCdReadFile(name, 0, target, read_size))
+    if (read_size != 0 && !sceCdReadFile(name, offset, target, read_size))
     {
         return 0;
     }
@@ -865,11 +797,7 @@ static int ICdvdTryWholeFileLoad(CDVD_REQ_BUF* req_bufp)
         return 1;
     }
 
-    const char* name = NULL;
-    if (req_bufp->file_no >= 0)
-    {
-        name = file_name[req_bufp->file_no];
-    }
+    const char* name = GetCdFileName(req_bufp->file_no);
 
     // Font identities and glyphs must come from the same original source bytes.
     const bool font = req_bufp->tmem == TRANS_MEM_EE &&
@@ -878,8 +806,8 @@ static int ICdvdTryWholeFileLoad(CDVD_REQ_BUF* req_bufp)
                                         (u_int)req_bufp->start_sector,
                                         (u_int)req_bufp->size_sector,
                                         req_bufp->taddr))
-        && !ICdvdReadWholeNamedFile(name, req_bufp->taddr,
-                                    (u_int)req_bufp->size_sector)
+        && !ICdvdReadNamedRange(name, 0, req_bufp->taddr,
+                               (u_int)req_bufp->size_sector)
         && !ICdvdReadWholeArchiveFile(req_bufp))
     {
         return 0;

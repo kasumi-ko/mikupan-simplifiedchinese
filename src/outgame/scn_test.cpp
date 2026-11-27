@@ -110,6 +110,7 @@ int SceneTestInit()
 {
     int ret;
     static int load_id;
+    static int hand_load_id;
     static int load_st = 0;
 
     ret = 0;
@@ -122,12 +123,13 @@ int SceneTestInit()
         gra2dInitST();
 
         load_id = LoadReq(EFF001_PK2, EFFECT_ADDRESS);
+        hand_load_id = LoadReq(HAND_PK2, HAND_PK2_ADDRESS);
 
         load_st = 1;
     }
     else if (load_st == 1)
     {
-        if (IsLoadEnd(load_id) != 0)
+        if (IsLoadEnd(load_id) != 0 && IsLoadEnd(hand_load_id) != 0)
         {
             SetETIM2File(EFFECT_ADDRESS);
 

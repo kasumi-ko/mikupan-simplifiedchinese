@@ -21,13 +21,17 @@
 #include "main/glob.h"
 #include "mikupan/mikupan_memory.h"
 #include "mikupan/io/mikupan_controller.h"
+#include "mikupan/io/mikupan_file.h"
 #include "mikupan/mikupan_utils.h"
+#include "mikupan/rendering/mikupan_font_textures.h"
 #include "mikupan/rendering/mikupan_renderer.h"
 #include "mikupan/ui/mikupan_ui.h"
 #include "os/eeiop/adpcm/ea_tape.h"
 #include "os/eeiop/cdvd/eecdvd.h"
 #include "os/eeiop/eese.h"
 
+#include <algorithm>
+#include <array>
 #include <string.h>
 
 #ifdef BUILD_EU_VERSION
@@ -904,6 +908,23 @@ static void ItemModeInOut2()
     }
 }
 
+static void PutStatusCount(u_char count, short int symbol_x,
+                           short int number_x, u_char alpha)
+{
+    PutStringYW(IGMSG_CAME_MSG, 0, symbol_x, 59, 0x808080, alpha, 0x5000, 0);
+    if (MikuPanFonts::UsesChineseGlyphGrid())
+    {
+        char digits[] = {
+            char('0' + (count / 10) % 10), char('0' + count % 10), '\0'
+        };
+        SetASCIIString3(0x5000, symbol_x + 19, 62, 1, 0x80, 0x80, 0x80, alpha, digits);
+    }
+    else
+    {
+        PutNumberYW(3, count, number_x, 55, 1.0f, 1.0f, 0x808080, alpha, 0x5000, 2, 1);
+    }
+}
+
 void PlayerStatusYW(u_char alpha)
 {
     u_char bak_alp;
@@ -927,9 +948,7 @@ void PlayerStatusYW(u_char alpha)
 
     PutSpriteYW(STTS_REISEKI2, STTS_REISEKI2, 0.0f, 0.0f, 0.0f, 0x808080, alpha, 0.9f, 0.9f, 0, 0xff, 1, 0, 0);
 
-    PutStringYW(IGMSG_CAME_MSG, 0, 453, 59, 0x808080, alpha, 0x5000, 0);
-
-    PutNumberYW(3, poss_item[5], 463, 0x37, 1.0f, 1.0f, 0x808080, alpha, 0x5000, 2, 1);
+    PutStatusCount(poss_item[5], 453, 463, alpha);
 
 #ifdef BUILD_EU_VERSION
     PutNumberYW(3, cam_custom_wrk. point, 491, 27, 1.0f, 1.0f, 0x808080, alpha, 0x5000, 7, 0);
@@ -1122,9 +1141,7 @@ static void FilmAnime(short int pos_x, short int pos_y, short int alpha)
     PutSpriteYW(STTS_FLM_74, STTS_FLM_74, pos_x, pos_y, 0.0f, 0x808080, iew.flm_alp[3], 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
     PutSpriteYW(STTS_FLM_90, STTS_FLM_90, pos_x, pos_y, 0.0f, 0x808080, iew.flm_alp[4], 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
 
-    PutStringYW(IGMSG_CAME_MSG, 0, 347, 59, 0x808080, alpha, 0x5000, 0);
-
-    PutNumberYW(3, poss_item[plyr_wrk.film_no], 358, 55, 1.0f, 1.0f, 0x808080, alpha, 0x5000, 2, 1);
+    PutStatusCount(poss_item[plyr_wrk.film_no], 347, 358, alpha);
 }
 
 static void ItemList(short int pos_x, short int pos_y, short int alpha)
@@ -1873,6 +1890,127 @@ void PutStringYW(u_char msg_knd, u_char msg_no, short int pos_x, short int pos_y
     SetMessageV2(&ds);
 }
 
+bool PutChineseChoiceMessageYW(u_char kind, u_char message, u_char selected,
+                              short x, short y, u_char alpha, int priority)
+{
+    if (!MikuPanFonts::UsesChineseGlyphGrid())
+        return false;
+
+    const int64_t start = GetIngameMSGAddr(kind, message);
+    const int64_t end = GetIngameMSGAddr(kind, message + 1);
+    std::array<u_char, 512> prompt{};
+    if (!MikuPan_IsPs2MemoryPointer(start) || !MikuPan_IsPs2MemoryPointer(end)
+        || end <= start || end - start > static_cast<int64_t>(prompt.size()))
+        return false;
+
+    const auto* text = reinterpret_cast<const u_char*>(start);
+    size_t line_start = 0;
+    size_t stop = 0;
+    int row_y = y;
+    int line_spacing = 0;
+    for (size_t i = 0; i < static_cast<size_t>(end - start); )
+    {
+        const u_char code = text[i];
+        if (code == 0xff)
+        {
+            stop = i;
+            break;
+        }
+
+        size_t length = 1;
+        if ((code >= 0xf0 && code <= 0xf4) || code == 0xf7 || code == 0xf8)
+            length = 2;
+        else if (code == 0xfb)
+            length = 3;
+        else if (code == 0xfd)
+            length = 4;
+        else if (code == 0xfa || code == 0xfe)
+        {
+            line_start = i + 1;
+            row_y += 24 + line_spacing;
+        }
+        else if (code >= 0xf5)
+            return false;
+
+        if (length > static_cast<size_t>(end - start) - i)
+            return false;
+        if (code == 0xf8)
+            line_spacing = text[i + 1];
+        i += length;
+    }
+
+    std::array<std::array<u_char, 64>, 3> labels{};
+    int count = 0;
+    size_t i = line_start;
+    while (i < stop)
+    {
+        while (i < stop && text[i] == 0)
+            ++i;
+        if (i == stop)
+            break;
+        if (count == labels.size())
+            return false;
+
+        const size_t begin = i;
+        size_t last_glyph = i;
+        while (i < stop)
+        {
+            const u_char code = text[i];
+            if (code >= 0xf5 || (code == 0 && i + 1 < stop && text[i + 1] == 0))
+                break;
+            i += code >= 0xf0 ? 2 : 1;
+            if (code != 0)
+                last_glyph = i;
+        }
+        const size_t length = last_glyph - begin;
+        if (length == 0 || length >= labels[count].size() || i > stop)
+            return false;
+        memcpy(labels[count].data(), text + begin, length);
+        labels[count++][length] = 0xff;
+    }
+
+    if (count < 2 || selected >= count)
+        return false;
+
+    STR_DAT style = {};
+    style.pos_x = x;
+    style.pos_y = y;
+    style.r = style.g = style.b = 0x80;
+    style.alpha = alpha;
+    style.pri = priority;
+    DISP_STR draw;
+    CopyStrDToStr(&draw, &style);
+
+    if (line_start > 0)
+    {
+        memcpy(prompt.data(), text, line_start - 1);
+        prompt[line_start - 1] = 0xff;
+        draw.str = prompt.data();
+        SetMessageV2(&draw);
+    }
+
+    const int spacing = count == 2 ? 176 : 160;
+    MikuPan_BeginLate2DOverlayQueue();
+    for (int label = 0; label < count; ++label)
+    {
+        const int width = GetStrWidth(labels[label].data());
+        const int center = 320 + (label * 2 - count + 1) * spacing / 2;
+        if (label == selected)
+        {
+            const int box_width = std::max(70, width + 22);
+            CmnCursol(center - box_width / 2, row_y - 3, box_width, 29,
+                      128.0f, alpha, priority + 1);
+        }
+        CopyStrDToStr(&draw, &style);
+        draw.str = labels[label].data();
+        draw.pos_x = center - width / 2;
+        draw.pos_y = row_y;
+        SetMessageV2(&draw);
+    }
+    MikuPan_EndLate2DOverlayQueue();
+    return true;
+}
+
 void RstMessageYW()
 {
     msg.no_bak = msg.knd_bak = 0xff;
@@ -1936,6 +2074,14 @@ char ChkPageYW(const u_char msg_knd, const u_char msg_no)
 
     chk_str = (u_char *)GetIngameMSGAddr(msg_knd, msg_no);
     nxt_str = (u_char *)GetIngameMSGAddr(msg_knd, msg_no + 1);
+
+    if (MikuPan_IsJapaneseGameData()
+        && (!MikuPan_IsPs2MemoryPointer(reinterpret_cast<int64_t>(chk_str))
+            || !MikuPan_IsPs2MemoryPointer(reinterpret_cast<int64_t>(nxt_str))
+            || reinterpret_cast<uintptr_t>(nxt_str) <= reinterpret_cast<uintptr_t>(chk_str)))
+    {
+        return 1;
+    }
 
     page_now = 0;
 

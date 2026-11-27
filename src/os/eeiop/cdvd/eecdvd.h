@@ -28,6 +28,7 @@ u_char IsExistLoadReq();
 IMG_ARRANGEMENT* GetImgArrangementP(int file_no);
 /// Number of entries in file_name[] (fnameee.h), one per IMG_HD.BIN entry.
 int GetFileNameCount();
+const char* GetCdFileName(int file_no);
 
 #ifdef BUILD_EU_VERSION
 int LoadReqLanguage(int file_no, u_int addr);

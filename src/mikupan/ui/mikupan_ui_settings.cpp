@@ -1,4 +1,5 @@
 #include "mikupan_ui_saves.h"
+#include "mikupan/mikupan_i18n.h"
 #include "mikupan_ui_settings.h"
 
 #include "typedefs.h"
@@ -487,11 +488,11 @@ static void MikuPan_ApplyRenderResolutionLabels(void)
 
         if (mode == MIKUPAN_RENDER_RESOLUTION_MATCH_WINDOW)
         {
-            snprintf(label, sizeof(label), "%s", kMatchWindowLabel5[lang]);
+            snprintf(label, sizeof(label), "%s", MikuPan_Translate(kMatchWindowLabel5[lang]));
         }
         else if (mode == MIKUPAN_RENDER_RESOLUTION_WINDOW_SCALE)
         {
-            snprintf(label, sizeof(label), kPercentOfWindowLabel5[lang],
+            snprintf(label, sizeof(label), MikuPan_Translate(kPercentOfWindowLabel5[lang]),
                      resolution_scale_percent_list[i]);
         }
         else if (resolution_list[i].width > 0 && resolution_list[i].height > 0
@@ -505,7 +506,7 @@ static void MikuPan_ApplyRenderResolutionLabels(void)
                                           / (float)picture_height);
             if (resolution_list[i].width == PS2_RESOLUTION_X_INT)
             {
-                snprintf(label, sizeof(label), kPs2NativeLabel5[lang],
+                snprintf(label, sizeof(label), MikuPan_Translate(kPs2NativeLabel5[lang]),
                          width, height);
             }
             else
@@ -778,7 +779,8 @@ static void MikuPan_ApplyWindowSizeLabels(const SDL_DisplayMode* current_mode)
             && window_size_list[i].width == current_mode->w
             && window_size_list[i].height == current_mode->h;
 
-        const char* suffix = is_desktop ? kDesktopSuffix5[MikuPan_GetUiLanguage()] : "";
+        const char* suffix = is_desktop
+            ? MikuPan_Translate(kDesktopSuffix5[MikuPan_GetUiLanguage()]) : "";
         MikuPan_FormatWindowSizeLabel(window_size_labels[i],
                                       sizeof(window_size_labels[i]),
                                       window_size_list[i].width,
@@ -866,13 +868,13 @@ static void MikuPan_ApplyGpuDriverLabels(void)
     const int lang = MikuPan_GetUiLanguage();
 
     snprintf(gpu_driver_labels[0], sizeof(gpu_driver_labels[0]), "%s",
-             kGpuAutoLabel5[lang]);
+             MikuPan_Translate(kGpuAutoLabel5[lang]));
 
     for (int idx = 1; idx < gpu_driver_count; idx++)
     {
         snprintf(gpu_driver_labels[idx], sizeof(gpu_driver_labels[idx]),
                  "%s%s", MikuPan_GpuDriverDisplayName(gpu_driver_names[idx]),
-                 gpu_driver_supported[idx] ? "" : kGpuUnsupportedSuffix5[lang]);
+                 gpu_driver_supported[idx] ? "" : MikuPan_Translate(kGpuUnsupportedSuffix5[lang]));
     }
 }
 
@@ -927,7 +929,7 @@ static void MikuPan_PopulateGpuDriverList(void)
 
 static void MikuPan_UiGpuBackendCombo(void)
 {
-    if (igBeginCombo("GPU Backend", gpu_driver_labels[gpu_driver_selected], 0))
+    if (igBeginCombo(MikuPan_Translate("GPU Backend"), gpu_driver_labels[gpu_driver_selected], 0))
     {
         for (int i = 0; i < gpu_driver_count; i++)
         {
@@ -964,7 +966,7 @@ static void MikuPan_UiGpuBackendCombo(void)
     SDL_GPUDevice* device = MikuPan_GPUGetDevice();
     const char* active =
         (device != NULL) ? SDL_GetGPUDeviceDriver(device) : NULL;
-    igTextDisabled("Active: %s", (active != NULL)
+    igTextDisabled(MikuPan_Translate("Active: %s"), (active != NULL)
                                      ? MikuPan_GpuDriverDisplayName(active)
                                      : "none");
 
@@ -973,7 +975,7 @@ static void MikuPan_UiGpuBackendCombo(void)
             || SDL_strcasecmp(gpu_driver_names[gpu_driver_selected], active)
                    != 0))
     {
-        igTextDisabled("Save Configuration and restart to apply");
+        igTextDisabled(MikuPan_Translate("Save Configuration and restart to apply"));
     }
 }
 
@@ -986,10 +988,10 @@ static void MikuPan_UiDitherModeCombo(void)
     for (int i = 0; i < MIKUPAN_DITHER_OPTION_COUNT; i++)
     {
         const char* label = MikuPan_GetDitherModeOptionLabel(i);
-        labels[i] = label != NULL ? label : "Unknown";
+        labels[i] = label != NULL ? label : MikuPan_Translate("Unknown");
     }
 
-    if (igCombo_Str_arr("Dither Filtering", &selected, labels,
+    if (igCombo_Str_arr(MikuPan_Translate("Dither Filtering"), &selected, labels,
                         MIKUPAN_DITHER_OPTION_COUNT, -1))
     {
         MikuPan_SelectDitherModeOption(selected);
@@ -1039,14 +1041,16 @@ void MikuPan_UiSettingsInit(void)
 
 void MikuPan_UiSettingsRender(void)
 {
-    if (igBeginMenu("Settings", 1))
+    if (igBeginMenu(MikuPan_Translate("Settings"), 1))
     {
-        if (igBeginMenu("Display", 1))
+        if (igBeginMenu(MikuPan_Translate("Display"), 1))
         {
-            const char* window_modes[] = {"Windowed", "Fullscreen"};
+            const char* window_modes[] = {
+                MikuPan_Translate("Windowed"), MikuPan_Translate("Fullscreen"),
+            };
             int display_mode =
                 window_mode == MIKUPAN_WINDOW_BORDERLESS ? 1 : 0;
-            if (igCombo_Str_arr("Display Mode", &display_mode, window_modes, 2,
+            if (igCombo_Str_arr(MikuPan_Translate("Display Mode"), &display_mode, window_modes, 2,
                                 -1))
             {
                 window_mode = display_mode == 1 ? MIKUPAN_WINDOW_BORDERLESS
@@ -1056,7 +1060,7 @@ void MikuPan_UiSettingsRender(void)
 
             if (window_size_count > 0)
             {
-                if (igCombo_Str_arr("Windowed Resolution", &window_size_selected,
+                if (igCombo_Str_arr(MikuPan_Translate("Windowed Resolution"), &window_size_selected,
                                     window_size_label_ptrs, window_size_count,
                                     -1))
                 {
@@ -1065,12 +1069,12 @@ void MikuPan_UiSettingsRender(void)
             }
             else
             {
-                igTextDisabled("Windowed Resolution: no modes available");
+                igTextDisabled(MikuPan_Translate("Windowed Resolution: no modes available"));
             }
 
             if (resolution_count > 0)
             {
-                if (igCombo_Str_arr("Render Resolution", &resolution_selected,
+                if (igCombo_Str_arr(MikuPan_Translate("Render Resolution"), &resolution_selected,
                                     resolution_label_ptrs, resolution_count,
                                     -1))
                 {
@@ -1079,15 +1083,15 @@ void MikuPan_UiSettingsRender(void)
             }
             else
             {
-                igTextDisabled("Render Resolution: no modes available");
+                igTextDisabled(MikuPan_Translate("Render Resolution: no modes available"));
             }
 
             const char* aspect_modes[] = {
-                "Auto (fill window)", "Original (PS2 640x448)", "4:3",
-                "16:10", "16:9", "21:9", "Custom",
+                MikuPan_Translate("Auto (fill window)"), MikuPan_Translate("Original (PS2 640x448)"),
+                "4:3", "16:10", "16:9", "21:9", MikuPan_Translate("Custom"),
             };
             int aspect_mode = MikuPan_GetAspectMode();
-            if (igCombo_Str_arr("Aspect Ratio", &aspect_mode, aspect_modes,
+            if (igCombo_Str_arr(MikuPan_Translate("Aspect Ratio"), &aspect_mode, aspect_modes,
                                 (int)(sizeof(aspect_modes) / sizeof(aspect_modes[0])),
                                 -1))
             {
@@ -1097,29 +1101,29 @@ void MikuPan_UiSettingsRender(void)
             if (aspect_mode == MIKUPAN_ASPECT_CUSTOM)
             {
                 float aspect_custom = MikuPan_GetAspectCustom();
-                if (igSliderFloat("Custom Ratio", &aspect_custom, 1.0f, 4.0f,
+                if (igSliderFloat(MikuPan_Translate("Custom Ratio"), &aspect_custom, 1.0f, 4.0f,
                                   "%.2f : 1", 0))
                 {
                     MikuPan_SetAspectCustom(aspect_custom);
                 }
             }
 
-            igSliderFloat("Brightness", &brightness, 0.0f, 2.0f, "%.2f", 0);
-            igSliderFloat("Gamma", &gamma_value, 0.1f, 2.0f, "%.2f", 0);
-            igSliderFloat("Contrast", &contrast, 0.0f, 2.0f, "%.2f", 0);
-            igSliderFloat("Shadow Depth", &shadow_depth, 0.0f, 2.0f, "%.2f", 0);
-            igCheckbox("VSync", (bool*) &mikupan_configuration.renderer.vsync);
+            igSliderFloat(MikuPan_Translate("Brightness"), &brightness, 0.0f, 2.0f, "%.2f", 0);
+            igSliderFloat(MikuPan_Translate("Gamma"), &gamma_value, 0.1f, 2.0f, "%.2f", 0);
+            igSliderFloat(MikuPan_Translate("Contrast"), &contrast, 0.0f, 2.0f, "%.2f", 0);
+            igSliderFloat(MikuPan_Translate("Shadow Depth"), &shadow_depth, 0.0f, 2.0f, "%.2f", 0);
+            igCheckbox(MikuPan_Translate("VSync"), (bool*) &mikupan_configuration.renderer.vsync);
 
-            igSeparatorText("Graphics");
+            igSeparatorText(MikuPan_Translate("Graphics"));
             bool smooth_2d = mikupan_configuration.renderer.smooth_2d != 0;
-            if (igCheckbox("Smooth 2D sprites", &smooth_2d))
+            if (igCheckbox(MikuPan_Translate("Smooth 2D sprites"), &smooth_2d))
                 mikupan_configuration.renderer.smooth_2d = smooth_2d ? 1 : 0;
             if (igIsItemHovered(0))
-                igSetTooltip("Bilinear filtering for enlarged UI sprites. Effects and screen captures retain their own filtering.");
+                igSetTooltip("%s", MikuPan_Translate("Bilinear filtering for enlarged UI sprites. Effects and screen captures retain their own filtering."));
 
             bool hd_font_textures = mikupan_configuration.renderer.hd_font_textures != 0;
 
-            if (igCheckbox("HD Font Textures (if available)", &hd_font_textures))
+            if (igCheckbox(MikuPan_Translate("HD Font Textures (if available)"), &hd_font_textures))
             {
                 mikupan_configuration.renderer.hd_font_textures = hd_font_textures ? 1 : 0;
 
@@ -1130,42 +1134,22 @@ void MikuPan_UiSettingsRender(void)
 
             if (strcmp(SDL_GetPlatform(), "Android") == 0)
             {
-                igTextDisabled("MSAA: disabled on Android");
+                igTextDisabled(MikuPan_Translate("MSAA: disabled on Android"));
             }
             else if (MikuPan_IsSuperSamplingEnabledInternal())
             {
                 msaa_samples = 0;
                 mikupan_configuration.renderer.msaa_index = 0;
-                igTextDisabled("MSAA: disabled while supersampling");
+                igTextDisabled(MikuPan_Translate("MSAA: disabled while supersampling"));
             }
             else
             {
-                char msaa_dropdown_list[32];
-                snprintf(msaa_dropdown_list, sizeof(msaa_dropdown_list), "%s",
-                         msaa_list[msaa_samples] == 0 ? "Off" : "");
-                if (msaa_list[msaa_samples] != 0)
+                if (igBeginCombo(MikuPan_Translate("MSAA"), MikuPan_GetMSAAOptionLabel(msaa_samples), 0))
                 {
-                    snprintf(msaa_dropdown_list, sizeof(msaa_dropdown_list), "%dx",
-                             msaa_list[msaa_samples]);
-                }
-
-                if (igBeginCombo("MSAA", msaa_dropdown_list, 0))
-                {
-                    for (int i = 0; i < sizeof(msaa_list)/sizeof(msaa_list[0]); i++)
+                    for (int i = 0; i < MikuPan_GetMSAAOptionCount(); i++)
                     {
                         bool is_selected = (msaa_samples == i);
-                        if (msaa_list[i] == 0)
-                        {
-                            snprintf(msaa_dropdown_list, sizeof(msaa_dropdown_list),
-                                     "Off");
-                        }
-                        else
-                        {
-                            snprintf(msaa_dropdown_list, sizeof(msaa_dropdown_list),
-                                     "%dx", msaa_list[i]);
-                        }
-
-                        if (igSelectable_Bool(msaa_dropdown_list, is_selected, 0,
+                        if (igSelectable_Bool(MikuPan_GetMSAAOptionLabel(i), is_selected, 0,
                                               ImVec2{0, 0}))
                         {
                             msaa_samples = i;
@@ -1180,47 +1164,50 @@ void MikuPan_UiSettingsRender(void)
                     igEndCombo();
                 }
 
-                igTextDisabled("Scene samples: %dx", MikuPan_GPUGetSceneMSAA());
+                igTextDisabled(MikuPan_Translate("Scene samples: %dx"), MikuPan_GPUGetSceneMSAA());
             }
 
             MikuPan_UiShadowResolutionCombo("Shadow Resolution");
 
-            const char* display_lighting_modes[] = {"Pixel (Modern)",
-                                                    "Vertex (PS2)"};
-            igCombo_Str_arr("Lighting Mode", &mikupan_configuration.renderer.lighting_mode,
+            const char* display_lighting_modes[] = {
+                MikuPan_Translate("Pixel (Modern)"), MikuPan_Translate("Vertex (PS2)"),
+            };
+            igCombo_Str_arr(MikuPan_Translate("Lighting Mode"), &mikupan_configuration.renderer.lighting_mode,
                             display_lighting_modes, 2, -1);
 
             MikuPan_UiDitherModeCombo();
-            igTextDisabled("Save Configuration to keep Dither Filtering after restart.");
+            igTextDisabled(MikuPan_Translate("Save Configuration to keep Dither Filtering after restart."));
 
-            const char* finder_mask_modes[] = {"Black", "Blur"};
+            const char* finder_mask_modes[] = {MikuPan_Translate("Black"), MikuPan_Translate("Blur")};
             int finder_mask_mode =
                 mikupan_configuration.renderer.finder_viewport_mask_mode;
-            if (igCombo_Str_arr("Finder Surround", &finder_mask_mode,
+            if (igCombo_Str_arr(MikuPan_Translate("Finder Surround"), &finder_mask_mode,
                                 finder_mask_modes, 2, -1))
             {
                 mikupan_configuration.renderer.finder_viewport_mask_mode =
                     finder_mask_mode;
             }
 
-            igSeparatorText("Atmosphere Test");
+            igSeparatorText(MikuPan_Translate("Atmosphere Test"));
 
             MikuPan_FlashlightDustSettings* dust_settings =
                 MikuPan_GetFlashlightDustSettings();
             bool dust_enabled = dust_settings->enabled != 0;
-            if (igCheckbox("Dust Particles (Test)", &dust_enabled))
+            if (igCheckbox(MikuPan_Translate("Dust Particles (Test)"), &dust_enabled))
             {
                 dust_settings->enabled = dust_enabled ? 1 : 0;
             }
 
             if (dust_settings->enabled)
             {
-                const char* dust_levels[] = {"Low", "Normal", "High"};
-                igCombo_Str_arr("Dust Level", &dust_settings->level,
+                const char* dust_levels[] = {
+                    MikuPan_Translate("Low"), MikuPan_Translate("Normal"), MikuPan_Translate("High"),
+                };
+                igCombo_Str_arr(MikuPan_Translate("Dust Level"), &dust_settings->level,
                                 dust_levels, 3, -1);
 
                 bool ambient_enabled = dust_settings->ambient_enabled != 0;
-                if (igCheckbox("Room Dust", &ambient_enabled))
+                if (igCheckbox(MikuPan_Translate("Room Dust"), &ambient_enabled))
                 {
                     dust_settings->ambient_enabled = ambient_enabled ? 1 : 0;
                 }
@@ -1229,7 +1216,7 @@ void MikuPan_UiSettingsRender(void)
                 {
                     bool room_filter_enabled =
                         dust_settings->room_filter_enabled != 0;
-                    if (igCheckbox("Dusty Rooms Only", &room_filter_enabled))
+                    if (igCheckbox(MikuPan_Translate("Dusty Rooms Only"), &room_filter_enabled))
                     {
                         dust_settings->room_filter_enabled =
                             room_filter_enabled ? 1 : 0;
@@ -1238,7 +1225,7 @@ void MikuPan_UiSettingsRender(void)
 
                 bool door_disturbance_enabled =
                     dust_settings->door_disturbance_enabled != 0;
-                if (igCheckbox("Door Disturbance", &door_disturbance_enabled))
+                if (igCheckbox(MikuPan_Translate("Door Disturbance"), &door_disturbance_enabled))
                 {
                     dust_settings->door_disturbance_enabled =
                         door_disturbance_enabled ? 1 : 0;
@@ -1246,13 +1233,13 @@ void MikuPan_UiSettingsRender(void)
 
                 if (dust_settings->door_disturbance_enabled)
                 {
-                    igSliderFloat("Door Dust Strength",
+                    igSliderFloat(MikuPan_Translate("Door Dust Strength"),
                                   &dust_settings->door_disturbance_strength,
                                   0.25f, 3.0f, "%.2fx", 0);
-                    igSliderFloat("Door Dust Lifetime",
+                    igSliderFloat(MikuPan_Translate("Door Dust Lifetime"),
                                   &dust_settings->door_disturbance_duration,
                                   2.0f, 12.0f, "%.1f sec", 0);
-                    if (igButton("Trigger Door Dust", ImVec2{0.0f, 0.0f}))
+                    if (igButton(MikuPan_Translate("Trigger Door Dust"), ImVec2{0.0f, 0.0f}))
                     {
                         MikuPan_TriggerDoorDustAtPlayer();
                     }
@@ -1260,10 +1247,10 @@ void MikuPan_UiSettingsRender(void)
 
                 const MikuPan_FlashlightDustDebugInfo* dust_debug =
                     MikuPan_GetFlashlightDustDebugInfo();
-                igTextDisabled("Room %d%s, power %.2fx", dust_debug->room_no,
+                igTextDisabled(MikuPan_Translate("Room %d%s, power %.2fx"), dust_debug->room_no,
                                dust_debug->room_allowed ? " (dust room)" : "",
                                dust_debug->room_density);
-                igTextDisabled("Ambient %d/%d, door %d, bursts %d",
+                igTextDisabled(MikuPan_Translate("Ambient %d/%d, door %d, bursts %d"),
                                dust_debug->ambient_particle_count,
                                dust_debug->ambient_particle_budget,
                                dust_debug->door_particle_count,
@@ -1271,17 +1258,17 @@ void MikuPan_UiSettingsRender(void)
 
                 if (dust_debug->last_door_trigger_valid)
                 {
-                    igTextDisabled("Last door %d, work %d, distance %.0f",
+                    igTextDisabled(MikuPan_Translate("Last door %d, work %d, distance %.0f"),
                                    dust_debug->last_door_id,
                                    dust_debug->last_door_work_index,
                                    dust_debug->last_door_distance);
                     if (dust_debug->last_door_target_room_no == 0xff)
                     {
-                        igTextDisabled("Next room unknown, burst skipped");
+                        igTextDisabled(MikuPan_Translate("Next room unknown, burst skipped"));
                     }
                     else
                     {
-                        igTextDisabled("Next room %d (%s), burst %s",
+                        igTextDisabled(MikuPan_Translate("Next room %d (%s), burst %s"),
                                        dust_debug->last_door_target_room_no,
                                        dust_debug->last_door_target_room_allowed
                                            ? "dust"
@@ -1290,19 +1277,19 @@ void MikuPan_UiSettingsRender(void)
                                            ? "spawned"
                                            : "skipped");
                     }
-                    igTextDisabled("Player-front origin %.0f, %.0f, %.0f",
+                    igTextDisabled(MikuPan_Translate("Player-front origin %.0f, %.0f, %.0f"),
                                    dust_debug->last_door_position[0],
                                    dust_debug->last_door_position[1],
                                    dust_debug->last_door_position[2]);
                     if (dust_debug->last_door_target_room_allowed
-                        && igButton("Trigger Last Door Dust",
+                        && igButton(MikuPan_Translate("Trigger Last Door Dust"),
                                     ImVec2{0.0f, 0.0f}))
                     {
                         MikuPan_TriggerDoorDustAtLastDoor();
                     }
                 }
 
-                if (igCollapsingHeader_TreeNodeFlags("Room Dust Power", 0))
+                if (igCollapsingHeader_TreeNodeFlags(MikuPan_Translate("Room Dust Power"), 0))
                 {
                     const int table_flags =
                         ImGuiTableFlags_RowBg
@@ -1313,10 +1300,10 @@ void MikuPan_UiSettingsRender(void)
                     if (igBeginTable("##dust_room_table", 2, table_flags,
                                      ImVec2{0.0f, 220.0f}, 0.0f))
                     {
-                        igTableSetupColumn("Room",
+                        igTableSetupColumn(MikuPan_Translate("Room"),
                                            ImGuiTableColumnFlags_WidthStretch,
                                            1.0f, 0);
-                        igTableSetupColumn("Power",
+                        igTableSetupColumn(MikuPan_Translate("Power"),
                                            ImGuiTableColumnFlags_WidthFixed,
                                            72.0f, 0);
                         igTableHeadersRow();
@@ -1353,7 +1340,7 @@ void MikuPan_UiSettingsRender(void)
                             }
                             else
                             {
-                                igTextDisabled("Off");
+                                igTextDisabled(MikuPan_Translate("Off"));
                             }
                         }
 
@@ -1365,12 +1352,17 @@ void MikuPan_UiSettingsRender(void)
             igEndMenu();
         }
 
-        if (igBeginMenu("Theme", 1))
+        if (igBeginMenu(MikuPan_Translate("Theme"), 1))
         {
             MikuPan_ConfigurationValidate();
             int selected_theme = mikupan_configuration.selected_theme;
 
-            if (igCombo_Str_arr("Theme", &selected_theme, MikuPan_UiThemeLabels,
+            const char* theme_labels[MIKUPAN_UI_THEME_COUNT];
+            for (int i = 0; i < MIKUPAN_UI_THEME_COUNT; ++i)
+            {
+                theme_labels[i] = MikuPan_Translate(MikuPan_UiThemeLabels[i]);
+            }
+            if (igCombo_Str_arr(MikuPan_Translate("Theme"), &selected_theme, theme_labels,
                                 MIKUPAN_UI_THEME_COUNT, -1))
             {
                 mikupan_configuration.selected_theme = selected_theme;
@@ -1379,14 +1371,19 @@ void MikuPan_UiSettingsRender(void)
 
             int selected_font = mikupan_configuration.selected_font;
 
-            if (igCombo_Str_arr("Font", &selected_font, MikuPan_UiFontLabels,
+            const char* font_labels[MIKUPAN_UI_FONT_COUNT];
+            for (int i = 0; i < MIKUPAN_UI_FONT_COUNT; ++i)
+            {
+                font_labels[i] = MikuPan_GetFontOptionLabel(i);
+            }
+            if (igCombo_Str_arr(MikuPan_Translate("Font"), &selected_font, font_labels,
                                 MIKUPAN_UI_FONT_COUNT, -1))
             {
                 MikuPan_SelectFontOption(selected_font);
             }
 
             float font_scale = mikupan_configuration.font_scale;
-            if (igSliderFloat("Font Size", &font_scale, 0.5f, 3.0f, "%.2fx", 0))
+            if (igSliderFloat(MikuPan_Translate("Font Size"), &font_scale, 0.5f, 3.0f, "%.2fx", 0))
             {
                 mikupan_configuration.font_scale = font_scale;
                 MikuPan_ApplyUiFontScale();
@@ -1394,14 +1391,14 @@ void MikuPan_UiSettingsRender(void)
 
             igSeparator();
             int title_room_background = MikuPan_TitleUseRoomBackground();
-            if (igCheckbox("Room title background",
+            if (igCheckbox(MikuPan_Translate("Room title background"),
                            (bool*) &title_room_background))
             {
                 MikuPan_TitleSetUseRoomBackground(title_room_background);
             }
 
             int title_dither = MikuPan_TitleUseDither();
-            if (igCheckbox("Title dithering", (bool*) &title_dither))
+            if (igCheckbox(MikuPan_Translate("Title dithering"), (bool*) &title_dither))
             {
                 MikuPan_TitleSetUseDither(title_dither);
             }
@@ -1409,56 +1406,56 @@ void MikuPan_UiSettingsRender(void)
             igEndMenu();
         }
 
-        if (igBeginMenu("CRT", 1))
+        if (igBeginMenu(MikuPan_Translate("CRT"), 1))
         {
-            igCheckbox("Enabled", (bool*) &crt_settings.enabled);
+            igCheckbox(MikuPan_Translate("Enabled"), (bool*) &crt_settings.enabled);
             if (crt_settings.enabled)
             {
-                igSliderFloat("Strength", &crt_settings.strength, 0.0f, 1.0f,
+                igSliderFloat(MikuPan_Translate("Strength"), &crt_settings.strength, 0.0f, 1.0f,
                           "%.2f", 0);
-                igSliderFloat("Curvature", &crt_settings.curvature, 0.0f, 0.30f,
+                igSliderFloat(MikuPan_Translate("Curvature"), &crt_settings.curvature, 0.0f, 0.30f,
                               "%.3f", 0);
-                igSliderFloat("Overscan", &crt_settings.overscan, 0.0f, 0.12f,
+                igSliderFloat(MikuPan_Translate("Overscan"), &crt_settings.overscan, 0.0f, 0.12f,
                               "%.3f", 0);
 
                 igSeparator();
-                igSliderFloat("Scanline Strength", &crt_settings.scanline_strength,
+                igSliderFloat(MikuPan_Translate("Scanline Strength"), &crt_settings.scanline_strength,
                               0.0f, 1.0f, "%.2f", 0);
-                igSliderFloat("Scanline Scale", &crt_settings.scanline_scale, 0.25f,
+                igSliderFloat(MikuPan_Translate("Scanline Scale"), &crt_settings.scanline_scale, 0.25f,
                               3.0f, "%.2f", 0);
-                igSliderFloat("Scanline Thickness",
+                igSliderFloat(MikuPan_Translate("Scanline Thickness"),
                               &crt_settings.scanline_thickness, 0.5f, 4.0f, "%.2f",
                               0);
 
                 igSeparator();
-                igSliderFloat("Mask Strength", &crt_settings.mask_strength, 0.0f,
+                igSliderFloat(MikuPan_Translate("Mask Strength"), &crt_settings.mask_strength, 0.0f,
                               1.0f, "%.2f", 0);
-                igSliderFloat("Mask Scale", &crt_settings.mask_scale, 0.5f, 4.0f,
+                igSliderFloat(MikuPan_Translate("Mask Scale"), &crt_settings.mask_scale, 0.5f, 4.0f,
                               "%.2f", 0);
 
                 igSeparator();
-                igSliderFloat("Vignette Strength", &crt_settings.vignette_strength,
+                igSliderFloat(MikuPan_Translate("Vignette Strength"), &crt_settings.vignette_strength,
                               0.0f, 1.0f, "%.2f", 0);
-                igSliderFloat("Vignette Size", &crt_settings.vignette_size, 0.25f,
+                igSliderFloat(MikuPan_Translate("Vignette Size"), &crt_settings.vignette_size, 0.25f,
                               1.25f, "%.2f", 0);
-                igSliderFloat("Chroma Offset", &crt_settings.chroma_offset, 0.0f,
+                igSliderFloat(MikuPan_Translate("Chroma Offset"), &crt_settings.chroma_offset, 0.0f,
                               3.0f, "%.2f", 0);
-                igSliderFloat("Blend Strength", &crt_settings.blend_strength, 0.0f,
+                igSliderFloat(MikuPan_Translate("Blend Strength"), &crt_settings.blend_strength, 0.0f,
                               1.0f, "%.2f", 0);
-                igSliderFloat("Blend Radius", &crt_settings.blend_radius, 0.0f,
+                igSliderFloat(MikuPan_Translate("Blend Radius"), &crt_settings.blend_radius, 0.0f,
                               3.0f, "%.2f", 0);
-                igSliderFloat("Noise", &crt_settings.noise_strength, 0.0f, 0.15f,
+                igSliderFloat(MikuPan_Translate("Noise"), &crt_settings.noise_strength, 0.0f, 0.15f,
                               "%.3f", 0);
-                igSliderFloat("Flicker", &crt_settings.flicker_strength, 0.0f,
+                igSliderFloat(MikuPan_Translate("Flicker"), &crt_settings.flicker_strength, 0.0f,
                               0.10f, "%.3f", 0);
-                igSliderFloat("Glow", &crt_settings.glow_strength, 0.0f, 0.50f,
+                igSliderFloat(MikuPan_Translate("Glow"), &crt_settings.glow_strength, 0.0f, 0.50f,
                               "%.2f", 0);
 
                 mikupan_configuration.crt = crt_settings;
                 MikuPan_ConfigurationValidate();
                 crt_settings = mikupan_configuration.crt;
 
-                if (igButton("Reset CRT", ImVec2{0.0f, 0.0f}))
+                if (igButton(MikuPan_Translate("Reset CRT"), ImVec2{0.0f, 0.0f}))
                 {
                     crt_settings = crt_defaults;
                     mikupan_configuration.crt = crt_settings;
@@ -1469,15 +1466,15 @@ void MikuPan_UiSettingsRender(void)
             igEndMenu();
         }
 
-        if (igBeginMenu("Input", 1))
+        if (igBeginMenu(MikuPan_Translate("Input"), 1))
         {
             MikuPan_ControllerDrawDeviceSelectorUi();
             igSeparator();
 
-            igCheckbox("Controller / Joystick Mapping",
+            igCheckbox(MikuPan_Translate("Controller / Joystick Mapping"),
                        (bool*) &show_controller_remap);
 
-            if (igMenuItem_Bool("Reset Bindings to Defaults", NULL, false,
+            if (igMenuItem_Bool(MikuPan_Translate("Reset Bindings to Defaults"), NULL, false,
                                 true))
             {
                 MikuPan_ControllerResetBindings();
@@ -1489,10 +1486,10 @@ void MikuPan_UiSettingsRender(void)
         igSeparator();
         MikuPanUiSaves::MenuItem();
 
-        igSeparatorText("Game Data Folder");
-        igInputText("Folder", mikupan_configuration.data_folder, sizeof(mikupan_configuration.data_folder), 0, NULL, NULL);
+        igSeparatorText(MikuPan_Translate("Game Data Folder"));
+        igInputText(MikuPan_Translate("Folder"), mikupan_configuration.data_folder, sizeof(mikupan_configuration.data_folder), 0, NULL, NULL);
 
-        if (igButton("Browse...", ImVec2{0.0f, 0.0f}))
+        if (igButton(MikuPan_Translate("Browse..."), ImVec2{0.0f, 0.0f}))
         {
             const char *start = mikupan_configuration.data_folder[0] != '\0'
                                     ? mikupan_configuration.data_folder
@@ -1506,7 +1503,7 @@ void MikuPan_UiSettingsRender(void)
 
         igSeparator();
 
-        if (igMenuItem_Bool("Save Configuration", NULL, false, true))
+        if (igMenuItem_Bool(MikuPan_Translate("Save Configuration"), NULL, false, true))
         {
             MikuPan_UiSaveConfiguration();
         }
@@ -1847,7 +1844,7 @@ const char* MikuPan_GetMSAAOptionLabel(int index)
     if (msaa_list[index] == 0)
     {
         snprintf(labels[index], sizeof(labels[index]), "%s",
-                 kOffLabel5[MikuPan_GetUiLanguage()]);
+                 MikuPan_Translate(kOffLabel5[MikuPan_GetUiLanguage()]));
     }
     else
     {
@@ -2353,7 +2350,7 @@ const char* MikuPan_GetDitherModeOptionLabel(int index)
         return NULL;
     }
 
-    return labels5[index][MikuPan_GetUiLanguage()];
+    return MikuPan_Translate(labels5[index][MikuPan_GetUiLanguage()]);
 }
 
 int MikuPan_SelectDitherModeOption(int index)
@@ -2426,7 +2423,7 @@ const char* MikuPan_GetFlashlightStyleOptionLabel(int index)
         return "";
     }
 
-    return labels5[index][MikuPan_GetUiLanguage()];
+    return MikuPan_Translate(labels5[index][MikuPan_GetUiLanguage()]);
 }
 
 int MikuPan_SelectFlashlightStyleOption(int index)
@@ -2469,7 +2466,7 @@ const char* MikuPan_GetFontOptionLabel(int index)
         return NULL;
     }
 
-    return MikuPan_UiFontLabels[index];
+    return MikuPan_Translate(MikuPan_UiFontLabels[index]);
 }
 
 int MikuPan_SelectFontOption(int index)

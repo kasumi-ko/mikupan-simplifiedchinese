@@ -1,9 +1,13 @@
 #include "typedefs.h"
 #include "mikupan_file.h"
+#include "enums.h"
 #include "mikupan/mikupan_config.h"
+#include "mikupan/mikupan_i18n.h"
 #include "mikupan/debug/mikupan_logging.h"
+#include "os/eeiop/cdvd/eecdvd.h"
 #include "spdlog/spdlog.h"
 #include <SDL3/SDL_dialog.h>
+#include <SDL3/SDL_endian.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_hints.h>
@@ -33,6 +37,21 @@ static bool missing_data_dialog_requested = false;
 static bool missing_data_dialog_open = false;
 static bool missing_data_dialog_selected = false;
 static std::string missing_data_path;
+
+// Published before the texture baker and the IOP start.
+static std::vector<uint8_t> japanese_archive_index;
+static std::string japanese_archive_folder;
+
+extern "C" bool MikuPan_IsJapaneseGameData()
+{
+    return !japanese_archive_index.empty();
+}
+
+static bool MikuPan_IsJapaneseIndex(const char *relative_name)
+{
+    return MikuPan_IsJapaneseGameData()
+        && std::strcmp(relative_name, "IMG_HD.BIN") == 0;
+}
 
 extern "C" const char *MikuPan_GetBaseDirectory(void)
 {
@@ -83,9 +102,19 @@ static std::filesystem::path MikuPan_GetApplicationBasePath()
     return std::filesystem::path(MikuPan_GetBaseDirectory());
 }
 
+static const char* MikuPan_GetActiveDataFolder()
+{
+    if (MikuPan_IsJapaneseGameData())
+    {
+        return japanese_archive_folder.c_str();
+    }
+
+    return mikupan_configuration.data_folder;
+}
+
 static std::filesystem::path MikuPan_GetDataRoot()
 {
-    const char *folder = mikupan_configuration.data_folder;
+    const char *folder = MikuPan_GetActiveDataFolder();
     if (folder != nullptr && folder[0] != '\0')
     {
         return std::filesystem::path(folder);
@@ -196,8 +225,8 @@ static std::string MikuPan_GetAndroidTreeChildUri(
 static std::string MikuPan_GetDataPathString(
     const std::filesystem::path& relative_path)
 {
-    const char *folder = mikupan_configuration.data_folder;
 #ifdef __ANDROID__
+    const char *folder = MikuPan_GetActiveDataFolder();
     if (folder != nullptr && MikuPan_IsAndroidTreeUriString(folder))
     {
         return MikuPan_GetAndroidTreeChildUri(folder, relative_path);
@@ -616,6 +645,71 @@ static bool MikuPan_DataPathExistsNoPrompt(
     return !error && file_size > 0;
 }
 
+#ifndef BUILD_EU_VERSION
+static bool MikuPan_PrepareJapaneseIndex()
+{
+    // Himuro's SLPS-250.74 CD_FILE_DAT has the same order as NTSC-U,
+    // except for the 47 ghost list thumbnails added before REA00_LIST_TM2.
+    constexpr size_t entry_size = sizeof(IMG_ARRANGEMENT);
+    constexpr size_t jp_entries = 1850;
+    constexpr size_t gap_size = REA00_LIST_TM2 - A00_LIST_TM2;
+    constexpr size_t gap_offset = A00_LIST_TM2 * entry_size;
+    constexpr size_t jp_size = jp_entries * entry_size;
+    constexpr uint64_t sector_size = 2048;
+    constexpr uint32_t message_table_size = 53 * sizeof(uint32_t);
+    static_assert(RSHADE_SGD + 1 == jp_entries + gap_size);
+
+    if (MikuPan_IsJapaneseGameData() || MikuPan_GetDataFileSize("IMG_HD.BIN") != jp_size)
+    {
+        return true;
+    }
+
+    std::vector<IMG_ARRANGEMENT> entries(jp_entries);
+    if (!MikuPan_ReadDataFileRange("IMG_HD.BIN", 0, entries.data(), jp_size))
+    {
+        return false;
+    }
+
+    const uint64_t archive_size = MikuPan_GetDataFileSize("IMG_BD.BIN");
+    for (const auto& entry : entries)
+    {
+        const uint64_t offset = uint64_t(SDL_Swap32LE(entry.start)) * sector_size;
+        if (offset > archive_size || SDL_Swap32LE(entry.size) > archive_size - offset)
+        {
+            return false;
+        }
+    }
+
+    // The JP message bank has 53 category offsets in its leading table.
+    const auto& message = entries[IG_MSG_OBJ];
+    uint32_t first_offset;
+    if (SDL_Swap32LE(message.size) < message_table_size
+        || !MikuPan_ReadDataFileRange("IMG_BD.BIN",
+                                    int64_t(SDL_Swap32LE(message.start)) * sector_size,
+                                    &first_offset, sizeof(first_offset))
+        || SDL_Swap32LE(first_offset) != message_table_size)
+    {
+        return false;
+    }
+
+    std::vector<uint8_t> index((jp_entries + gap_size) * entry_size);
+    const auto *raw_index = reinterpret_cast<const uint8_t *>(entries.data());
+    std::memcpy(index.data(), raw_index, gap_offset);
+    std::memcpy(index.data() + gap_offset + gap_size * entry_size,
+                raw_index + gap_offset, jp_size - gap_offset);
+
+    // The translated index, baked textures and movies must use the same
+    // source after a data folder change in settings. Reopen on restart.
+    japanese_archive_folder = mikupan_configuration.data_folder[0] != '\0'
+        ? mikupan_configuration.data_folder
+        : MikuPan_GetBaseDirectory();
+    japanese_archive_index = std::move(index);
+    spdlog::info("Loaded the NTSC-J (SLPS-25074) archive index from {}",
+                 MikuPan_GetDataPathString("IMG_HD.BIN"));
+    return true;
+}
+#endif
+
 extern "C" bool MikuPan_HasRequiredDataFiles(char *missing_file,
                                              size_t missing_file_size)
 {
@@ -637,6 +731,17 @@ extern "C" bool MikuPan_HasRequiredDataFiles(char *missing_file,
             return false;
         }
     }
+
+#ifndef BUILD_EU_VERSION
+    if (!MikuPan_PrepareJapaneseIndex())
+    {
+        if (missing_file != nullptr && missing_file_size > 0)
+        {
+            SDL_strlcpy(missing_file, "IMG_HD.BIN", missing_file_size);
+        }
+        return false;
+    }
+#endif
 
     if (missing_file != nullptr && missing_file_size > 0)
     {
@@ -687,16 +792,19 @@ extern "C" void MikuPan_ServiceMissingDataFolderDialog()
         return;
     }
 
-    const std::string message =
-        "The game data file was not found:\n\n" + missing_path_to_show
-        + "\n\nSelect the folder that contains the Fatal Frame data files. "
-          "The selected folder will be saved to the configuration file.";
-
 #ifndef __ANDROID__
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                             "File not found",
-                             message.c_str(),
-                             nullptr);
+    const std::string message = std::string(MikuPan_Translate("Game data could not be opened."))
+        + "\n\n" + missing_path_to_show + "\n\n"
+        + MikuPan_Translate("Select the folder containing the game data. The folder will be saved in settings.");
+    const SDL_MessageBoxButtonData button = {
+        SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT | SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+        0, MikuPan_Translate("OK"),
+    };
+    const SDL_MessageBoxData dialog = {
+        SDL_MESSAGEBOX_ERROR, nullptr, MikuPan_Translate("Game data unavailable"),
+        message.c_str(), 1, &button, nullptr,
+    };
+    SDL_ShowMessageBox(&dialog, nullptr);
 #endif
 
     const char *start = mikupan_configuration.data_folder[0] != '\0'
@@ -714,6 +822,13 @@ extern "C" void MikuPan_ServiceMissingDataFolderDialog()
 
 void MikuPan_LoadImgHdFile()
 {
+    if (MikuPan_IsJapaneseGameData())
+    {
+        std::memcpy(MikuPan_GetHostPointer(ImgHdAddress),
+                    japanese_archive_index.data(), japanese_archive_index.size());
+        return;
+    }
+
     std::string data_path_string = MikuPan_GetDataPathString("IMG_HD.BIN");
     if (MikuPan_IsSdlAssetPathString(data_path_string))
     {
@@ -894,6 +1009,11 @@ void MikuPan_ReadFileInArchive(int sector, int size, u_int *address)
 
 u_int MikuPan_GetDataFileSize(const char *relative_name)
 {
+    if (MikuPan_IsJapaneseIndex(relative_name))
+    {
+        return static_cast<u_int>(japanese_archive_index.size());
+    }
+
     const std::string path_string = MikuPan_GetDataPathString(relative_name);
 
     if (MikuPan_IsSdlAssetPathString(path_string))
@@ -914,9 +1034,22 @@ u_int MikuPan_GetDataFileSize(const char *relative_name)
 bool MikuPan_ReadDataFileRange(const char *relative_name, int64_t offset,
                                void *buffer, size_t size)
 {
-    if (buffer == nullptr)
+    if (buffer == nullptr || offset < 0
+        || size > static_cast<size_t>(std::numeric_limits<std::streamsize>::max()))
     {
         return false;
+    }
+
+    if (MikuPan_IsJapaneseIndex(relative_name))
+    {
+        const size_t length = japanese_archive_index.size();
+        if (uint64_t(offset) > length
+            || size > length - static_cast<size_t>(offset))
+        {
+            return false;
+        }
+        std::memcpy(buffer, japanese_archive_index.data() + offset, size);
+        return true;
     }
 
     const std::string path_string = MikuPan_GetDataPathString(relative_name);
@@ -940,6 +1073,12 @@ bool MikuPan_ReadDataFileRange(const char *relative_name, int64_t offset,
 
 void *MikuPan_OpenDataFile(const char *relative_name)
 {
+    if (MikuPan_IsJapaneseIndex(relative_name))
+    {
+        return SDL_IOFromConstMem(japanese_archive_index.data(),
+                                  japanese_archive_index.size());
+    }
+
     const std::string path_string = MikuPan_GetDataPathString(relative_name);
     return SDL_IOFromFile(path_string.c_str(), "rb");
 }
@@ -1066,18 +1205,14 @@ void MikuPan_BufferFile(int sector, int size, int64_t address)
 
 u_char MikuPan_ReadFile(const char *filename, void *buffer, int size)
 {
-    auto relative_path = std::filesystem::path(MikuPan_GetRelativePath(filename));
-
-    if (!std::filesystem::exists(relative_path))
+    if (size < 0 || (size && !buffer))
     {
         return 0;
     }
 
-    std::ifstream inFile;
-    inFile.open(relative_path, std::ios::binary);
-    inFile.read(static_cast<char *>(buffer), size);
-    inFile.close();
-    return inFile.bad() == 0;
+    const auto path = std::filesystem::path(MikuPan_GetRelativePath(filename));
+    std::ifstream file(path, std::ios::binary);
+    return file && (size == 0 || file.read(static_cast<char *>(buffer), size));
 }
 
 u_char MikuPan_WriteFile(const char *filename, const void *buffer, int size)
@@ -1186,7 +1321,7 @@ bool MikuPan_ResolveCdPath(const char* path, char* buffer, size_t buffer_size)
         const std::filesystem::path relative_data_path(s);
         const bool required_archive =
             MikuPan_IsRequiredArchiveDataFile(relative_data_path);
-        const char *folder = mikupan_configuration.data_folder;
+        const char *folder = MikuPan_GetActiveDataFolder();
         if (folder != nullptr && MikuPan_IsAndroidTreeUriString(folder))
         {
             std::string resolved_path = MikuPan_GetDataPathString(s);
@@ -1350,38 +1485,47 @@ u_char MikuPan_CreateFolder(const char *folder)
 
 int MikuPan_GetListFiles(const char *folder, MikuPan_McTblGetDir *table, int max_entries)
 {
-    std::string regex_folder(folder);
-    size_t wildcard = regex_folder.find('*');
-
-    if (wildcard != std::string::npos)
+    const std::string pattern(folder);
+    const auto wildcard = pattern.find('*');
+    const std::filesystem::path prefix_path = pattern.substr(0, wildcard);
+    const auto prefix = prefix_path.filename().generic_string();
+    const auto path = std::filesystem::path(
+        MikuPan_GetRelativePath(prefix_path.parent_path().generic_string().c_str()));
+    std::error_code error;
+    std::filesystem::directory_iterator entry(path, error);
+    const std::filesystem::directory_iterator end;
+    int count = 0;
+    for (; !error && entry != end && count < max_entries; entry.increment(error))
     {
-        regex_folder = regex_folder.substr(0, wildcard);
-    }
-
-    auto relative_path = std::filesystem::path(MikuPan_GetRelativePath(regex_folder.c_str()));
-
-    if (!std::filesystem::is_directory(relative_path))
-    {
-        relative_path = relative_path.remove_filename();
-    }
-
-    int i = 0;
-    for (const auto& entry : std::filesystem::directory_iterator(relative_path))
-    {
-        if (entry.is_directory())
+        std::error_code entry_error;
+        const auto name = entry->path().filename().generic_string();
+        if (!name.starts_with(prefix) ||
+            (wildcard == std::string::npos && name != prefix) ||
+            name.size() >= sizeof(table[count].EntryName))
         {
             continue;
         }
 
-        if (i >= max_entries)
-            break;
-        table[i].FileSizeByte = entry.file_size();
-        strncpy(reinterpret_cast<char *>(table[i].EntryName), entry.path().filename().generic_string().c_str(), sizeof(table[i].EntryName));
-
-        ++i;
+        uintmax_t size = 0;
+        if (entry->is_regular_file(entry_error))
+        {
+            size = entry->file_size(entry_error);
+        }
+        else if (!entry->is_directory(entry_error))
+        {
+            continue;
+        }
+        if (entry_error || size > UINT32_MAX)
+        {
+            continue;
+        }
+        table[count] = {};
+        table[count].FileSizeByte = static_cast<u_int>(size);
+        std::memcpy(table[count].EntryName, name.c_str(), name.size());
+        ++count;
     }
 
-    return i;
+    return count;
 }
 
 std::string MikuPan_GetRelativePath(const char *path)

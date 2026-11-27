@@ -1,6 +1,7 @@
 <rml>
 <head>
     <link type="text/rcss" href="title.rcss"/>
+    <link type="text/rcss" href="port_font.rcss"/>
     <link type="text/rcss" href="message_box.rcss"/>
 </head>
 <body>
@@ -21,7 +22,7 @@
                 <img id="title-logo" class="title-logo-layer" src="../title/eu/title.png"/>
             </div>
 
-            <button id="title-press-button" class="title-bottom-text">Press Start</button>
+            <button id="title-press-button" class="title-bottom-text">Press any key</button>
 
             <div id="title-menu-panel" class="hidden">
                 <button id="title-menu-new" class="title-menu-button selected">
