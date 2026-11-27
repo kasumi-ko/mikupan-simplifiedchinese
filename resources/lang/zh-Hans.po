@@ -2931,3 +2931,399 @@ msgstr "浏览游戏数据文件夹"
 
 msgid "Select a game data folder"
 msgstr "选择游戏数据文件夹"
+
+msgid "Missing or unsafe save file: "
+msgstr "存档文件缺失或路径不安全："
+
+msgid "Save file is too large: "
+msgstr "存档文件过大："
+
+msgid "Cannot read save file: "
+msgstr "无法读取存档文件："
+
+msgid "Cannot create staged file: "
+msgstr "无法创建暂存文件："
+
+msgid "Writing save data failed; original files were retained."
+msgstr "写入存档失败。原文件已保留。"
+
+msgid "Cannot sync save directory."
+msgstr "无法同步存档目录。"
+
+msgid "Cannot load the PS2 browser icon from the game assets."
+msgstr "无法加载游戏数据中的 PS2 存档图标。"
+
+msgid "Cannot read the PS2 browser icon from the game assets."
+msgstr "无法读取游戏数据中的 PS2 存档图标。"
+
+msgid "Choose an extracted Fatal Frame save folder."
+msgstr "请选择已解包的《零》存档文件夹。"
+
+msgid "Missing PS2 browser icon files."
+msgstr "缺少 PS2 存档图标文件。"
+
+msgid "Save folder mixes multiple regions."
+msgstr "存档文件夹混有多个地区版本。"
+
+msgid "Unsupported Fatal Frame save region/revision."
+msgstr "此《零》存档的地区或版本暂不受支持。"
+
+msgid "Invalid PS2 browser icons."
+msgstr "PS2 存档图标无效。"
+
+msgid "Missing gameplay slot: "
+msgstr "缺少游戏存档槽："
+
+msgid "Unsupported save size/version for this build."
+msgstr "当前版本不支持此存档的大小或格式版本。"
+
+msgid "PC save files must match this build's region."
+msgstr "PC 存档的地区须与当前版本一致。"
+
+msgid "Cannot resolve the save folder or card path."
+msgstr "无法定位存档文件夹或记忆卡路径。"
+
+msgid "Choose an existing memory-card file."
+msgstr "请选择现有的记忆卡文件。"
+
+msgid "Select between one and three saves."
+msgstr "请选择一至三个存档。"
+
+msgid "Destination save region does not match the selected output."
+msgstr "目标存档与选定输出的地区不一致。"
+
+msgid "Assign a valid destination to each selected save."
+msgstr "请为每个已选存档指定有效的目标槽。"
+
+msgid "Each source save can be used only once."
+msgstr "每个来源存档只能使用一次。"
+
+msgid "Each destination save can be used only once."
+msgstr "每个目标存档槽只能使用一次。"
+
+msgid "Cannot transfer an empty slot."
+msgstr "无法转移空白存档槽。"
+
+msgid "No numbered PC save filenames remain available."
+msgstr "PC 存档的文件编号已用完。"
+
+msgid "The transferred save is missing."
+msgstr "找不到已转移的存档。"
+
+msgid "Destination cannot be a symbolic link."
+msgstr "目标路径不能是符号链接。"
+
+msgid "Cannot create staging directory."
+msgstr "无法创建暂存目录。"
+
+msgid "Staged save verification failed. "
+msgstr "暂存存档校验失败。"
+
+msgid "Destination changed; refresh before transferring."
+msgstr "目标已更改。请刷新后再转移。"
+
+msgid "Could not roll back the transfer; previous folder remains at "
+msgstr "无法回滚转移。原文件夹位于："
+
+msgid "Could not restore the previous folder; it remains at "
+msgstr "无法恢复原文件夹。原文件夹位于："
+
+msgid "Transfer complete; could not remove temporary folder "
+msgstr "转移完成。无法移除临时文件夹："
+
+msgid "Choose a new output filename; existing cards are never overwritten."
+msgstr "请选择新的输出文件名。现有记忆卡文件会保留。"
+
+msgid "Source contains no supported Fatal Frame saves."
+msgstr "来源中没有受支持的《零》存档。"
+
+msgid "Choose PC saves on the PC side of the transfer."
+msgstr "请在 PC 一侧选择 PC 存档。"
+
+msgid "Source and destination must be different folders."
+msgstr "来源和目标须使用不同的文件夹。"
+
+msgid "Source or destination changed; refresh and review the slots again. "
+msgstr "来源或目标已更改。请刷新并重新检查存档槽。"
+
+msgid "Save files changed while preparing the card; refresh before exporting."
+msgstr "制作记忆卡时存档文件已更改。请刷新后再导出。"
+
+msgid "Invalid card filename."
+msgstr "记忆卡文件名无效。"
+
+msgid "Only standard 8 MB PS2 cards are supported (raw or ECC)."
+msgstr "目前支持标准 8 MB PS2 记忆卡（raw 或 ECC）。"
+
+msgid "Not a formatted PS2 memory card."
+msgstr "该文件不是已格式化的 PS2 记忆卡。"
+
+msgid "Invalid card allocation range."
+msgstr "记忆卡的分配范围无效。"
+
+msgid "Cards with bad-block remapping are not supported."
+msgstr "暂不支持带坏块重映射的记忆卡。"
+
+msgid "Invalid card backup-block range."
+msgstr "记忆卡的备份块范围无效。"
+
+msgid "Invalid indirect FAT cluster."
+msgstr "间接 FAT 簇无效。"
+
+msgid "Invalid or overlapping FAT clusters."
+msgstr "FAT 簇无效或相互重叠。"
+
+msgid "Card page outside image."
+msgstr "记忆卡页超出镜像范围。"
+
+msgid "Memory-card ECC mismatch; the card was not changed."
+msgstr "记忆卡 ECC 校验不符。记忆卡文件已保留。"
+
+msgid "Card cluster outside image."
+msgstr "记忆卡簇超出镜像范围。"
+
+msgid "Allocation chain outside card."
+msgstr "分配链超出记忆卡范围。"
+
+msgid "File length exceeds card capacity."
+msgstr "文件长度超出记忆卡容量。"
+
+msgid "Invalid empty card file."
+msgstr "空白记忆卡文件无效。"
+
+msgid "Cyclic or overlapping card allocation."
+msgstr "记忆卡分配链循环或重叠。"
+
+msgid "File references a free card cluster."
+msgstr "存档文件引用了空闲的记忆卡簇。"
+
+msgid "File allocation does not match its length."
+msgstr "文件的分配空间与长度不符。"
+
+msgid "Truncated card allocation chain."
+msgstr "记忆卡分配链不完整。"
+
+msgid "Directory entry outside allocation."
+msgstr "目录项超出已分配范围。"
+
+msgid "Memory-card directories are too deeply nested."
+msgstr "记忆卡目录嵌套过深。"
+
+msgid "Invalid memory-card entry type."
+msgstr "记忆卡条目类型无效。"
+
+msgid "Invalid memory-card directory length."
+msgstr "记忆卡目录长度无效。"
+
+msgid "Missing card directory links."
+msgstr "缺少记忆卡目录链接。"
+
+msgid "Unterminated card filename."
+msgstr "记忆卡文件名缺少结束标记。"
+
+msgid "Duplicate or invalid card filename."
+msgstr "记忆卡文件名重复或无效。"
+
+msgid "Game save is not a directory."
+msgstr "游戏存档条目不是目录。"
+
+msgid "Unexpected directory inside game save."
+msgstr "游戏存档中出现了额外目录。"
+
+msgid "Not enough free space on the destination card."
+msgstr "目标记忆卡空间不足。"
+
+msgid "Unexpected file in existing game save."
+msgstr "现有游戏存档中出现了额外文件。"
+
+msgid "Save file exceeds memory-card capacity."
+msgstr "存档文件超出记忆卡容量。"
+
+msgid "Exported card verification failed."
+msgstr "导出的记忆卡未通过校验。"
+
+msgid "A wandering soul is active; save again after it disappears."
+msgstr "游魂仍在活动。请等它消失后再存档。"
+
+msgid "Unsupported native save layout."
+msgstr "当前不支持此 PC 存档布局。"
+
+msgid "Save conversion requires a 64-bit build."
+msgstr "转换存档需要 64 位版本。"
+
+msgid "Unknown gameplay save size/version."
+msgstr "无法识别此游戏存档的大小或版本。"
+
+msgid "Empty slot or invalid save checksum."
+msgstr "存档槽为空或存档校验值无效。"
+
+msgid "Invalid mission, time or difficulty in save header."
+msgstr "存档头中的章节、时间或难度无效。"
+
+msgid "Invalid EU save language."
+msgstr "欧版存档的语言无效。"
+
+msgid "Save layout is not ready."
+msgstr "存档布局尚未就绪。"
+
+msgid "Invalid saved map floor."
+msgstr "存档中的地图楼层无效。"
+
+msgid "Invalid player transform."
+msgstr "存档中的角色位置或朝向无效。"
+
+msgid "Unknown save region."
+msgstr "无法识别存档地区。"
+
+msgid "Expected a PS2 gameplay save."
+msgstr "此处需要 PS2 游戏存档。"
+
+msgid "Saved resource references do not match the declared region. This may be an already-converted save or an unsupported game revision."
+msgstr "存档引用的资源与标明的地区不一致。该存档可能已经转换过，或来自暂不支持的版本。"
+
+msgid "This saved room/floor cannot be checked for regional conversion."
+msgstr "无法核对存档所在房间或楼层在目标地区的对应情况。"
+
+msgid "Invalid player position for regional conversion."
+msgstr "角色位置无法用于跨区转换。"
+
+msgid "This position is blocked in the destination region. Save at another location in the source game first."
+msgstr "该位置在目标地区版本中无法通行。请先在原版游戏的其他位置存档。"
+
+msgid "Save header does not match its declared region."
+msgstr "存档头与标明的地区不一致。"
+
+msgid "Save again after the wandering soul disappears before converting."
+msgstr "请等游魂消失后重新存档，再进行转换。"
+
+msgid "Unsupported saved resource request."
+msgstr "暂不支持存档中的这项资源请求。"
+
+msgid "Saved map references disagree with the declared region. This save revision is not supported."
+msgstr "存档中的地图引用与标明的地区不一致。暂不支持此存档版本。"
+
+msgid "Unknown EU language."
+msgstr "无法识别欧版语言。"
+
+msgid "A saved resource has no unambiguous destination equivalent."
+msgstr "存档中的一项资源无法唯一对应到目标地区。"
+
+msgid "Unsupported localized resource request."
+msgstr "暂不支持存档中的这项地区资源请求。"
+
+msgid "Finish the current quest-item interaction and save again."
+msgstr "请完成当前剧情道具的交互，再重新存档。"
+
+msgid "Control layout resets to the destination default. "
+msgstr "按键布局将恢复为目标地区的默认设置。"
+
+msgid "Control layout resets to the destination default. Existing documents, camera upgrades and optional sound history are preserved; regional bonus unlocks are not recalculated."
+msgstr "按键布局将恢复为目标地区的默认设置。已有文档、相机升级和可选音频记录会保留。地区专属奖励的解锁情况沿用原记录。"
+
+msgid "Truncated save archive."
+msgstr "存档封包不完整。"
+
+msgid "Truncated archive filename."
+msgstr "封包中的文件名不完整。"
+
+msgid "Invalid archive filename."
+msgstr "封包中的文件名无效。"
+
+msgid "Archive filename is too long."
+msgstr "封包中的文件名过长。"
+
+msgid "Truncated MAX compressed stream."
+msgstr "MAX 压缩数据流不完整。"
+
+msgid "Invalid MAX arithmetic stream."
+msgstr "MAX 算术编码数据流无效。"
+
+msgid "Invalid MAX expanded size."
+msgstr "MAX 解压大小无效。"
+
+msgid "MAX match exceeds expanded size."
+msgstr "MAX 匹配数据超出解压范围。"
+
+msgid "Truncated archive file."
+msgstr "封包中的文件不完整。"
+
+msgid "Cannot timestamp save archive."
+msgstr "无法为存档封包设置日期和时间。"
+
+msgid "Unsupported X-Port save type."
+msgstr "暂不支持此 X-Port 存档类型。"
+
+msgid "Truncated X-Port description."
+msgstr "X-Port 存档说明不完整。"
+
+msgid "Truncated X-Port body."
+msgstr "X-Port 存档正文不完整。"
+
+msgid "Unexpected X-Port trailing data."
+msgstr "X-Port 存档末尾有额外数据。"
+
+msgid "X-Port checksum mismatch."
+msgstr "X-Port 存档校验值不符。"
+
+msgid "Truncated X-Port descriptor."
+msgstr "X-Port 文件描述符不完整。"
+
+msgid "Invalid X-Port descriptor size."
+msgstr "X-Port 文件描述符大小无效。"
+
+msgid "Unsupported X-Port subdirectory."
+msgstr "暂不支持 X-Port 存档中的子目录。"
+
+msgid "Truncated X-Port file."
+msgstr "X-Port 封包中的文件不完整。"
+
+msgid "X-Port body size does not match its files."
+msgstr "X-Port 存档正文大小与所含文件不符。"
+
+msgid "Invalid CBS header size."
+msgstr "CBS 存档头大小无效。"
+
+msgid "Invalid CBS expanded size."
+msgstr "CBS 解压大小无效。"
+
+msgid "Invalid CBS compressed size."
+msgstr "CBS 压缩数据大小无效。"
+
+msgid "Invalid CBS file table."
+msgstr "CBS 文件表无效。"
+
+msgid "Unsupported CBS subdirectory."
+msgstr "暂不支持 CBS 存档中的子目录。"
+
+msgid "Save archive is too large."
+msgstr "存档封包过大。"
+
+msgid "Truncated MAX header."
+msgstr "MAX 存档头不完整。"
+
+msgid "MAX checksum mismatch."
+msgstr "MAX 存档校验值不符。"
+
+msgid "Invalid MAX file count."
+msgstr "MAX 封包中的文件数量无效。"
+
+msgid "Truncated MAX alignment."
+msgstr "MAX 对齐填充不完整。"
+
+msgid "Unexpected MAX trailing data."
+msgstr "MAX 存档末尾有额外数据。"
+
+msgid "Invalid PSU file count."
+msgstr "PSU 封包中的文件数量无效。"
+
+msgid "Unsupported PSU directory or file mode."
+msgstr "暂不支持此 PSU 目录或文件类型。"
+
+msgid "Truncated PSU padding."
+msgstr "PSU 填充数据不完整。"
+
+msgid "Unexpected PSU trailing data."
+msgstr "PSU 存档末尾有额外数据。"
+
+msgid "Invalid archive file count."
+msgstr "封包中的文件数量无效。"

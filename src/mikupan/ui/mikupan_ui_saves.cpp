@@ -60,6 +60,32 @@ const char* OutputSuffix()
     return output_ecc ? ".ps2" : ".bin";
 }
 std::string source_error, target_error, message;
+
+std::string SaveIssue(const std::string& issue)
+{
+    static constexpr const char* prefixes[] = {
+        "Missing or unsafe save file: ",
+        "Save file is too large: ",
+        "Cannot read save file: ",
+        "Cannot create staged file: ",
+        "Missing gameplay slot: ",
+        "Staged save verification failed. ",
+        "Could not roll back the transfer; previous folder remains at ",
+        "Could not restore the previous folder; it remains at ",
+        "Transfer complete; could not remove temporary folder ",
+        "Source or destination changed; refresh and review the slots again. ",
+    };
+    for (const char* prefix : prefixes)
+    {
+        if (issue.starts_with(prefix))
+        {
+            return std::string(MikuPan_Translate(prefix))
+                + SaveIssue(issue.substr(SDL_strlen(prefix)));
+        }
+    }
+    return MikuPan_Translate(issue.c_str());
+}
+
 std::vector<bool> selected;
 std::vector<int> destination;
 std::atomic<bool> picking {false};
@@ -177,11 +203,15 @@ void Refresh()
     }
     if (!source_error.empty())
     {
-        source_error = std::string(exporting ? MikuPan_Translate("PC source: ") : MikuPan_Translate("PS2 source: ")) + source_error;
+        source_error = std::string(exporting ? MikuPan_Translate("PC source: ")
+                                             : MikuPan_Translate("PS2 source: "))
+            + SaveIssue(source_error);
     }
     if (!target_error.empty())
     {
-        target_error = std::string(exporting ? MikuPan_Translate("PS2 destination: ") : MikuPan_Translate("PC destination: ")) + target_error;
+        target_error = std::string(exporting ? MikuPan_Translate("PS2 destination: ")
+                                             : MikuPan_Translate("PC destination: "))
+            + SaveIssue(target_error);
     }
     ClearSelection();
     initialized = true;
@@ -289,7 +319,7 @@ std::string Unavailable(bool require_selection = true,
     }
     if (!target.save.issue.empty())
     {
-        return MikuPan_Translate("Destination saves are damaged: ") + target.save.issue;
+        return MikuPan_Translate("Destination saves are damaged: ") + SaveIssue(target.save.issue);
     }
     const auto slots = Mappings();
     if (slots.empty())
@@ -427,7 +457,7 @@ void AdoptPicker()
             std::string error;
             if (!ReadStorage(path, StorageKind::Folder, false, folder, error))
             {
-                message = error;
+                message = SaveIssue(error);
             }
             else if (folder.exists)
             {
@@ -473,7 +503,7 @@ void AdoptPicker()
     }
     if (!pick_error.empty())
     {
-        message = pick_error;
+        message = std::string(MikuPan_Translate("Cannot open file picker: ")) + pick_error;
     }
     pick_ready = false;
 }
@@ -514,16 +544,15 @@ void Commit()
         }
         if (!error.empty())
         {
-            message += " " + error;
+            message += " " + SaveIssue(error);
         }
         ClearSelection();
         Refresh();
         step = Step::Operation;
-        show = false;
     }
     else
     {
-        message = MikuPan_Translate("Transfer failed: ") + error;
+        message = MikuPan_Translate("Transfer failed: ") + SaveIssue(error);
     }
 }
 void DestinationChoice(int i)
@@ -633,7 +662,7 @@ void Rows(bool is_source)
             {
                 ImGui::BeginTooltip();
                 ImGui::PushTextWrapPos(ImGui::GetFontSize() * 28);
-                ImGui::TextUnformatted(slot.issue.c_str());
+                ImGui::TextUnformatted(SaveIssue(slot.issue).c_str());
                 ImGui::PopTextWrapPos();
                 ImGui::EndTooltip();
             }
@@ -644,7 +673,7 @@ void Rows(bool is_source)
             if (ImGui::BeginPopup("Save issue"))
             {
                 ImGui::PushTextWrapPos(ImGui::GetFontSize() * 28);
-                ImGui::TextUnformatted(slot.issue.c_str());
+                ImGui::TextUnformatted(SaveIssue(slot.issue).c_str());
                 ImGui::PopTextWrapPos();
                 ImGui::EndPopup();
             }
@@ -744,6 +773,19 @@ namespace
 {
 bool ChoiceCard(const char* label, float width, float height = 110.f)
 {
+    const std::string text(label);
+    const size_t split = text.find("\n\n");
+    const std::string title = text.substr(0, split);
+    const std::string description =
+        split == std::string::npos ? "" : text.substr(split + 2);
+    const auto& style = ImGui::GetStyle();
+    const float wrap = std::max(1.0f, width - 4.0f * style.FramePadding.x);
+    const auto title_size = ImGui::CalcTextSize(title.c_str(), nullptr, false, wrap);
+    const auto desc_size = ImGui::CalcTextSize(description.c_str(), nullptr, false, wrap);
+    const float gap = description.empty() ? 0.0f : style.ItemSpacing.y;
+    const float text_height = title_size.y + gap + (description.empty() ? 0.0f : desc_size.y);
+    height = std::max(height, text_height + 2.0f * style.FramePadding.y);
+
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, 0));
@@ -751,22 +793,15 @@ bool ChoiceCard(const char* label, float width, float height = 110.f)
     ImGui::PopStyleColor();
     ImGui::PopStyleVar(2);
     const ImVec2 origin = ImGui::GetItemRectMin();
-    const std::string text(label);
-    const size_t split = text.find("\n\n");
-    const std::string title = text.substr(0, split);
-    const std::string description =
-        split == std::string::npos ? "" : text.substr(split + 2);
     auto* draw = ImGui::GetWindowDrawList();
     const ImU32 colour = ImGui::GetColorU32(ImGuiCol_Text);
-    for (int line = 0; line < 2; ++line)
-    {
-        const auto& value = line == 0 ? title : description;
-        const float x =
-            origin.x + (width - ImGui::CalcTextSize(value.c_str()).x) * .5f;
-        draw->AddText(
-            ImVec2(x, origin.y + (line == 0 ? height * .26f : height * .60f)),
-            colour, value.c_str());
-    }
+    const float top = origin.y + (height - text_height) * .5f;
+    draw->AddText(nullptr, 0.0f, ImVec2(origin.x + (width - title_size.x) * .5f, top),
+                  colour, title.c_str(), nullptr, wrap);
+    if (!description.empty())
+        draw->AddText(nullptr, 0.0f, ImVec2(origin.x + (width - desc_size.x) * .5f,
+                                          top + title_size.y + gap),
+                      colour, description.c_str(), nullptr, wrap);
     return pressed;
 }
 void ChooseDirection(bool to_ps2)
@@ -819,11 +854,24 @@ void Draw(SDL_Window* window)
         Refresh();
     }
     const auto* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowSize(
-        ImVec2(std::min(1080.f, viewport->WorkSize.x * .96f),
-               std::min(800.f, viewport->WorkSize.y * .94f)),
-        ImGuiCond_FirstUseEver);
-    if (!ImGui::Begin(MikuPan_Translate("PS2 save transfer###ps2-save-transfer"), &show))
+    const ImVec2 max_size(std::min(1080.f, viewport->WorkSize.x * .96f),
+                          std::min(800.f, viewport->WorkSize.y * .94f));
+    const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x * .5f,
+                        viewport->WorkPos.y + viewport->WorkSize.y * .5f);
+    ImGui::SetNextWindowSize(max_size, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSizeConstraints(
+        ImVec2(std::min(320.f, max_size.x), std::min(220.f, max_size.y)), max_size);
+    ImGui::SetNextWindowPos(center, ImGuiCond_FirstUseEver, ImVec2(.5f, .5f));
+    const bool visible = ImGui::Begin(MikuPan_Translate("PS2 save transfer###ps2-save-transfer"), &show);
+    const ImVec2 pos = ImGui::GetWindowPos();
+    const ImVec2 size = ImGui::GetWindowSize();
+    const ImVec2 work = viewport->WorkPos;
+    const ImVec2 bounded(
+        std::clamp(pos.x, work.x, work.x + std::max(0.f, viewport->WorkSize.x - size.x)),
+        std::clamp(pos.y, work.y, work.y + std::max(0.f, viewport->WorkSize.y - size.y)));
+    if (bounded.x != pos.x || bounded.y != pos.y)
+        ImGui::SetWindowPos(bounded);
+    if (!visible)
     {
         ImGui::End();
         return;
@@ -861,7 +909,7 @@ void Draw(SDL_Window* window)
     }
     if (step == Step::Operation)
     {
-        ImGui::TextUnformatted(MikuPan_Translate("Where would you like to send your saves?"));
+        ImGui::TextWrapped("%s", MikuPan_Translate("Where would you like to send your saves?"));
         ImGui::Spacing();
         const float available = ImGui::GetContentRegionAvail().x;
         const bool side_by_side = available >= 650.f;
@@ -886,7 +934,7 @@ void Draw(SDL_Window* window)
     }
     else if (step == Step::Location)
     {
-        ImGui::TextUnformatted(MikuPan_Translate("Choose where your PS2 saves are stored"));
+        ImGui::TextWrapped("%s", MikuPan_Translate("Choose where your PS2 saves are stored"));
         ImGui::Spacing();
         const float width = ImGui::GetContentRegionAvail().x;
         if (ChoiceCard(MikuPan_Translate("Open a card or save archive\n\nPCSX2 / OPL card or "
@@ -903,13 +951,13 @@ void Draw(SDL_Window* window)
     }
     else if (step == Step::Slots)
     {
-        ImGui::TextUnformatted(
+        ImGui::TextWrapped("%s",
             MikuPan_Translate("Select source saves, then choose a destination slot for each."));
         if (!exporting && source_ok)
         {
             ImGui::Text("%s -> %s", MikuPan_Translate(RegionLabel(source.save.region)),
                         MikuPan_Translate(RegionLabel(BuildRegion)));
-            const auto notes = RegionNotes(source.save.region, BuildRegion);
+            const auto notes = SaveIssue(RegionNotes(source.save.region, BuildRegion));
             if (!notes.empty())
             {
                 ImGui::TextWrapped("%s", notes.c_str());
@@ -1011,13 +1059,17 @@ void Draw(SDL_Window* window)
                     step = Step::Format;
                     message.clear();
                 }
+                else
+                {
+                    message = SaveIssue(message);
+                }
             }
         }
     }
     else if (step == Step::Format)
     {
         ImGui::Text(MikuPan_Translate("Region: %s"), MikuPan_Translate(RegionLabel(output_region)));
-        const auto notes = RegionNotes(BuildRegion, output_region);
+        const auto notes = SaveIssue(RegionNotes(BuildRegion, output_region));
         if (!notes.empty())
         {
             ImGui::TextWrapped("%s", notes.c_str());
@@ -1136,7 +1188,9 @@ void Draw(SDL_Window* window)
         reason = Unavailable(true, false, final_step || step == Step::Format);
     }
     ImGui::BeginDisabled(step == Step::Operation);
-    if (ImGui::Button(MikuPan_Translate("Back"), ImVec2(120, 0)))
+    const float footer_width = ImGui::GetContentRegionAvail().x;
+    const float back_width = std::min(120.f, footer_width * .4f);
+    if (ImGui::Button(MikuPan_Translate("Back"), ImVec2(back_width, 0)))
     {
         step = exporting && step == Step::Slots ? Step::Operation
                                                 : Step(int(step) - 1);
@@ -1146,9 +1200,10 @@ void Draw(SDL_Window* window)
     if (step == Step::Slots)
     {
         ImGui::SameLine();
+        const float action_width = std::min(180.f, ImGui::GetContentRegionAvail().x);
         ImGui::SetCursorPosX(
             std::max(ImGui::GetCursorPosX(),
-                     ImGui::GetWindowContentRegionMax().x - 180.f));
+                     ImGui::GetWindowContentRegionMax().x - action_width));
         char action[96];
         if (final_step)
         {
@@ -1161,7 +1216,7 @@ void Draw(SDL_Window* window)
             SDL_strlcpy(action, MikuPan_Translate("Next"), sizeof(action));
         }
         ImGui::BeginDisabled(!reason.empty());
-        if (ImGui::Button(action, ImVec2(180, 0)))
+        if (ImGui::Button(action, ImVec2(action_width, 0)))
         {
             message.clear();
             if (final_step)
@@ -1189,6 +1244,7 @@ void Draw(SDL_Window* window)
     }
     ImGui::SetNextWindowSize(ImVec2(std::min(480.f, viewport->WorkSize.x * .9f), 0),
                              ImGuiCond_Appearing);
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(.5f, .5f));
     if (ImGui::BeginPopupModal(MikuPan_Translate("Save transfer message###save-transfer-message"), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
         ImGui::TextWrapped("%s", message.c_str());
