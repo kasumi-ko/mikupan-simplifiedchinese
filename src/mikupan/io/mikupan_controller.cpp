@@ -34,6 +34,7 @@ static int remap_stick_target = -1;
 static int remap_stick_mode = 0;
 
 SDL_Gamepad *mikupan_gamepad = NULL;
+static bool gamepad_prompts = false;
 static int mikupan_preferred_gamepad_index = MIKUPAN_CONTROLLER_AUTO_INDEX;
 static unsigned short mikupan_rumble_low = 0;
 static unsigned short mikupan_rumble_high = 0;
@@ -278,6 +279,7 @@ static void MikuPan_CloseCurrentGamepad(void)
 
     mikupan_rumble_low = 0;
     mikupan_rumble_high = 0;
+    gamepad_prompts = false;
 }
 
 void MikuPan_ControllerSetPreferredGamepadIndex(int index)
@@ -395,18 +397,21 @@ void MikuPan_ControllerProcessEvent(const SDL_Event *event)
 
     if (event->type == SDL_EVENT_KEY_DOWN && !event->key.repeat)
     {
+        gamepad_prompts = false;
         pending_capture_binding.kind = MIKUPAN_INPUT_BIND_KEYBOARD;
         pending_capture_binding.code = event->key.scancode;
         pending_capture_binding_valid = 1;
     }
     else if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN)
     {
+        gamepad_prompts = false;
         pending_capture_binding.kind = MIKUPAN_INPUT_BIND_MOUSE_BUTTON;
         pending_capture_binding.code = event->button.button;
         pending_capture_binding_valid = 1;
     }
     else if (event->type == SDL_EVENT_MOUSE_WHEEL && event->wheel.y != 0.0f)
     {
+        gamepad_prompts = false;
         const int direction = event->wheel.y > 0.0f ? 1 : -1;
         runtime_wheel_steps += direction;
         if (runtime_wheel_steps > 8)
@@ -424,6 +429,8 @@ void MikuPan_ControllerProcessEvent(const SDL_Event *event)
 
     if (event->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)
     {
+        if (mikupan_gamepad && event->gbutton.which == SDL_GetGamepadID(mikupan_gamepad))
+            gamepad_prompts = true;
         MikuPan_OnControllerInputDetected();
     }
     else if (event->type == SDL_EVENT_GAMEPAD_AXIS_MOTION)
@@ -431,6 +438,8 @@ void MikuPan_ControllerProcessEvent(const SDL_Event *event)
         const int value = event->gaxis.value;
         if (value >= 12000 || value <= -12000)
         {
+            if (mikupan_gamepad && event->gaxis.which == SDL_GetGamepadID(mikupan_gamepad))
+                gamepad_prompts = true;
             MikuPan_OnControllerInputDetected();
         }
     }
@@ -787,6 +796,7 @@ int MikuPan_OpenController()
     mikupan_gamepad = SDL_OpenGamepad(joysticks_id[selected_index]);
     if (mikupan_gamepad != NULL)
     {
+        gamepad_prompts = true;
         const char *name = SDL_GetGamepadName(mikupan_gamepad);
         const char *safe_name = (name != NULL && name[0] != '\0')
             ? name : MikuPan_Translate("<unknown controller>");
@@ -1784,6 +1794,92 @@ const char *MikuPan_ControllerScanCodeLabel(int scancode)
     }
 
     return name;
+}
+
+static const char *MikuPan_KeyboardPromptLabel(SDL_Scancode scancode)
+{
+    switch (scancode)
+    {
+    case SDL_SCANCODE_RETURN:       return "Enter";
+    case SDL_SCANCODE_BACKSPACE:    return "Bksp";
+    case SDL_SCANCODE_PAGEDOWN:     return "PgDn";
+    case SDL_SCANCODE_PAGEUP:       return "PgUp";
+    case SDL_SCANCODE_LSHIFT:       return "LSh";
+    case SDL_SCANCODE_RSHIFT:       return "RSh";
+    case SDL_SCANCODE_LCTRL:        return "LCtl";
+    case SDL_SCANCODE_RCTRL:        return "RCtl";
+    case SDL_SCANCODE_LGUI:         return "LWin";
+    case SDL_SCANCODE_RGUI:         return "RWin";
+    case SDL_SCANCODE_CAPSLOCK:    return "Caps";
+    case SDL_SCANCODE_NUMLOCKCLEAR:return "Num";
+    case SDL_SCANCODE_SCROLLLOCK:  return "ScrLk";
+    case SDL_SCANCODE_PRINTSCREEN: return "PrtSc";
+    case SDL_SCANCODE_KP_BACKSPACE:return "KPBs";
+    case SDL_SCANCODE_KP_ENTER:    return "KPEnt";
+    case SDL_SCANCODE_KP_PERIOD:   return "KPdot";
+    case SDL_SCANCODE_KP_PLUS:     return "KP+";
+    case SDL_SCANCODE_KP_MINUS:    return "KP-";
+    case SDL_SCANCODE_KP_MULTIPLY: return "KP*";
+    case SDL_SCANCODE_KP_DIVIDE:   return "KP/";
+    case SDL_SCANCODE_APOSTROPHE:  return "Apos";
+    case SDL_SCANCODE_COMMA:       return "Comma";
+    case SDL_SCANCODE_PERIOD:      return "Dot";
+    case SDL_SCANCODE_LEFTBRACKET: return "LBrk";
+    case SDL_SCANCODE_RIGHTBRACKET:return "RBrk";
+    case SDL_SCANCODE_BACKSLASH:   return "Bksl";
+    case SDL_SCANCODE_GRAVE:       return "Grave";
+    default:
+        break;
+    }
+    static const char* const keypad_digits[] = {
+        "KP1", "KP2", "KP3", "KP4", "KP5", "KP6", "KP7", "KP8", "KP9", "KP0",
+    };
+    if (scancode >= SDL_SCANCODE_KP_1 && scancode <= SDL_SCANCODE_KP_0)
+        return keypad_digits[scancode - SDL_SCANCODE_KP_1];
+    const char* key = scancode > SDL_SCANCODE_UNKNOWN && scancode < SDL_SCANCODE_COUNT
+        ? SDL_GetScancodeName(scancode) : nullptr;
+    return key && *key ? key : "-";
+}
+
+MikuPan_ButtonPrompt MikuPan_GetButtonPrompt(int logical_button)
+{
+    constexpr auto unknown = SDL_GAMEPAD_BUTTON_LABEL_UNKNOWN;
+    if (logical_button < 0 || logical_button >= MIKUPAN_CONTROLLER_LOGICAL_COUNT)
+        return {unknown, "-"};
+
+    if (!mikupan_gamepad || !gamepad_prompts)
+    {
+        const auto scancode = static_cast<SDL_Scancode>(mikupan_keyboard_map[logical_button]);
+        return {unknown, MikuPan_KeyboardPromptLabel(scancode)};
+    }
+
+    const auto binding = mikupan_controller_map[logical_button];
+    if (binding.kind == MIKUPAN_CONTROLLER_BIND_BUTTON)
+    {
+        const auto button = static_cast<SDL_GamepadButton>(binding.code);
+        if (button <= SDL_GAMEPAD_BUTTON_INVALID || button >= SDL_GAMEPAD_BUTTON_COUNT
+            || !SDL_GamepadHasButton(mikupan_gamepad, button))
+            return {unknown, "-"};
+
+        const auto face = SDL_GetGamepadButtonLabel(mikupan_gamepad, button);
+        const char *text = MikuPan_GamepadButtonFaceLabel(mikupan_gamepad, button);
+        if (!text)
+            text = MikuPan_GamepadShoulderLabel(mikupan_gamepad, button);
+        return {face, text ? text : MikuPan_GamepadButtonFallbackLabel(button)};
+    }
+    if (binding.kind == MIKUPAN_CONTROLLER_BIND_AXIS)
+    {
+        const auto axis = static_cast<SDL_GamepadAxis>(binding.code);
+        if (axis <= SDL_GAMEPAD_AXIS_INVALID || axis >= SDL_GAMEPAD_AXIS_COUNT
+            || !SDL_GamepadHasAxis(mikupan_gamepad, axis))
+            return {unknown, "-"};
+
+        const char *text = MikuPan_GamepadTriggerAxisLabel(mikupan_gamepad, axis);
+        if (!text)
+            text = SDL_GetGamepadStringForAxis(axis);
+        return {unknown, text && *text ? text : "-"};
+    }
+    return {unknown, "-"};
 }
 
 const char *MikuPan_InputBindingLabel(MikuPan_InputBinding binding)

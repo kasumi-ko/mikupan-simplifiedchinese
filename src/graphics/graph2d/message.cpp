@@ -2486,39 +2486,86 @@ int MesStatusCheck()
     return ret;
 }
 
-void DrawButtonTex(u_int pri, int type, float x, float y, u_char alp)
+static void DrawButtonPromptText(u_int pri, float x, float y, u_char alp,
+                                 const char *text, bool no_depth_write)
 {
+    constexpr int slot = 24;
+    constexpr int glyph_width = 12;
+    constexpr int glyph_height = 14;
+    constexpr int advance = 8;
+    const auto length = strlen(text);
+    const float width = advance * static_cast<float>(length) + (glyph_width - advance);
+    const float scale = width * 1.2f > slot ? slot / width : 1.2f;
+
+    DISP_SPRT glyph{};
+    glyph.r = glyph.g = glyph.b = 0x80;
+    glyph.alpha = alp;
+    glyph.w = glyph_width;
+    glyph.h = glyph_height;
+    glyph.x = x + (slot - width * scale) * 0.5f;
+    glyph.y = y + (slot - glyph_height * scale) * 0.5f;
+    glyph.z = 0x0fffffff - pri;
+    MikuPan_SetFontTexture(0);
+
+    for (const auto* c = reinterpret_cast<const unsigned char*>(text); *c; ++c)
+    {
+        if (*c != ' ')
+        {
+            const int code = *c >= 0x20 && *c <= 0x7e ? *c : '?';
+            const int mapped = ascii_font_tbl2[code - 0x20];
+            const int index = mapped ? mapped : ascii_font_tbl2['?' - 0x20];
+            glyph.u = (index % 42) * glyph_width + 8;
+            glyph.v = (index / 42) * glyph_height;
+            MikuPan_Render2DMessage(&glyph, scale, !no_depth_write);
+        }
+        glyph.x += advance * scale;
+    }
+}
+
+static void DrawButtonPrompt(u_int pri, int type, float x, float y, u_char alp, bool no_depth_write)
+{
+    // The legacy atlas orders the face buttons as Square, Triangle, Circle, Cross.
+    constexpr int logical[] = {MIKUPAN_CONTROLLER_SQUARE, MIKUPAN_CONTROLLER_TRIANGLE,
+                               MIKUPAN_CONTROLLER_CIRCLE, MIKUPAN_CONTROLLER_CROSS};
+    if (type < 0 || type >= 4 || alp == 0)
+        return;
+
+    const auto prompt = MikuPan_GetButtonPrompt(logical[type]);
+    int sprite = -1;
+    switch (prompt.face)
+    {
+    case SDL_GAMEPAD_BUTTON_LABEL_SQUARE:   sprite = 0; break;
+    case SDL_GAMEPAD_BUTTON_LABEL_TRIANGLE: sprite = 1; break;
+    case SDL_GAMEPAD_BUTTON_LABEL_CIRCLE:   sprite = 2; break;
+    case SDL_GAMEPAD_BUTTON_LABEL_CROSS:    sprite = 3; break;
+    default:
+        DrawButtonPromptText(pri, x, y, alp, prompt.text, no_depth_write);
+        return;
+    }
+
     DISP_SPRT ds;
-
-    CopySprDToSpr(&ds, &btntex[type]);
-
+    CopySprDToSpr(&ds, &btntex[sprite]);
     ds.tex0 = effdat[0].tex0;
     ds.pri = pri;
     ds.z = 0x0fffffff - pri;
     ds.alpha = alp;
     ds.tex1 = SCE_GS_SET_TEX1_1(1, 0, SCE_GS_LINEAR, SCE_GS_LINEAR_MIPMAP_LINEAR, 0, 0, 0);
+    if (no_depth_write)
+        ds.zbuf = SCE_GS_SET_ZBUF_1(0x8c, SCE_GS_PSMCT24, 1);
     ds.x = x;
     ds.y = y;
 
     DispSprD(&ds);
 }
 
+void DrawButtonTex(u_int pri, int type, float x, float y, u_char alp)
+{
+    DrawButtonPrompt(pri, type, x, y, alp, false);
+}
+
 void DrawButtonTexNZ(u_int pri, int type, float x, float y, u_char alp)
 {
-    DISP_SPRT ds;
-
-    CopySprDToSpr(&ds, &btntex[type]);
-
-    ds.tex0 = effdat[0].tex0;
-    ds.pri = pri;
-    ds.z = 0x0fffffff - pri;
-    ds.alpha = alp;
-    ds.tex1 = SCE_GS_SET_TEX1_1(1, 0, SCE_GS_LINEAR, SCE_GS_LINEAR_MIPMAP_LINEAR, 0, 0, 0);
-    ds.zbuf = SCE_GS_SET_ZBUF_1(0x8c, SCE_GS_PSMCT24, 1);
-    ds.x = x;
-    ds.y = y;
-
-    DispSprD(&ds);
+    DrawButtonPrompt(pri, type, x, y, alp, true);
 }
 
 void DrawMessageBox(u_int pri, float x, float y, float sizew, float sizeh, u_char alp, bool modal)

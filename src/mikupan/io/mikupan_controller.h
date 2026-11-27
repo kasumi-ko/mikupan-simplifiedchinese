@@ -126,6 +126,12 @@ void MikuPan_ControllerStoreBindingsToConfig(void);
 void MikuPan_ControllerLoadBindingsFromConfig(void);
 const char *MikuPan_ControllerBindingLabel(MikuPan_ControllerBindings binding);
 const char *MikuPan_ControllerScanCodeLabel(int scancode);
+typedef struct
+{
+    SDL_GamepadButtonLabel face;
+    const char *text;
+} MikuPan_ButtonPrompt;
+MikuPan_ButtonPrompt MikuPan_GetButtonPrompt(int logical_button);
 const char *MikuPan_ControllerStickAxisLabel(int sdl_axis);
 const char *MikuPan_InputBindingLabel(MikuPan_InputBinding binding);
 const char *MikuPan_SpecialActionLabel(int action);

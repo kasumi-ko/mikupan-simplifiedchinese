@@ -171,7 +171,7 @@ int MikuPan_GetWindowHeight();
 void MikuPan_GetFullScreenHalfExtent(float *half_w, float *half_h);
 int MikuPan_GetRenderMode();
 void MikuPan_RenderSetDebugValues();
-void MikuPan_Render2DMessage(DISP_SPRT* sprite, float scale);
+void MikuPan_Render2DMessage(DISP_SPRT* sprite, float scale, bool depth_write = true);
 void MikuPan_Flush2DMessageQueue(void);
 void MikuPan_Mask2DMessages(float x, float y, float width, float height, unsigned int priority);
 void MikuPan_BeginLate2DOverlayQueue(void);

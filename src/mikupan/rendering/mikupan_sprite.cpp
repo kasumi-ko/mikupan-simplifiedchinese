@@ -23,6 +23,7 @@ typedef struct
     int sprite_count;
     GLuint texture_id;
     int depth_enabled;
+    bool depth_write;
 } MikuPan_TexturedSpriteBatch;
 
 typedef struct
@@ -36,6 +37,7 @@ typedef struct
     float depth;
     unsigned int priority;
     int depth_enabled;
+    bool depth_write;
     MikuPan_TextureInfo *texture_info;
 } MikuPan_QueuedMessageSprite;
 
@@ -94,7 +96,7 @@ static void MikuPan_RenderSpriteInternal(MikuPan_Rect src, MikuPan_Rect dst,
                                          u_char r, u_char g, u_char b,
                                          u_char a,
                                          MikuPan_TextureInfo *texture_info,
-                                         float depth, int depth_enabled);
+                                         float depth, int depth_enabled, bool depth_write);
 
 static void MikuPan_RenderSprite2DInternal(sceGsTex0 *tex, float *buffer,
     int depth_enabled, int depth_write, unsigned int depth_func,
@@ -162,6 +164,7 @@ static int MikuPan_QueueLate2DMessageOverlay(MikuPan_Rect src,
                                              u_char a,
                                              float depth,
                                              int depth_enabled,
+                                             bool depth_write,
                                              MikuPan_TextureInfo *texture_info)
 {
     if (texture_info == NULL ||
@@ -174,7 +177,7 @@ static int MikuPan_QueueLate2DMessageOverlay(MikuPan_Rect src,
         &g_late_2d_overlay_queue[g_late_2d_overlay_queue_count++];
     queued->kind = MIKUPAN_LATE_2D_MESSAGE;
     queued->depth_enabled = depth_enabled;
-    queued->depth_write = depth_enabled ? 1 : 0;
+    queued->depth_write = depth_write;
     queued->depth_func = GL_LEQUAL;
     queued->vertices.message.src = src;
     queued->vertices.message.dst = dst;
@@ -184,11 +187,12 @@ static int MikuPan_QueueLate2DMessageOverlay(MikuPan_Rect src,
     queued->vertices.message.a = a;
     queued->vertices.message.depth = depth;
     queued->vertices.message.depth_enabled = depth_enabled;
+    queued->vertices.message.depth_write = depth_write;
     queued->vertices.message.texture_info = texture_info;
     return 1;
 }
 
-void MikuPan_Render2DMessage(DISP_SPRT *sprite, float scale)
+void MikuPan_Render2DMessage(DISP_SPRT *sprite, float scale, bool depth_write)
 {
     MikuPan_Rect dst_rect = {0};
     MikuPan_Rect src_rect = {0};
@@ -224,6 +228,7 @@ void MikuPan_Render2DMessage(DISP_SPRT *sprite, float scale)
                 sprite->alpha,
                 depth,
                 1,
+                depth_write,
                 texture_info))
         {
             info_log("Late 2D message overlay queue overflow");
@@ -250,6 +255,7 @@ void MikuPan_Render2DMessage(DISP_SPRT *sprite, float scale)
         queued->depth = depth;
         queued->priority = 0x0fffffff - sprite->z;
         queued->depth_enabled = 1;
+        queued->depth_write = depth_write;
         queued->texture_info = texture_info;
     }
 }
@@ -288,7 +294,7 @@ void MikuPan_Flush2DMessageQueue(void)
                                      queued->r, queued->g, queued->b,
                                      queued->a, queued->texture_info,
                                      queued->depth,
-                                     queued->depth_enabled);
+                                     queued->depth_enabled, queued->depth_write);
     }
 
     g_message_sprite_queue_count = 0;
@@ -334,7 +340,7 @@ void MikuPan_FlushLate2DOverlayQueue(void)
                                          message->r, message->g, message->b,
                                          message->a, message->texture_info,
                                          message->depth,
-                                         message->depth_enabled);
+                                         message->depth_enabled, message->depth_write);
         }
         else
         {
@@ -464,6 +470,7 @@ void MikuPan_FlushTexturedSpriteBatch(void)
     if (g_textured_sprite_batch.depth_enabled)
     {
         MikuPan_SetRenderState2DDepth();
+        MikuPan_GPUSetDepthWrite(g_textured_sprite_batch.depth_write);
     }
     else
     {
@@ -491,7 +498,7 @@ static void MikuPan_RenderSpriteInternal(MikuPan_Rect src, MikuPan_Rect dst,
                                          u_char r, u_char g, u_char b,
                                          u_char a,
                                          MikuPan_TextureInfo *texture_info,
-                                         float depth, int depth_enabled)
+                                         float depth, int depth_enabled, bool depth_write)
 {
     MIKUPAN_PERF_SCOPE(PERF_SECT_SPRITE_RENDER);
 
@@ -504,7 +511,7 @@ static void MikuPan_RenderSpriteInternal(MikuPan_Rect src, MikuPan_Rect dst,
     if (MikuPan_IsLate2DOverlayQueueActive())
     {
         if (!MikuPan_QueueLate2DMessageOverlay(
-                src, dst, r, g, b, a, depth, depth_enabled, texture_info))
+                src, dst, r, g, b, a, depth, depth_enabled, depth_write, texture_info))
         {
             info_log("Late 2D message overlay queue overflow");
         }
@@ -535,6 +542,7 @@ static void MikuPan_RenderSpriteInternal(MikuPan_Rect src, MikuPan_Rect dst,
     if (g_textured_sprite_batch.active &&
         (g_textured_sprite_batch.texture_id != texture_info->id ||
          g_textured_sprite_batch.depth_enabled != depth_enabled ||
+         g_textured_sprite_batch.depth_write != depth_write ||
          g_textured_sprite_batch.sprite_count >= TEXTURED_SPRITE_BATCH_MAX))
     {
         MikuPan_FlushTexturedSpriteBatch();
@@ -545,6 +553,7 @@ static void MikuPan_RenderSpriteInternal(MikuPan_Rect src, MikuPan_Rect dst,
         g_textured_sprite_batch.active = 1;
         g_textured_sprite_batch.texture_id = texture_info->id;
         g_textured_sprite_batch.depth_enabled = depth_enabled;
+        g_textured_sprite_batch.depth_write = depth_write;
         g_textured_sprite_batch.sprite_count = 0;
     }
 
@@ -574,7 +583,7 @@ void MikuPan_RenderSprite(MikuPan_Rect src, MikuPan_Rect dst, u_char r,
                           u_char g, u_char b, u_char a,
                           MikuPan_TextureInfo *texture_info)
 {
-    MikuPan_RenderSpriteInternal(src, dst, r, g, b, a, texture_info, 0.0f, 0);
+    MikuPan_RenderSpriteInternal(src, dst, r, g, b, a, texture_info, 0.0f, 0, false);
 }
 
 static void MikuPan_RenderSprite2DInternal(sceGsTex0 *tex, float *buffer,
