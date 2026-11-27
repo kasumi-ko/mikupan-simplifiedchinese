@@ -1,6 +1,6 @@
-# MikuPan-SimplifiedChinese
+# MikuPan 简体中文版
 
-MikuPan-SimplifiedChinese 是《零～zero～ / Fatal Frame》的 PS2 至 PC 原生移植项目。本仓库基于 Mikompilation 的 MikuPan，为 Windows 提供日版游戏的简体中文适配。[上游仓库](https://github.com/Mikompilation/MikuPan)
+MikuPan 是《零～zero～ / Fatal Frame》的 PS2 至 PC 原生移植项目。本仓库基于 Mikompilation 的 MikuPan，为 Windows 提供日版游戏的简体中文适配。[上游仓库](https://github.com/Mikompilation/MikuPan)
 
 ![MikuPan 标志](resources/mikupan.png)
 
