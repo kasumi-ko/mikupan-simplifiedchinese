@@ -128,7 +128,7 @@ extern SCN_VIB_DATA scn_vib_5010[];
 extern SCN_VIB_DATA scn_vib_5020[];
 extern SCN_VIB_DATA scn_vib_dmy[];
 extern SCN_VIB_DATA *scn_vib_tbl[];
-extern u_char scene_movie_no[];
+extern u_char scene_movie_no[41];
 
 
 #endif // GRAPHICS_SCENE_SCENE_DAT_H

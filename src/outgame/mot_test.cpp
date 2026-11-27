@@ -34,6 +34,7 @@ typedef enum {
     MOT_TEST_LOAD_ANIM,
     MOT_TEST_WAIT_ANIM,
     MOT_TEST_READY,
+    MOT_TEST_UNAVAILABLE,
 } MOT_TEST_LOAD_STEP;
 
 typedef struct {
@@ -229,12 +230,18 @@ static void MotTestSetupTexture(void)
 
 static void MotTestRequestLoad(void)
 {
+    const MOT_MENU_ENTRY *entry = MotMenuEntry(mot_test_wrk.menu.entry_no);
     mot_test_wrk.menu.loaded = 0;
     mot_test_wrk.load_step = MOT_TEST_LOAD_MODEL;
     mot_test_wrk.load_id = -1;
     mot_test_wrk.menu.anim_no = 0;
     mot_test_wrk.menu.frame = 0;
     mot_test_wrk.menu.frame_num = 1;
+    if (GetImgArrangementP(M000_MIKU_MDL + entry->mdl_no)->size <= 0
+        || GetImgArrangementP(M000_MIKU_ANM + entry->anm_no)->size <= 0)
+    {
+        mot_test_wrk.load_step = MOT_TEST_UNAVAILABLE;
+    }
 }
 
 static void MotTestLoadCtrl(void)
@@ -252,7 +259,10 @@ static void MotTestLoadCtrl(void)
         motInitMsn();
         InitEneVramCtrl();
         mot_test_wrk.load_id = LoadReq(M000_MIKU_MDL + entry->mdl_no, MODEL_ADDRESS);
-        mot_test_wrk.load_step = MOT_TEST_WAIT_MODEL;
+        if (mot_test_wrk.load_id >= 0)
+        {
+            mot_test_wrk.load_step = MOT_TEST_WAIT_MODEL;
+        }
         break;
     case MOT_TEST_WAIT_MODEL:
         if (IsLoadEnd(mot_test_wrk.load_id) == 0)
@@ -265,7 +275,10 @@ static void MotTestLoadCtrl(void)
         break;
     case MOT_TEST_LOAD_ANIM:
         mot_test_wrk.load_id = LoadReq(M000_MIKU_ANM + entry->anm_no, ANIM_ADDRESS);
-        mot_test_wrk.load_step = MOT_TEST_WAIT_ANIM;
+        if (mot_test_wrk.load_id >= 0)
+        {
+            mot_test_wrk.load_step = MOT_TEST_WAIT_ANIM;
+        }
         break;
     case MOT_TEST_WAIT_ANIM:
         if (IsLoadEnd(mot_test_wrk.load_id) == 0)
@@ -285,6 +298,7 @@ static void MotTestLoadCtrl(void)
         mot_test_wrk.load_step = MOT_TEST_READY;
         break;
     case MOT_TEST_READY:
+    case MOT_TEST_UNAVAILABLE:
         break;
     }
 }
@@ -410,6 +424,9 @@ static void MotTestUpdateMenuState(void)
         break;
     case MOT_TEST_WAIT_ANIM:
         mot_test_wrk.menu.state_str = "LOAD ANIM";
+        break;
+    case MOT_TEST_UNAVAILABLE:
+        mot_test_wrk.menu.state_str = "NO DATA";
         break;
     default:
         mot_test_wrk.menu.state_str = "LOAD REQ";

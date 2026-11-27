@@ -161,6 +161,33 @@ u_char mpeg_vol_rate[] = {95,  90,  75,  90,  100, 100, 100, 90,  100, 100,
                           100, 100, 100, 90,  90,  90,  100, 80,  100, 100,
                           100, 100, 100, 100, 100, 100, 85,  90,  85,  70};
 
+static char *FindMoviePath(int scene_no, int &movie_index)
+{
+#ifdef BUILD_EU_VERSION
+    const auto &paths = mpegName[sys_wrk.pal_disp_mode];
+#else
+    const auto &paths = mpegName;
+#endif
+    constexpr size_t path_count = sizeof(paths) / sizeof(paths[0]);
+    static_assert(path_count < sizeof(scene_movie_no) / sizeof(scene_movie_no[0]));
+    for (size_t i = 0; i < path_count; ++i)
+    {
+        if (scene_movie_no[i] != scene_no)
+        {
+            continue;
+        }
+        movie_index = static_cast<int>(i);
+#ifdef BUILD_EU_VERSION
+        if (scene_no == SCENE_NO_9_00_1)
+        {
+            return mpegStaff[sys_wrk.pal_disp_mode][sys_wrk.language];
+        }
+#endif
+        return paths[i];
+    }
+    return nullptr;
+}
+
 VoBuf voBuf = {0};
 StrFile infile = {0};
 VideoDec videoDec = {0};
@@ -285,9 +312,7 @@ void ReqMpegEvent(int no)
 
 int PlayMpegEvent()
 {
-    int i;
     int ret;
-    int started;
 
     play_mov_no = 0;
 
@@ -314,36 +339,22 @@ int PlayMpegEvent()
             ret = 0;
             break;
         case 3:
-            for (i = 0; i < 99; i++)
+        {
+            char *path = FindMoviePath(movie_wrk.play_event_no, play_mov_no);
+            int started = 0;
+            if (path != nullptr)
             {
-                u_char *smn = scene_movie_no;// HACK: regswap fix
-                if (scene_movie_no[i] == movie_wrk.play_event_no)
-                {
-                    play_mov_no = i;
-                    break;
-                }
-                smn = scene_movie_no;// HACK: regswap fix
-            }
-
-            ClearDispRoom(1);
-
-#ifdef BUILD_EU_VERSION
-            if (movie_wrk.play_event_no == 0x60)
-            {
-                started = beginMovPlayback(
-                    mpegStaff[sys_wrk.pal_disp_mode][sys_wrk.language]);
+                ClearDispRoom(1);
+                started = beginMovPlayback(path);
             }
             else
             {
-                started = beginMovPlayback(
-                    mpegName[sys_wrk.pal_disp_mode][play_mov_no]);
+                info_log("No movie for scene %d", movie_wrk.play_event_no);
             }
-#else
-            started = beginMovPlayback(mpegName[play_mov_no]);
-#endif
             movie_wrk.play_event_sta = started ? 4 : 5;
             ret = 1;
             break;
+        }
 
         case 4:
             if (stepMovPlayback())
@@ -1201,8 +1212,7 @@ void proceedAudio()
 
 int MoviePlay(int scene_no)
 {
-    int i;
-    int started;
+    char *path;
     static int movie_play_active = 0;
     static int movie_play_scene_no = 0;
 
@@ -1219,6 +1229,13 @@ int MoviePlay(int scene_no)
         goto movie_play_restore;
     }
 
+    path = FindMoviePath(scene_no, play_mov_no);
+    if (path == nullptr)
+    {
+        info_log("No movie for scene %d", scene_no);
+        return 0;
+    }
+
     SetSysBackColor(0, 0, 0);
     clearGsMem(0, 0, 0, DISP_WIDTH, DISP_HEIGHT);
 
@@ -1232,44 +1249,10 @@ int MoviePlay(int scene_no)
     SeStopAll();
     vfunc();
 
-    do
-    {
-        movie_wrk.play_event_no = scene_no;
-        movie_wrk.play_event_sta = 0x2 | 0x4;
+    movie_wrk.play_event_no = scene_no;
+    movie_wrk.play_event_sta = 0x2 | 0x4;
 
-        for (i = 0; i < 99; i++)
-        {
-            u_char *smn = scene_movie_no;// HACK: regswap fix
-
-            if (scene_movie_no[i] == movie_wrk.play_event_no)
-            {
-                play_mov_no = i;
-                break;
-            }
-
-            smn = scene_movie_no;// HACK: regswap fix
-        }
-    }
-    while (0);
-
-    if (scene_no != 0 && scene_no != 0x62 && scene_no != 99)
-    {
-        //ClearDispRoom(1);
-    }
-
-#ifdef BUILD_EU_VERSION
-    if (scene_no == 0x60)
-    {
-        started = beginMovPlayback(mpegStaff[sys_wrk.pal_disp_mode][sys_wrk.language]);
-    }
-    else
-    {
-        started = beginMovPlayback(mpegName[sys_wrk.pal_disp_mode][play_mov_no]);
-    }
-#else
-    started = beginMovPlayback(mpegName[play_mov_no]);
-#endif
-    if (started)
+    if (beginMovPlayback(path))
     {
         movie_play_active = 1;
         movie_play_scene_no = scene_no;

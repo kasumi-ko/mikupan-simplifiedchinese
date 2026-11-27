@@ -173,8 +173,7 @@ void RoomSizeCheckCtrl()
         "Exit",
         "PRESS X EXIT",
     };
-    int max[2] = {5, 39};
-    u_int *end_addr;
+    constexpr int max[2] = {5, (F000_CLOCK_L_SGD - R000_GENKAN_PK2) / 2};
 
     if (pad[0].one & 0x40)
     {
@@ -206,16 +205,34 @@ void RoomSizeCheckCtrl()
 
         if (rsc_menu_csr == 2)
         {
-            LoadReq(rsc_no[0] + MSN00MAP_OBJ, TEST_ROOM_CHECK_ADDRESS);
+            load_size = -1;
+            const int room_file = R000_GENKAN_PK2 + rsc_no[1] * 2;
+            if (GetImgArrangementP(room_file)->size <= 0
+                || GetImgArrangementP(room_file + 1)->size <= 0)
+            {
+                return;
+            }
 
-            end_addr = RoomMdlLoadReq((u_int *)MikuPan_GetHostPointer(TEST_ROOM_CHECK_ADDRESS), 0, rsc_no[0], rsc_no[1], 0);
+            const int map_load = LoadReq(rsc_no[0] + MSN00MAP_OBJ, MAP_DATA_ADDRESS);
+            if (map_load < 0)
+            {
+                return;
+            }
+            while (IsLoadEnd(map_load) == 0)
+            {
+                EiMain();
+            }
 
+            InitModelLoad();
+            auto* base = (u_int *)MikuPan_GetHostPointer(MODEL_DATA_ADDRESS);
+            const auto* end = RoomMdlLoadReq(base, 0, rsc_no[0], rsc_no[1], 0);
             while (RoomMdlLoadWait() == 0)
             {
                 EiMain();
             }
 
-            load_size = (uint64_t)end_addr - (uint64_t)MikuPan_GetHostAddress(TEST_ROOM_CHECK_ADDRESS);
+            load_size = reinterpret_cast<uintptr_t>(end)
+                - reinterpret_cast<uintptr_t>(base);
         }
     }
 
