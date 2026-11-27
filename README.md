@@ -1,255 +1,79 @@
-# What is MikuPan?
-MikuPan is an in progress port of Fatal Frame 1 PS2 to PC running natively, no emulation. Still very early work.
+# MikuPan 简体中文版
 
+MikuPan 是《零～zero～ / Fatal Frame》的 PS2 至 PC 原生移植项目。本仓库基于 Mikompilation 的 MikuPan，为 Windows 提供日版游戏的简体中文适配。[上游仓库](https://github.com/Mikompilation/MikuPan)
 
-![logo](resources/mikupan.png)
+![MikuPan 标志](resources/mikupan.png)
 
-[![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/Ap4Sfcmwd9)
-![Downloads](https://img.shields.io/github/downloads/Mikompilation/MikuPan/total)
+## 适用版本与维护状态
 
-# Build
-For now, building in `debug` is highly recommended due to issues related to the `release` build. The build process was made to automatically fetch all required dependencies of the project.
+- 本分支仅提供 Windows 构建。
+- 游戏资源读取已转换为日版 NTSC-J，对应游戏编号 `SLPS-25074`，光盘启动文件为 `SLPS_250.74`。
+- 为了正常显示简体中文，**必须使用非高汉化团制作的日版汉化 ISO**。本分支按该版本的字库、文字编码和资源布局适配。
 
-## CMake presets
-Use the CMake presets to switch between the NTSC-U and PAL/EU builds without
-editing cache variables manually. The default presets target NTSC-U game data;
-the `*-eu` presets set `BUILD_EU_VERSION=ON` and target PAL/EU game data.
+经测试，本简体中文适配版本已经可以完整体验游戏内容。
+
+本分支后续不再更新或维护。即使上游仓库继续更新，本分支也不会同步后续改动。
+
+## 游戏文件
+
+请自行准备上述非高汉化团的汉化 ISO，并从中提取游戏文件。将完整光盘目录结构保留在程序的 `binary` 文件夹内，主要文件布局如下。
+
+```text
+MikuPan/
+├─ MikuPan.exe
+└─ binary/
+   ├─ IMG_HD.BIN
+   ├─ IMG_BD.BIN
+   ├─ SLPS_250.74
+   ├─ MOVIE/
+   └─ MOVIE2/
+```
+
+首次启动时，在游戏数据文件夹选择界面选中上述 `binary` 目录。后续可通过设置菜单中的游戏数据文件夹选项修改路径。
+
+首次运行会转换模型及二维纹理，并在配置目录生成 `IMG_TEX.BIN` 缓存。需要重新转换时，可删除该缓存后再次启动。
+
+## Windows 构建
+
+准备 Windows C/C++ 编译工具链、CMake 3.25 或更新版本、Ninja 和 Git。可使用 MinGW-w64 GCC，或在已配置 MSVC 开发环境的终端中构建。依赖由 CMake 配置过程自动获取。
 
 ```powershell
-cmake --preset debug
-cmake --build --preset debug
+git clone --branch mikupan-chinese https://github.com/kasumi-ko/mikupan-simplifiedchinese.git
+cd mikupan-simplifiedchinese
 
-cmake --preset debug-eu
-cmake --build --preset debug-eu
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_EU_VERSION=OFF
+cmake --build build --target MikuPan --parallel
 ```
 
-Available native presets are `debug`, `debug-eu`, `release`, `release-eu`,
-`relwithdebinfo`, and `relwithdebinfo-eu`.
+生成的可执行文件位于 `build/MikuPan/MikuPan.exe`。运行时请保留随构建生成的资源与依赖文件。
 
-## Assets
-You need to copy the files `IMG_HD.BIN` and `IMG_BD.BIN` from the matching Fatal Frame ISO to the folder containing the `MikuPan` executable.
+如需复用已生成的着色器字节码，可在 CMake 配置命令中加入 `-DMIKUPAN_COMPILE_SHADERS=OFF`。
 
-Use the NTSC-U (USA) ISO with the default presets, or the PAL (EU) ISO with an `*-eu` preset. NTSC-J (Japan) ISOs will *NOT* work.
-The executable will be located at `{CMake-Build-Directory}/MikuPan`.
+## PS2 存档转移
 
+通过设置菜单中的 PS2 存档转移功能，可以导入或导出游戏存档。上游支持从提取的存档目录、8 MB 记忆卡以及 PSU、MAX、XPS、SPS、CBS 存档包导入，并可导出为以下格式。
 
-![logo](extern/required-files.png)
+- 带 ECC 的 `.ps2` 记忆卡。
+- 无 ECC 的 `.bin` 记忆卡。
+- `.psu`、`.max`、`.xps`、`.sps`、`.cbs` 存档包。
+- 提取的游戏存档目录。
 
-On first launch MikuPan converts the model and 2D textures of these files once
-(a few seconds) into `IMG_TEX.BIN` next to its configuration; the game data
-itself is not modified. Delete `IMG_TEX.BIN` to convert again.
+转移前请关闭游戏内的存档或读档界面。导入后通过游戏的正常读档入口加载。跨地区转换会受到原版游戏的事件和地图差异限制，工具会显示具体原因。
 
-Optionally, run [sgdstitch](tools/sgdstitch/README.md) on the two files to merge
-the small PS2-sized mesh batches of the 3D models: characters need about half
-the draw calls while drawing the same triangles.
+## 字体与界面
 
-## Windows
-You need either `MinGW` or `Cygwin` with `gcc` and `CMake` in order to build `MikuPan`. `MSVC` with *CMake* will *ALSO* work. 
+游戏内的简体中文显示依赖非高汉化团 ISO 中的字库与汉化资源。Port 界面使用的字体随程序资源提供。
 
-## Linux
-`GCC`, `CMake`, `Make` and `Git` are required to build `MikuPan`.
-FFmpeg is built automatically with only MPEG-1/2 video decoding, MPEG program
-stream demuxing, MPEG elementary-stream probing, local file access and colour conversion. Movie audio uses
-MikuPan's own decoder; FFmpeg audio codecs and resampling are disabled.
+高清字体替换功能按原始字体的指纹匹配。替换文件需保留字形布局、文件名和透明度，并放置在程序旁的 `resources/fonts/<fingerprint>/` 中。替换后重新启动，并在设置中启用高清字体选项。
 
-```sh
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
-```
+## 致谢
 
-To reuse shader bytecode already generated or downloaded, configure with
-`-DMIKUPAN_COMPILE_SHADERS=OFF`.
+感谢 Mikompilation 及 MikuPan 原仓库的所有贡献者，为《零～zero～ / Fatal Frame》的 PC 原生移植提供基础。感谢非高汉化团的汉化工作，感谢 prinsep 制作 MikuPan 标志。[MikuPan 原仓库](https://github.com/Mikompilation/MikuPan)
 
-## macOS
-macOS is not officially supported: the maintainers have no Apple hardware to
-actively test on, so it may break between releases. It has been verified to
-build and run on Apple Silicon by contributors. Building needs the Xcode Command Line Tools
-(`xcode-select --install`) plus `cmake`, `ninja` and `git` from Homebrew:
+## 版权与许可
 
-```sh
-brew install cmake ninja git
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
-cmake --build build
-```
+《零～zero～ / Fatal Frame》原版作品的版权署名包括 **TECMO, LTD.（特库摩）**。《零》系列及其游戏名称、角色、剧情、美术、音乐、影像、原版程序和相关商标的权利归 **KOEI TECMO GAMES CO., LTD.（光荣特库摩）**及其他相应权利人所有。
 
-SDL3, FFmpeg and SDL_shadercross are fetched and compiled from source during the
-build; the first configure/build is slow because shadercross includes
-DirectXShaderCompiler. The renderer uses the Metal backend of SDL_GPU, so no
-Vulkan/MoltenVK install is needed. The result is a bare `build/MikuPan/MikuPan`
-executable rather than a `.app` bundle.
+本项目为社区移植与简体中文适配项目。开源移植及适配代码遵循 GNU Affero General Public License v3.0，具体条款见仓库许可文件。[LICENSE](LICENSE)
 
-## Android
-Android builds use the NDK CMake toolchain and produce a debug-signed APK with
-the `MikuPan-apk` target. Requirements: Android SDK 35 or newer, Android NDK
-r28c or newer, Java JDK, Ninja, and a `zip` executable.
-
-Android FFmpeg is consumed as prebuilt shared libraries. The preferred layout is
-a merged `libffmpeg.so` for each ABI:
-
-```text
-extern/ffmpeg/android/arm64-v8a/include
-extern/ffmpeg/android/arm64-v8a/lib/libffmpeg.so
-```
-
-The library may also live directly in the ABI folder:
-
-```text
-extern/ffmpeg/android/arm64-v8a/include
-extern/ffmpeg/android/arm64-v8a/libffmpeg.so
-```
-
-The legacy local folder name is also supported:
-
-```text
-extern/ffmpeg/include
-extern/ffmpeg-android/arm64-v8a/libffmpeg.so
-```
-
-Split FFmpeg libraries are also supported:
-
-```text
-extern/ffmpeg/android/arm64-v8a/include
-extern/ffmpeg/android/arm64-v8a/lib/libavcodec.so
-extern/ffmpeg/android/arm64-v8a/lib/libavformat.so
-extern/ffmpeg/android/arm64-v8a/lib/libavutil.so
-extern/ffmpeg/android/arm64-v8a/lib/libswscale.so
-extern/ffmpeg/android/arm64-v8a/lib/libswresample.so
-```
-
-The default root is `extern/ffmpeg/android`. Set
-`MIKUPAN_ANDROID_FFMPEG_ROOT` if your FFmpeg Android package lives somewhere
-else. The root must contain ABI folders such as `arm64-v8a`.
-
-If your headers are not under the ABI folder, set
-`MIKUPAN_ANDROID_FFMPEG_INCLUDE_DIR` to the directory that contains
-`libavcodec/avcodec.h`.
-
-For a single merged library in a custom location, set
-`MIKUPAN_ANDROID_FFMPEG_LIBRARY` directly to `libffmpeg.so`.
-
-All native Android shared libraries must be compatible with 16 KB page-size
-devices. MikuPan's Android build passes `-Wl,-z,max-page-size=16384` for
-libraries it links locally, including SDL3. Prebuilt FFmpeg `.so` files must be
-built with the same linker flag before they are packaged into the APK.
-
-Example arm64 build:
-
-```powershell
-$env:ANDROID_HOME="C:\Users\willi\AppData\Local\Android\Sdk"
-$env:ANDROID_NDK_HOME="$env:ANDROID_HOME\ndk\27.0.12077973"
-
-$ninja="$env:ANDROID_HOME\cmake\3.22.1\bin\ninja.exe"
-$bash="C:\msys64\usr\bin\bash.exe"
-$make="C:\msys64\usr\bin\make.exe"
-$zip="C:\msys64\usr\bin\zip.exe"
-
-$buildTools="$env:ANDROID_HOME\build-tools\37.0.0"
-$jbr="C:\Program Files\Android\Android Studio\jbr\bin"
-
-cmake -S . -B cmake-build-android-arm64 -G Ninja `                
-   -DCMAKE_MAKE_PROGRAM="$ninja" `
-   -DBASH_EXECUTABLE="$bash" `
-   -DMAKE_EXECUTABLE="$make" `
-   -DCMAKE_TOOLCHAIN_FILE="$env:ANDROID_NDK_HOME\build\cmake\android.toolchain.cmake" `
-   -DSDL_ANDROID_HOME="$env:ANDROID_HOME" `
-   -DANDROID_ABI=arm64-v8a `
-   -DANDROID_PLATFORM=android-21 `
-   -DANDROID_STL=c++_static `
-   -DCMAKE_BUILD_TYPE=Release
-
-cmake --build cmake-build-android-arm64 --target MikuPan-apk
-```
-
-The APK is written to `cmake-build-android-arm64/MikuPan.apk`. You can also use
-`install-MikuPan`, `start-MikuPan`, and `uninstall-MikuPan` targets when `adb` is
-available. Set `-DMIKUPAN_ANDROID_APK=OFF` if you only want the Android native
-`libmain.so` build.
-
-The packaging automatically bundles the NDK's `libc++_shared.so` into
-`lib/<abi>/` whenever it is needed — either because `-DANDROID_STL=c++_shared`
-was used, or because a prebuilt library being packaged (such as FFmpeg) was
-itself built against the shared C++ runtime. This prevents the app from crashing
-on launch with "library libc++_shared.so not found". With `c++_static` and
-prebuilt libraries that do not link the shared runtime, it is not bundled.
-
-The APK packages MikuPan's own `resources/` directory. The Fatal Frame data is
-not packaged; after installing, copy the required files to the app data folder:
-
-```powershell
-adb shell mkdir -p /sdcard/Android/data/io.github.mikompilation.mikupan/files
-adb push IMG_HD.BIN /sdcard/Android/data/io.github.mikompilation.mikupan/files/IMG_HD.BIN
-adb push IMG_BD.BIN /sdcard/Android/data/io.github.mikompilation.mikupan/files/IMG_BD.BIN
-```
-
-On Android 11 and newer, normal file managers usually cannot write to
-`/sdcard/Android/data/...`. For a user-managed folder, put the files somewhere
-like `Documents/MikuPan`, then use MikuPan's in-game folder picker to grant
-access to that folder.
-
-**Smooth 2D sprites** in renderer settings enables optional bilinear
-magnification for UI sprites. It defaults to on; use **Save Configuration**
-to retain changes. Effects and screen captures keep their original filtering.
-
-# PS2 save transfer
-
-Open **Settings → PS2 save transfer…** in the overlay to transfer gameplay saves.
-Import Japanese (SLPS-25074), US (SLUS-20388), European (SLES-50821),
-Korean (SCPS-56008), or Asian (SCPS-55043) saves into either PC build. The source region is detected from the
-save files. For export, choose the original game's region before the format.
-Cross-region exports to Europe default to English/PAL; imports into an EU build
-use its current language and display settings.
-
-Import from an extracted save folder, an 8 MB memory card, or a PSU/MAX/XPS/SPS/CBS
-archive. Imports create numbered PC saves, or replace a selected save.
-For export, choose up to three PC saves and assign their PS2 slots. Export formats are:
-
-- **ECC (.ps2):** a memory card with spare/ECC bytes, for PCSX2.
-- **Raw (.bin):** an 8 MB card without ECC bytes, for OPL.
-- **PSU (.psu):** an EMS archive, for uLaunchELF and PS2 save-transfer tools.
-- **MAX (.max):** an Action Replay MAX archive.
-- **XPS/SPS (.xps/.sps):** an X-Port V2 / SharkPort archive.
-- **CBS (.cbs):** a CodeBreaker archive.
-- **Extracted folder:** the game's save files, for tools that accept folders.
-
-Archives contain this game's selected saves, not an entire memory card. Card
-exports create a blank card populated with the selected saves. Choosing a format
-opens its picker; confirming the destination exports immediately. Missing
-extensions are added automatically; existing output files/folders are refused.
-Load imported saves normally afterward, and close the game's save/load screen
-before transferring.
-Embedded photographs and battle records are retained. Saves with an active
-wandering soul must be saved again after it disappears before conversion.
-Cross-region conversion resets the control layout and preserves existing
-photographs, documents and earned camera upgrades; it does not recalculate
-regional bonus unlocks. Unsupported revisions, unfinished quest-item transfers,
-and positions blocked by a different regional map are refused with an explanation.
-For a card containing multiple Fatal Frame regions, choose its save region
-in the transfer wizard.
-
-## HD font textures
-
-HD fonts are bundled for the US and EU versions. Enable **Use HD Fonts when
-available** in the Game settings, or **HD Font Textures (if available)** in
-ImGui. The original font is used when no matching replacement is available.
-
-Replacement packs go in `resources/fonts/<fingerprint>/` beside the executable.
-Each fingerprint identifies the original font, so different languages and
-modified fonts can use separate replacements.
-
-To export the original atlases for a replacement pack:
-
-```sh
-cmake --build build --target MikuPanFontTool
-./build/MikuPan/MikuPanFontTool --data path/to/game-data --region us --out font-originals
-```
-
-Use `--region eu` for the EU language sets, or `--pk2 path/to/font.pk2` instead
-of `--data` to export an individual font pack. The exporter leaves existing
-output folders untouched.
-
-Edit or upscale the exported PNGs, keeping their filenames, glyph layout and
-transparency. Uniform 1×, 2×, 3× and 4× sizes are supported. Copy the resulting
-fingerprint folder into `resources/fonts/` and restart the game.
-
-# Special Thanks
-Thank you to prinsep for making the logo!
+非高汉化团制作的汉化文本与相关汉化资源保留原团队署名，相关权利归各自权利人所有。运行所需的 ISO 与光盘数据请自行准备。
