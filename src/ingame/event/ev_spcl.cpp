@@ -2369,6 +2369,7 @@ void StarPuzzleDisp()
 
         CopyStrDToStr(&ds, &spev_str);
         SetMessageV2(&ds);
+        return;
     }
     else if (star_pzl_wrk.mode == STAR_PZL_MODE_MSG0)
     {
@@ -2387,6 +2388,7 @@ void StarPuzzleDisp()
 
         CopyStrDToStr(&ds, &spev_str);
         SetMessageV2(&ds);
+        return;
     }
     else if (star_pzl_wrk.mode == STAR_PZL_MODE_BAD)
     {
@@ -2405,15 +2407,12 @@ void StarPuzzleDisp()
 
         CopyStrDToStr(&ds, &spev_str);
         SetMessageV2(&ds);
+        return;
     }
 
     if (star_pzl_wrk.mode == STAR_PZL_MODE_BEFBAD)
     {
         alp_rate = star_pzl_wrk.time * 100 / 15;
-    }
-    else if (star_pzl_wrk.mode == STAR_PZL_MODE_BAD)
-    {
-        alp_rate = 0;
     }
 
     DispPuzzleLabel(&spev00_sp_cpf[0], 18, alp_rate, PuzzleLabelSheet::Star);
@@ -11829,6 +11828,28 @@ void ItemEventMain(int event_no)
     }
 }
 
+static u_char* GetItemEventMessage(int index)
+{
+    auto* message = reinterpret_cast<u_char*>(GetIngameMSGAddr(IGMSG_SPEV_MSG, index));
+    if (!message || spev_wrk.no != SPEV78_USE_IKARI
+        || !MikuPan_IsJapaneseGameData() || !MikuPanFonts::UsesChineseGlyphGrid())
+        return message;
+
+    // This Chinese disc ships the two mask prompts as single glyphs.
+    static u_char mask_hint[] = {
+        0x60, 0x5c, 0x81, 0x8c, 0xa3, 0x84, 0xb7, 0x5e, 0x5d, 0x99, 0x53, 0xff,
+    }; // 这里似乎可以挂上面具。
+    static u_char mask_confirm[] = {
+        0x76, 0xf0, 0xb3, 0x5d, 0x99, 0xb7, 0x5e, 0x88, 0x9d, 0x4c, 0xff,
+    }; // 要把面具挂上去吗？
+
+    if (index == SPEV78_MSG00 && message[0] == 0xf0 && message[1] == 0x0b && message[2] == 0xff)
+        return mask_hint;
+    if (index == SPEV78_MSG01 && message[0] == 0xf1 && message[1] == 0x75 && message[2] == 0xff)
+        return mask_confirm;
+    return message;
+}
+
 void ItemEventDisp()
 {
     DISP_STR ds;
@@ -11840,7 +11861,7 @@ void ItemEventDisp()
     {
         DrawMessageBox(0x2000, 19.0f, 328.0f, 592.0f, 96.0f, spev_wrk.time);
 
-        spev_str.str = (u_char *)GetIngameMSGAddr(IGMSG_SPEV_MSG, spev_wrk.csr[1]);
+        spev_str.str = GetItemEventMessage(spev_wrk.csr[1]);
         spev_str.pos_x = 50;
 #ifdef BUILD_EU_VERSION
 
@@ -11898,7 +11919,7 @@ void ItemEventDisp()
         DrawMessageBox(0x2000, 19.0f, 328.0f, 592.0f, 96.0f, spev_wrk.time);
         ButtonMarkNext(0, 0, 0);
 
-        spev_str.str = (u_char *)GetIngameMSGAddr(IGMSG_SPEV_MSG, spev_wrk.csr[2]);
+        spev_str.str = GetItemEventMessage(spev_wrk.csr[2]);
         spev_str.pos_x = 50;
 #ifdef BUILD_EU_VERSION
         spev_str.pos_y = yy;
