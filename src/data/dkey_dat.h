@@ -7,7 +7,7 @@ DIAL_KEY_DAT dkey_dat[] = {
     {
         .dial_num = 4,
         .lock_door = 23,
-        .dial_no = {1, 3, 1, 2, 255},
+        .dial_no = {1, 2, 1, 3, 255},
     },
     {
         .dial_num = 4,
@@ -17,7 +17,7 @@ DIAL_KEY_DAT dkey_dat[] = {
     {
         .dial_num = 4,
         .lock_door = 48,
-        .dial_no = {2, 6, 1, 1, 255},
+        .dial_no = {1, 1, 2, 6, 255},
     },
     {
         .dial_num = 4,
@@ -32,7 +32,7 @@ DIAL_KEY_DAT dkey_dat[] = {
     {
         .dial_num = 4,
         .lock_door = 23,
-        .dial_no = {1, 3, 1, 2, 255},
+        .dial_no = {1, 2, 1, 3, 255},
     },
     {
         .dial_num = 4,
