@@ -172,7 +172,7 @@ void IaSetWrkFadeMode(u_char channel, u_char mode, u_short target_vol, int fade_
 
 void IaSetWrkFadeInit(u_char channel)
 {
-    iop_adpcm[channel].count = 0;
+    // Keep the last playback position until the next preload sets its start count.
     iop_adpcm[channel].fade_mode = 0;
     iop_adpcm[channel].fade_flm = 0;
     iop_adpcm[channel].target_vol = iop_adpcm[channel].vol;
