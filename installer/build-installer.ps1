@@ -21,8 +21,10 @@ if (!$version.Success) {
     throw 'Cannot read the MikuPan version from CMakeLists.txt.'
 }
 $versionNumber = $version.Groups[1].Value
+$resources = Join-Path $source 'resources'
 
-# The payload comes from the built program and its runtime assets.
+# Use the build for binaries and the source tree for assets, including its
+# compiled shaders. A reused runtime directory may contain inspection files.
 $payload = @(
     foreach ($name in @('MikuPan.exe', 'libarchive-LICENSE.txt')) {
         $path = Join-Path $runtime $name
@@ -35,7 +37,7 @@ $payload = @(
         }
         $dll[0]
     }
-    Get-ChildItem -LiteralPath (Join-Path $runtime 'resources') -File -Recurse
+    Get-ChildItem -LiteralPath $resources -File -Recurse
 )
 
 $install = [Collections.Generic.List[string]]::new()
@@ -50,7 +52,12 @@ foreach ($file in $payload) {
     if ($file.PSIsContainer -or ($file.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
         throw "Unexpected installer payload $($file.FullName)."
     }
-    $relative = [IO.Path]::GetRelativePath($runtime, $file.FullName)
+    $root = if ($file.FullName.StartsWith($resources + '\', [StringComparison]::OrdinalIgnoreCase)) {
+        $source
+    } else {
+        $runtime
+    }
+    $relative = [IO.Path]::GetRelativePath($root, $file.FullName)
     if ($relative.StartsWith('..\')) {
         throw "Installer payload is outside the build output: $relative."
     }

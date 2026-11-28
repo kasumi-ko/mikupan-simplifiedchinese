@@ -65,6 +65,7 @@ static constexpr int latin_cell_size = 24;
 static constexpr int latin_columns = 21;
 static constexpr int latin_rows = 4;
 static constexpr int latin_glyphs = latin_columns * latin_rows;
+static constexpr int voice_caption_laugh_glyph = 0xf5;
 
 static bool IsChineseGlyph(int bank, int glyph)
 {
@@ -111,13 +112,26 @@ void DrawNativeVoiceCaptionLine(const char* line, float y)
         MikuPan_Rect target;
         MikuPan_TextureInfo* texture;
     };
-    Glyph glyphs[32];
+    Glyph glyphs[64];
     int count = 0;
     float width = 0;
+    const auto add_glyph = [&](int atlas_bank, MikuPan_Rect source, MikuPan_Rect target) {
+        MikuPan_SetFontTexture(atlas_bank);
+        glyphs[count++] = {source, target, MikuPan_GetCurrentFontTexture()};
+    };
     const auto* text = reinterpret_cast<const u_char*>(line);
-    while (*text != 0xff && count < 32)
+    for (int column = 0; *text != 0xff && column < 32; ++column)
     {
         int glyph = *text++;
+        if (glyph == voice_caption_laugh_glyph)
+        {
+            // The translated Japanese disc has no 笑 cell. Join the upper
+            // strokes of 竹 and the lower shape of 天 from its Chinese atlas.
+            add_glyph(4, {320, 122, 20, 11}, {width + 1, y + 1, 16, 7});
+            add_glyph(2, {400, 62, 20, 17}, {width + 1, y + 7, 16, 11});
+            width += chinese_draw_size;
+            continue;
+        }
         int bank = 1;
         if (glyph >= 0xf0 && glyph <= 0xf4)
         {
@@ -134,13 +148,10 @@ void DrawNativeVoiceCaptionLine(const char* line, float y)
         const int cell = chinese ? chinese_cell_size : latin_cell_size;
         const int columns = chinese ? chinese_columns : latin_columns;
         const float size = chinese ? chinese_draw_size : latin_cell_size;
-        MikuPan_SetFontTexture(atlas_bank);
-        glyphs[count++] = {
+        add_glyph(atlas_bank,
             {float(glyph % columns * cell), float(atlas_y + glyph / columns * cell),
                 float(cell), float(cell)},
-            {width, y, size, size},
-            MikuPan_GetCurrentFontTexture()
-        };
+            {width, y, size, size});
         width += advance;
     }
     const float center = 320.0f - width / 2;
