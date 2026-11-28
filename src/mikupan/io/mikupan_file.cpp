@@ -659,9 +659,13 @@ static bool MikuPan_PrepareJapaneseIndex()
     constexpr uint32_t message_table_size = 53 * sizeof(uint32_t);
     static_assert(RSHADE_SGD + 1 == jp_entries + gap_size);
 
-    if (MikuPan_IsJapaneseGameData() || MikuPan_GetDataFileSize("IMG_HD.BIN") != jp_size)
+    if (MikuPan_IsJapaneseGameData())
     {
         return true;
+    }
+    if (MikuPan_GetDataFileSize("IMG_HD.BIN") != jp_size)
+    {
+        return false;
     }
 
     std::vector<IMG_ARRANGEMENT> entries(jp_entries);
@@ -737,7 +741,7 @@ extern "C" bool MikuPan_HasRequiredDataFiles(char *missing_file,
     {
         if (missing_file != nullptr && missing_file_size > 0)
         {
-            SDL_strlcpy(missing_file, "IMG_HD.BIN", missing_file_size);
+            SDL_strlcpy(missing_file, "IMG_HD.BIN (SLPS-25074)", missing_file_size);
         }
         return false;
     }

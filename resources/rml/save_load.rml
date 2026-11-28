@@ -62,7 +62,7 @@
             </div>
 
             <div id="save-load-footer">
-                <div id="save-load-controls">Move: D-Pad / Stick&#160;&#160;&#160; Select: A / Enter</div>
+                <div id="save-load-controls"></div>
                 <button id="save-load-exit">
                     <span class="save-load-exit-backing left"></span>
                     <span class="save-load-exit-backing center"></span>
@@ -70,7 +70,7 @@
                     <span class="save-load-exit-divider left"></span>
                     <span class="save-load-exit-divider center"></span>
                     <span class="save-load-exit-divider right"></span>
-                    <span id="save-load-exit-label">Back: Y / Esc</span>
+                    <span id="save-load-exit-label"></span>
                 </button>
             </div>
         </div>

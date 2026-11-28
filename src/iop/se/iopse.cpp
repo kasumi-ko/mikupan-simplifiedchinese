@@ -7,6 +7,7 @@
 #include "mikupan/debug/mikupan_logging_c.h"
 #include "sdmacro.h"
 #include "stdio.h"
+#include "voice.h"
 
 u_int snd_buf_top[] = {
     0x5400,
@@ -147,6 +148,25 @@ void ISeInit(int mode)
 void ISeMain()
 {
     ISeEndCheck();
+}
+
+void ISeStartPending()
+{
+    if (!se_start_flg)
+        return;
+
+    VoiceLock();
+    for (int channel = 0; channel < 24; ++channel)
+    {
+        if (se_start_flg & (1u << channel))
+        {
+            auto& voice = voices[24 + channel];
+            voice.sound_effect_sample = se_wrk_set[channel].prm_no;
+            voice.sound_effect_address = voice.ssa;
+        }
+    }
+    sceSdSetSwitch(SD_S_KON | SD_CORE_1, se_start_flg);
+    VoiceUnlock();
 }
 
 static void ISeEndCheck()

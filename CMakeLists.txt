@@ -95,6 +95,7 @@ set(MIKUPAN_SOURCES
         "src/graphics/graph2d/rare_ene.cpp"
         "src/graphics/graph2d/snapshot.cpp"
         "src/graphics/graph2d/subtitles.cpp"
+        "src/graphics/graph2d/voice_captions.cpp"
         "src/graphics/graph2d/takep_pe.cpp"
         "src/graphics/graph2d/tim2.cpp"
         "src/graphics/graph2d/tim2_new.cpp"

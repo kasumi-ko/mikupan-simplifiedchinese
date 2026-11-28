@@ -169,11 +169,14 @@ msgstr "保存存档"
 msgid "LOAD FILE"
 msgstr "读取存档"
 
-msgid "Back: Y / Esc"
-msgstr "返回：Y / Esc"
+msgid "Move"
+msgstr "移动"
 
-msgid "Move: D-Pad / Stick&#160;&#160;&#160; Select: A / Enter"
-msgstr "移动：方向键 / 摇杆&#160;&#160;&#160; 确认：A / Enter"
+msgid "Arrow keys"
+msgstr "方向键"
+
+msgid "D-Pad / Stick"
+msgstr "方向键 / 摇杆"
 
 msgid "OK"
 msgstr "确定"
@@ -291,9 +294,6 @@ msgstr "点数"
 
 msgid "SAVE POINT"
 msgstr "存档点"
-
-msgid "A Select&#160;&#160;&#160;&#160;Y Exit"
-msgstr "A 确认&#160;&#160;&#160;&#160;Y 退出"
 
 msgid "Save Game"
 msgstr "保存游戏"

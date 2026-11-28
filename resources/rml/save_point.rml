@@ -28,7 +28,7 @@
                 <span class="save-point-text-backing left"></span>
                 <span class="save-point-text-backing center"></span>
                 <span class="save-point-text-backing right"></span>
-                <span class="save-point-controls-text">A Select&#160;&#160;&#160;&#160;Y Exit</span>
+                <span id="save-point-controls-text" class="save-point-controls-text"></span>
             </div>
 
             <button id="save-point-save" class="save-point-option selected">

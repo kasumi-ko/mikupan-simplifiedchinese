@@ -132,6 +132,7 @@ typedef struct
     const char *text;
 } MikuPan_ButtonPrompt;
 MikuPan_ButtonPrompt MikuPan_GetButtonPrompt(int logical_button);
+int MikuPan_GamepadPromptsActive(void);
 const char *MikuPan_ControllerStickAxisLabel(int sdl_axis);
 const char *MikuPan_InputBindingLabel(MikuPan_InputBinding binding);
 const char *MikuPan_SpecialActionLabel(int action);

@@ -1841,13 +1841,18 @@ static const char *MikuPan_KeyboardPromptLabel(SDL_Scancode scancode)
     return key && *key ? key : "-";
 }
 
+int MikuPan_GamepadPromptsActive(void)
+{
+    return mikupan_gamepad && gamepad_prompts;
+}
+
 MikuPan_ButtonPrompt MikuPan_GetButtonPrompt(int logical_button)
 {
     constexpr auto unknown = SDL_GAMEPAD_BUTTON_LABEL_UNKNOWN;
     if (logical_button < 0 || logical_button >= MIKUPAN_CONTROLLER_LOGICAL_COUNT)
         return {unknown, "-"};
 
-    if (!mikupan_gamepad || !gamepad_prompts)
+    if (!MikuPan_GamepadPromptsActive())
     {
         const auto scancode = static_cast<SDL_Scancode>(mikupan_keyboard_map[logical_button]);
         return {unknown, MikuPan_KeyboardPromptLabel(scancode)};

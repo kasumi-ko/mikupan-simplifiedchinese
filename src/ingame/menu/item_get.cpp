@@ -1123,9 +1123,12 @@ static void GetMsg(u_char msg_type, u_char msg_no, u_char msg_dsp)
         if (msg_no == 1)
         {
             PutStringYW(msg_type, 1, 80, 320, 0x808080, fade_ctr.msg, 0xf000, 0);
-            PutStringYW(6, 17, 48, 346, 0x808080, fade_ctr.msg, 0xf000, 0);
-
-            YesNoCrslOKR(0x14000, (file_dsp.csr[0] * 132 + 184), 344.0f, 0x808080, fade_ctr.msg, 2.0f);
+            if (!PutChineseChoiceMessageYW(IGMSG_MENU_MSG, 17, file_dsp.csr[0],
+                                           48, 346, fade_ctr.msg, 0xf000))
+            {
+                PutStringYW(IGMSG_MENU_MSG, 17, 48, 346, 0x808080, fade_ctr.msg, 0xf000, 0);
+                YesNoCrslOKR(0x14000, (file_dsp.csr[0] * 132 + 184), 344.0f, 0x808080, fade_ctr.msg, 2.0f);
+            }
         }
         else
         {

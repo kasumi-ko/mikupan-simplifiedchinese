@@ -2009,6 +2009,19 @@ int MikuPan_RmlUiItemIconsReady(void)
     return MikuPanItemIconAssetsReady() ? 1 : 0;
 }
 
+MikuPan_RmlNavigationHints MikuPan_RmlUiNavigationHints(void)
+{
+    if (!MikuPan_GamepadPromptsActive())
+        return {MikuPan_Translate("Arrow keys"), "Enter / Space", "Esc"};
+
+    const auto label = [](SDL_GamepadButton button) {
+        return MikuPan_Translate(MikuPan_ControllerBindingLabel({
+            MIKUPAN_CONTROLLER_BIND_BUTTON, button}));
+    };
+    return {MikuPan_Translate("D-Pad / Stick"), label(SDL_GAMEPAD_BUTTON_SOUTH),
+            label(SDL_GAMEPAD_BUTTON_EAST)};
+}
+
 void MikuPan_RmlUiInit(SDL_Window* window)
 {
     if (g_rml.initialized)

@@ -253,6 +253,7 @@ extern u_int snd_buf_top[];
 
 void ISeInit(int mode);
 void ISeCmd(IOP_COMMAND* icp);
+void ISeStartPending();
 void ISeMain();
 
 u_int SeGetSndBufTop(int pos);

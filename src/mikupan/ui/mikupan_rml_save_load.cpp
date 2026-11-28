@@ -148,6 +148,9 @@ struct MikuPanRmlSaveLoadState
     Rml::Element* title = nullptr;
     Rml::Element* exit_button = nullptr;
     Rml::Element* exit_label = nullptr;
+    Rml::Element* controls = nullptr;
+    std::string controls_text;
+    std::string exit_text;
     Rml::Element* list = nullptr;
     Rml::Element* detail = nullptr;
     Rml::Element* status = nullptr;
@@ -224,8 +227,6 @@ enum MikuPanSaveLoadString
 {
     kSaveLoadStrSaveFile,
     kSaveLoadStrLoadFile,
-    kSaveLoadStrBackHint,
-    kSaveLoadStrControlsHint,
     kSaveLoadStrYes,
     kSaveLoadStrNo,
     kSaveLoadStrOk,
@@ -276,8 +277,7 @@ enum MikuPanSaveLoadString
 static const char* MikuPan_RmlSaveLoadTr(MikuPanSaveLoadString id)
 {
     static const char* const kStrings[kSaveLoadStrCount] = {
-        "SAVE FILE", "LOAD FILE", "Back: Y / Esc",
-        "Move: D-Pad / Stick&#160;&#160;&#160; Select: A / Enter",
+        "SAVE FILE", "LOAD FILE",
         "Yes", "No", "OK", "Save Complete.",
         "Create a new save file?", "Replace this save?", "Load this save?",
         "Create a new save", "No save files found.", "Create a new save file",
@@ -2549,6 +2549,7 @@ static bool MikuPan_RmlSaveLoadLoadDocument(void)
         MikuPan_RmlSaveLoadGetElement("save-load-exit");
     g_save_load.exit_label =
         MikuPan_RmlSaveLoadGetElement("save-load-exit-label");
+    g_save_load.controls = MikuPan_RmlSaveLoadGetElement("save-load-controls");
     g_save_load.list = MikuPan_RmlSaveLoadGetElement("save-load-list");
     g_save_load.detail = MikuPan_RmlSaveLoadGetElement("save-load-detail");
     g_save_load.status = MikuPan_RmlSaveLoadGetElement("save-load-status");
@@ -2668,6 +2669,21 @@ void MikuPan_RmlSaveLoadStartFrame(void)
         return;
     }
 
+    const auto hints = MikuPan_RmlUiNavigationHints();
+    std::string controls = std::string(MikuPan_Translate("Move")) + ": " + hints.move
+        + "&#160;&#160;&#160;" + MikuPan_Translate("Confirm") + ": " + hints.confirm;
+    if (g_save_load.controls != nullptr && g_save_load.controls_text != controls)
+    {
+        g_save_load.controls->SetInnerRML(controls);
+        g_save_load.controls_text = std::move(controls);
+    }
+    std::string back = std::string(MikuPan_Translate("Back")) + ": " + hints.cancel;
+    if (g_save_load.exit_label != nullptr && g_save_load.exit_text != back)
+    {
+        g_save_load.exit_label->SetInnerRML(back);
+        g_save_load.exit_text = std::move(back);
+    }
+
     MikuPan_RmlSaveLoadUpdateFilmHeader();
     if (g_film_header_request.load_id < 0)
     {
@@ -2734,10 +2750,6 @@ void MikuPan_RmlSaveLoadOpenSave(int mission_flag)
     {
         g_save_load.title->SetInnerRML(MikuPan_RmlSaveLoadTr(kSaveLoadStrSaveFile));
     }
-    if (g_save_load.exit_label != nullptr)
-    {
-        g_save_load.exit_label->SetInnerRML(MikuPan_RmlSaveLoadTr(kSaveLoadStrBackHint));
-    }
     MikuPan_RmlSaveLoadSetHidden(g_save_load.root, false);
     g_save_load.document->Show(Rml::ModalFlag::None, Rml::FocusFlag::None);
     g_save_load.document->PullToFront();
@@ -2781,10 +2793,6 @@ void MikuPan_RmlSaveLoadOpenLoad(void)
     if (g_save_load.title != nullptr)
     {
         g_save_load.title->SetInnerRML(MikuPan_RmlSaveLoadTr(kSaveLoadStrLoadFile));
-    }
-    if (g_save_load.exit_label != nullptr)
-    {
-        g_save_load.exit_label->SetInnerRML(MikuPan_RmlSaveLoadTr(kSaveLoadStrBackHint));
     }
     MikuPan_RmlSaveLoadSetHidden(g_save_load.root, false);
     g_save_load.document->Show(Rml::ModalFlag::None, Rml::FocusFlag::None);
@@ -3054,10 +3062,6 @@ void MikuPan_RmlSaveLoadApplyLanguage(int language)
         g_save_load.title->SetInnerRML(MikuPan_RmlSaveLoadTr(
             g_save_load.save_mode ? kSaveLoadStrSaveFile : kSaveLoadStrLoadFile));
     }
-    if (g_save_load.exit_label != nullptr)
-    {
-        g_save_load.exit_label->SetInnerRML(MikuPan_RmlSaveLoadTr(kSaveLoadStrBackHint));
-    }
     if (g_save_load.confirm_no != nullptr)
     {
         if (Rml::Element* label = g_save_load.confirm_no->QuerySelector(".ff-prompt-button-label"))
@@ -3065,11 +3069,6 @@ void MikuPan_RmlSaveLoadApplyLanguage(int language)
             label->SetInnerRML(MikuPan_RmlSaveLoadTr(kSaveLoadStrNo));
         }
     }
-    if (Rml::Element* hint = MikuPan_RmlSaveLoadGetElement("save-load-controls"))
-    {
-        hint->SetInnerRML(MikuPan_RmlSaveLoadTr(kSaveLoadStrControlsHint));
-    }
-
     MikuPan_RmlSaveLoadBuildList();
     MikuPan_RmlSaveLoadSyncSelection(false);
 }

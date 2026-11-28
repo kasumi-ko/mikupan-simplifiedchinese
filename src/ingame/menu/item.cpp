@@ -94,6 +94,9 @@ static FLSH_CORE dbg_flsh;
 
 static ITM_EFF_WRK iew;
 
+static constexpr int item_choice_spacing = 132;
+static constexpr int item_choice_y = 382;
+
 #define PI 3.1415927f
 
 void NewgameItemInit()
@@ -311,9 +314,13 @@ static void MikuPan_ItemYesNoMouseInput(void)
         return;
     }
 
+    const bool chinese = MikuPanFonts::UsesChineseGlyphGrid();
     for (int i = 0; i < 2; i++)
     {
-        if (!MikuPan_LegacyMouseHit(156.0f + i * 132.0f, 356.0f, 120.0f, 56.0f))
+        const float x = chinese ? 320.0f + (i - 0.5f) * item_choice_spacing - 35.0f
+                                : 156.0f + i * 132.0f;
+        const float y = chinese ? item_choice_y - 3.0f : 356.0f;
+        if (!MikuPan_LegacyMouseHit(x, y, chinese ? 70.0f : 120.0f, chinese ? 29.0f : 56.0f))
         {
             continue;
         }
@@ -1488,6 +1495,8 @@ static void MessageWindow(short int pos_x, short int pos_y, short int alpha)
     }
 #else
     DrawMessageBox(0x19000, pos_x + 26, pos_y + 340, 588.0f, 80.0f, alpha);
+    if (tape_play != 0 && MikuPanFonts::UsesChineseGlyphGrid())
+        return;
 #endif
 
     if (ig_menu_wrk.item_num == 0)
@@ -1517,21 +1526,17 @@ static void MessageWindow(short int pos_x, short int pos_y, short int alpha)
         {
             PutStringYW(25, 2, pos_x + 48, pos_y + 356, 0x808080, alpha, 0xf000, 0);
         }
-        else if (item_use_dat[menu_item_wrk[ig_menu_wrk.csr[1]].item_no].type == 2)
-        {
-            PutStringYW(IGMSG_MENU_ITEM, 3, pos_x + 48, pos_y + 356, 0x808080, alpha, 0xf000, 0);
-            PutStringYW(25, 1, pos_x + 48, pos_y + 382, 0x808080, alpha, 0xf000, 0);
-
-#ifdef BUILD_EU_VERSION
-            YesNoCrslOKR(0x14000, ig_menu_wrk.csr[2] * 132 + 178, 380.0f, 0x808080, 128.0f, 2.0f);
-#else
-            YesNoCrslOKR(0x14000, ig_menu_wrk.csr[2] * 132 + 178, 378.0f, 0x808080, 128.0f, 2.0f);
-#endif
-        }
         else
         {
-            PutStringYW(IGMSG_MENU_ITEM, 0, pos_x + 48, pos_y + 356, 0x808080, alpha, 0xf000, 0);
-            PutStringYW(IGMSG_MENU_ITEM, 1, pos_x + 48, pos_y + 382, 0x808080, alpha, 0xf000, 0);
+            const bool film = item_use_dat[menu_item_wrk[ig_menu_wrk.csr[1]].item_no].type == 2;
+            PutStringYW(IGMSG_MENU_ITEM, film ? 3 : 0, pos_x + 48, pos_y + 356,
+                        0x808080, alpha, 0xf000, 0);
+            if (PutChineseChoiceMessageYW(IGMSG_MENU_ITEM, 1, ig_menu_wrk.csr[2],
+                                          pos_x + 48, pos_y + item_choice_y,
+                                          alpha, 0xf000, item_choice_spacing))
+                return;
+            PutStringYW(IGMSG_MENU_ITEM, 1, pos_x + 48, pos_y + item_choice_y,
+                        0x808080, alpha, 0xf000, 0);
 
 #ifdef BUILD_EU_VERSION
             YesNoCrslOKR(0x14000, ig_menu_wrk.csr[2] * 132 + 178, 380.0f, 0x808080, 128.0f, 2.0f);

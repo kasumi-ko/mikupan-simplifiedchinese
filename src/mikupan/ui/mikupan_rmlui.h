@@ -11,6 +11,12 @@ extern "C" {
 void MikuPan_RmlUiInit(SDL_Window* window);
 void MikuPan_RmlUiRequestItemIcons(void);
 int MikuPan_RmlUiItemIconsReady(void);
+typedef struct MikuPan_RmlNavigationHints {
+    const char* move;
+    const char* confirm;
+    const char* cancel;
+} MikuPan_RmlNavigationHints;
+MikuPan_RmlNavigationHints MikuPan_RmlUiNavigationHints(void);
 void MikuPan_RmlUiStartFrame(void);
 void MikuPan_RmlUiRender(void);
 void MikuPan_RmlUiProcessEvent(SDL_Event* event);

@@ -1,0 +1,6 @@
+#ifndef GRAPHICS_GRAPH2D_VOICE_CAPTIONS_H
+#define GRAPHICS_GRAPH2D_VOICE_CAPTIONS_H
+
+void DrawVoiceCaption();
+
+#endif

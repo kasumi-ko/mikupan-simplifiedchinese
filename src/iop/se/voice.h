@@ -1,7 +1,6 @@
 #ifndef VOICE_H
 #define VOICE_H
 #include "common.h"
-#include "iopse.h"
 #include "typedefs.h"
 #include <SDL3/SDL_audio.h>
 #include <SDL3/SDL_thread.h>
@@ -35,6 +34,8 @@ typedef struct
 
     bool isPlaying;
     bool endPending;
+    int sound_effect_sample;
+    u_int sound_effect_address;
 
     s16 *buffer;
     u16 header;
@@ -73,6 +74,7 @@ void FillAdpcmHeader(int vNo);
 void Key_On(int vNo);
 void Key_Off(int vNo);
 void VoiceRun();
+int VoiceGetActiveSoundEffects(int* samples, int capacity);
 void VoiceSetKeySwitch(int core, u_int value, int key_on);
 void VoiceLock(void);
 void VoiceUnlock(void);

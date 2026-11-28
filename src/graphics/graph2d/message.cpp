@@ -69,6 +69,24 @@ static bool IsChineseGlyph(int bank, int glyph)
         && (bank > 1 || (bank == 1 && glyph >= latin_glyphs));
 }
 
+static bool ResolveChineseGlyphCell(int bank, int& glyph, int& atlas_bank, int& atlas_y)
+{
+    constexpr int first_page_han = 8 * chinese_columns;
+    constexpr int page_han = 12 * chinese_columns;
+    const int number = bank == 1 ? glyph : 0xf0 + (bank - 2) * 256 + glyph;
+    glyph = number - latin_glyphs;
+    atlas_bank = 1;
+    atlas_y = latin_rows * latin_cell_size;
+    if (glyph >= first_page_han)
+    {
+        glyph -= first_page_han;
+        atlas_bank = 2 + glyph / page_han;
+        glyph %= page_han;
+        atlas_y = 0;
+    }
+    return glyph >= 0 && atlas_bank < 6;
+}
+
 static int MessageGlyphWidth(int bank, int glyph)
 {
     if (IsChineseGlyph(bank, glyph))
@@ -80,6 +98,67 @@ static int MessageGlyphWidth(int bank, int glyph)
         font_w_b0, font_w_b1, font_w_b2, font_w_b3, font_w_b4
     };
     return glyph >= 0 && glyph < 210 ? widths[bank - 1][glyph] : latin_cell_size;
+}
+
+void DrawNativeVoiceCaptionLine(const char* line, int y)
+{
+    struct Glyph
+    {
+        MikuPan_Rect source;
+        MikuPan_Rect target;
+        MikuPan_TextureInfo* texture;
+    };
+    Glyph glyphs[32];
+    int count = 0;
+    float width = 0;
+    const auto* text = reinterpret_cast<const u_char*>(line);
+    while (*text != 0xff && count < 32)
+    {
+        int glyph = *text++;
+        int bank = 1;
+        if (glyph >= 0xf0 && glyph <= 0xf4)
+        {
+            bank = 2 + glyph - 0xf0;
+            glyph = *text++;
+        }
+        const int advance = MessageGlyphWidth(bank, glyph);
+        const bool chinese = IsChineseGlyph(bank, glyph);
+        int atlas_bank = bank;
+        int atlas_y = 0;
+        if (chinese && !ResolveChineseGlyphCell(bank, glyph, atlas_bank, atlas_y))
+            return;
+
+        const int cell = chinese ? chinese_cell_size : latin_cell_size;
+        const int columns = chinese ? chinese_columns : latin_columns;
+        const float size = chinese ? chinese_draw_size : latin_cell_size;
+        MikuPan_SetFontTexture(atlas_bank);
+        glyphs[count++] = {
+            {float(glyph % columns * cell), float(atlas_y + glyph / columns * cell),
+                float(cell), float(cell)},
+            {width, float(y), size, size},
+            MikuPan_GetCurrentFontTexture()
+        };
+        width += advance;
+    }
+    const float center = 320.0f - width / 2;
+    const auto draw = [&](float dx, float dy, u_char color) {
+        for (int i = 0; i < count; ++i)
+        {
+            const auto& glyph = glyphs[i];
+            if (!glyph.texture)
+                continue;
+            auto target = glyph.target;
+            target.x += center + dx;
+            target.y += dy;
+            MikuPan_RenderSprite(glyph.source, target, color, color, color, 0x80, glyph.texture);
+        }
+    };
+    draw(2, 2, 0);
+    draw(-1, 0, 0);
+    draw(1, 0, 0);
+    draw(0, -1, 0);
+    draw(0, 1, 0);
+    draw(0, 0, 0xff);
 }
 
 static void SetMesFrame2(int pri, float bx, float by, float sw, float sh);
@@ -1117,25 +1196,8 @@ static void SetFontPat(int pri, int fn, int x, int y, int fw, u_char r, u_char g
         Font_W = chinese_cell_size;
         Num_W = chinese_columns;
 
-        // The message bytes encode one continuous glyph number. The atlas
-        // has 200 Han glyphs below its Latin rows and 300 on each following page.
-        constexpr int first_page_han = 8 * chinese_columns;
-        constexpr int page_han = 12 * chinese_columns;
-        const int number = message_font_bank == 1 ? fn
-            : 0xf0 + (message_font_bank - 2) * 256 + fn;
-        fn = number - latin_glyphs;
-        int atlas_bank = 1;
-        if (fn < first_page_han)
-        {
-            atlas_y = latin_rows * latin_cell_size;
-        }
-        else
-        {
-            fn -= first_page_han;
-            atlas_bank = 2 + fn / page_han;
-            fn %= page_han;
-        }
-        if (atlas_bank >= 6)
+        int atlas_bank;
+        if (!ResolveChineseGlyphCell(message_font_bank, fn, atlas_bank, atlas_y))
         {
             return;
         }

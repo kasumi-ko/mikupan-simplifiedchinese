@@ -14,6 +14,7 @@
 #include "graphics/graph2d/message.h"
 #include "graphics/graph2d/tim2.h"
 #include "graphics/graph2d/tim2_new.h"
+#include "graphics/graph2d/voice_captions.h"
 #include "ingame/info/inf_disp.h"
 #include "ingame/menu/ig_map.h"
 #include "ingame/menu/ig_spd_menu.h"
@@ -94,6 +95,7 @@ static void gra2dSubG3(int fl)
     EffectControl(GRA2D_CALL_IG32);
     InformationDispLateFinderMask();
     PauseDisp();
+    DrawVoiceCaption();
 #ifdef BUILD_EU_VERSION
     CallSubtitles();
 #endif

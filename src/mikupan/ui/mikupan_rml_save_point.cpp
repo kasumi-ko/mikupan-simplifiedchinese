@@ -1,4 +1,5 @@
 #include "mikupan/ui/mikupan_rml_save_point.h"
+#include "mikupan/ui/mikupan_rmlui.h"
 
 #include "enums.h"
 #include "main/glob.h"
@@ -58,6 +59,8 @@ struct MikuPanRmlSavePointState
     Rml::ElementDocument* document = nullptr;
     Rml::Element* root = nullptr;
     Rml::Element* menu = nullptr;
+    Rml::Element* controls = nullptr;
+    std::string controls_text;
     Rml::Element* selection_frame = nullptr;
     Rml::Element* message = nullptr;
     Rml::Element* confirm = nullptr;
@@ -338,6 +341,8 @@ static bool MikuPan_RmlSavePointLoadDocument(void)
         MikuPan_RmlSavePointGetElement("save-point-message");
     g_save_point.confirm =
         MikuPan_RmlSavePointGetElement("save-point-confirm");
+    g_save_point.controls =
+        MikuPan_RmlSavePointGetElement("save-point-controls-text");
     g_save_point.confirm_messages = {
         MikuPan_RmlSavePointGetElement("save-point-confirm-message-film"),
         MikuPan_RmlSavePointGetElement("save-point-confirm-message-exit")
@@ -491,6 +496,18 @@ void MikuPan_RmlSavePointStartFrame(void)
     if (!g_save_point.initialized || !g_save_point.visible)
     {
         return;
+    }
+
+    if (g_save_point.controls != nullptr)
+    {
+        const auto hints = MikuPan_RmlUiNavigationHints();
+        std::string controls = std::string(MikuPan_Translate("Confirm")) + ": " + hints.confirm
+            + "&#160;&#160;&#160;&#160;" + MikuPan_Translate("Back") + ": " + hints.cancel;
+        if (g_save_point.controls_text != controls)
+        {
+            g_save_point.controls->SetInnerRML(controls);
+            g_save_point.controls_text = std::move(controls);
+        }
     }
 
     const float time = static_cast<float>(SDL_GetTicks()) * 0.001f;
@@ -740,16 +757,6 @@ void MikuPan_RmlSavePointApplyLanguage(int language)
     {
         static const char* const kTitle = "SAVE POINT";
         title->SetInnerRML(MikuPan_Translate(kTitle));
-    }
-
-    if (g_save_point.document != nullptr)
-    {
-        if (Rml::Element* hint = g_save_point.document->QuerySelector(".save-point-controls-text"))
-        {
-            static const char* const kControlsHint =
-                "A Select&#160;&#160;&#160;&#160;Y Exit";
-            hint->SetInnerRML(MikuPan_Translate(kControlsHint));
-        }
     }
 
     static const char* const kLabels[4] = {

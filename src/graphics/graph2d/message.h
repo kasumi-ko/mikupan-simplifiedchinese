@@ -82,6 +82,7 @@ void SetString2(int pri, float x, float y, int type, u_char r, u_char g, u_char 
 void CopyStrDToStr(DISP_STR *s, STR_DAT *d);
 int SetMessageV2_2(DISP_STR *s);
 int SetMessageV2(DISP_STR *s);
+void DrawNativeVoiceCaptionLine(const char* line, int y);
 int SubMessageV3(u_char *s, int pri, int delflg);
 int SetMessageV3(u_char *s, int pri);
 int SetMessageV3_2(u_char *s, int pri);

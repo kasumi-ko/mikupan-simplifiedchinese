@@ -16,6 +16,7 @@
 #include "main/glob.h"
 #include "mikupan/io/mikupan_controller.h"
 #include "mikupan/mikupan_memory.h"
+#include "mikupan/rendering/mikupan_font_textures.h"
 #include "os/eeiop/adpcm/ea_ctrl.h"
 #include "os/eeiop/eese.h"
 #include "outgame/btl_mode/btl_menu.h"
@@ -24,6 +25,8 @@
 static void PauseDraw(u_char alp);
 static void MikuPan_PauseMouseInput();
 static char CanPauseCHK();
+static constexpr int pause_choice_y = 371;
+static constexpr int pause_choice_spacing = 132;
 
 PAD_CTRL pad_ctrl = {0};
 PAUSE_WRK pause_wrk = {0};
@@ -78,10 +81,13 @@ static void MikuPan_PauseMouseInput()
         return;
     }
 
+    const bool chinese = MikuPanFonts::UsesChineseGlyphGrid();
     for (int i = 0; i < 2; i++)
     {
-        if (!MikuPan_LegacyMouseHit(150.0f + i * 132.0f, 350.0f,
-                                   132.0f, 56.0f))
+        const float x = chinese ? 320.0f + (i - 0.5f) * pause_choice_spacing - 35.0f
+                                : 150.0f + i * 132.0f;
+        const float y = chinese ? pause_choice_y - 3.0f : 350.0f;
+        if (!MikuPan_LegacyMouseHit(x, y, chinese ? 70.0f : 132.0f, chinese ? 29.0f : 56.0f))
         {
             continue;
         }
@@ -392,6 +398,12 @@ static void PauseDraw(u_char alp)
     {
         DrawMessageBox(0xf000, 56.0f, 329.0f, 528.0f, 81.0f, ps_dsp.msg_alp);
 
+        PutStringYW(IGMSG_MENU_MSG, ingame_wrk.game == 1 ? 36 : 30, 320, 346,
+                    0x808080, ps_dsp.msg_alp, 0x5000, 1);
+        if (PutChineseChoiceMessageYW(IGMSG_MENU_MSG, 31, pause_wrk.csr[1],
+                                     48, pause_choice_y, ps_dsp.msg_alp, 0x5000, pause_choice_spacing))
+            return;
+
 #ifdef BUILD_EU_VERSION
         YesNoCrslOKR(0xa000, pause_wrk.csr[1] * 132 + 178, 368.0f, 0x808080,
                      ps_dsp.msg_alp, 2.0f);
@@ -400,16 +412,7 @@ static void PauseDraw(u_char alp)
                      ps_dsp.msg_alp, 2.0f);
 #endif
 
-        if (ingame_wrk.game == 1)
-        {
-            PutStringYW(6, 36, 320, 346, 0x808080, ps_dsp.msg_alp, 0x5000, 1);
-        }
-        else
-        {
-            PutStringYW(6, 30, 320, 346, 0x808080, ps_dsp.msg_alp, 0x5000, 1);
-        }
-
-        PutStringYW(6, 31, 48, 371, 0x808080, ps_dsp.msg_alp, 0x5000, 0);
+        PutStringYW(IGMSG_MENU_MSG, 31, 48, pause_choice_y, 0x808080, ps_dsp.msg_alp, 0x5000, 0);
     }
 }
 

@@ -102,8 +102,7 @@ void* IopDrvFunc(unsigned int command, void* data, int size)
             icp++;
         }
 
-        if (se_start_flg)
-            sceSdSetSwitch(SD_S_KON | SD_CORE_1, se_start_flg);
+        ISeStartPending();
         if (se_stop_flg)
             sceSdSetSwitch(SD_S_KOFF | SD_CORE_1, se_stop_flg);
     }

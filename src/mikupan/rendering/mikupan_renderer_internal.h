@@ -25,7 +25,6 @@ extern mat4 WorldClip;
 void MikuPan_StreamUploadFull(GLenum target, GLuint buffer,
                               GLsizeiptr size, const void *data);
 
-MikuPan_TextureInfo *MikuPan_GetCurrentFontTexture(void);
 void MikuPan_TextureShutdown(void);
 
 int MikuPan_IsShadowPassActive(void);

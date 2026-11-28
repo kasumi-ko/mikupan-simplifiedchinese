@@ -1,4 +1,5 @@
 #include "voice.h"
+#include "iopse.h"
 #include "iop/iopmain.h"
 #include "mikupan/mikupan_audio.h"
 #include "mikupan/mikupan_audio_bus.h"
@@ -82,6 +83,8 @@ void VoicesInit()
         voices[i].size = 0;
         voices[i].isPlaying = false;
         voices[i].endPending = false;
+        voices[i].sound_effect_sample = -1;
+        voices[i].sound_effect_address = 0;
         voices[i].buffer = (s16 *)malloc(VOICE_BUFFER_BYTES);
         voices[i].header = 0;
         voices[i].ssa = 0;
@@ -502,6 +505,25 @@ void VoiceRun()
     }
     UnlockVoices();
 }
+
+int VoiceGetActiveSoundEffects(int* samples, int capacity)
+{
+    int count = 0;
+    LockVoices();
+    for (int i = 24; i < VOICE_NUM && count < capacity; ++i)
+    {
+        const auto& voice = voices[i];
+        if (voice.sound_effect_sample >= 0 && voice.sound_effect_address == voice.ssa
+            && (voice.isPlaying || voice.endPending)
+            && (voice.volL != 0 || voice.volR != 0))
+        {
+            samples[count++] = voice.sound_effect_sample;
+        }
+    }
+    UnlockVoices();
+    return count;
+}
+
 static void KeyOnUnlocked(int vNo)
 {
     if (vNo < 0 || vNo >= VOICE_NUM)
