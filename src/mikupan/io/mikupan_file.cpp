@@ -1,5 +1,8 @@
 #include "typedefs.h"
 #include "mikupan_file.h"
+#ifdef _WIN32
+#include "mikupan_disc_import.h"
+#endif
 #include "enums.h"
 #include "mikupan/mikupan_config.h"
 #include "mikupan/mikupan_i18n.h"
@@ -99,7 +102,13 @@ extern "C" const char *MikuPan_GetBaseDirectory(void)
 
 static std::filesystem::path MikuPan_GetApplicationBasePath()
 {
-    return std::filesystem::path(MikuPan_GetBaseDirectory());
+    return std::filesystem::u8path(MikuPan_GetBaseDirectory());
+}
+
+static std::string MikuPan_PathUtf8(const std::filesystem::path& path)
+{
+    const auto utf8 = path.generic_u8string();
+    return std::string(utf8.begin(), utf8.end());
 }
 
 static const char* MikuPan_GetActiveDataFolder()
@@ -117,7 +126,7 @@ static std::filesystem::path MikuPan_GetDataRoot()
     const char *folder = MikuPan_GetActiveDataFolder();
     if (folder != nullptr && folder[0] != '\0')
     {
-        return std::filesystem::path(folder);
+        return std::filesystem::u8path(folder);
     }
 
     return MikuPan_GetApplicationBasePath();
@@ -233,7 +242,7 @@ static std::string MikuPan_GetDataPathString(
     }
 #endif
 
-    return (MikuPan_GetDataRoot() / relative_path).generic_string();
+    return MikuPan_PathUtf8(MikuPan_GetDataRoot() / relative_path);
 }
 
 static std::string MikuPan_NormalizeSdlAssetPathString(const std::string& path)
@@ -350,7 +359,7 @@ static bool MikuPan_ReadSdlFileRange(const char *filename,
 
 static std::string MikuPan_ToLowerPathString(const std::filesystem::path& path)
 {
-    std::string value = path.lexically_normal().generic_string();
+    std::string value = MikuPan_PathUtf8(path.lexically_normal());
     std::transform(value.begin(), value.end(), value.begin(),
                    [](unsigned char ch) {
                        return static_cast<char>(std::tolower(ch));
@@ -553,7 +562,7 @@ static bool MikuPan_RequestMissingDataFolderDialog(
             return MikuPan_WaitForMissingDataFolderDialogOnMainThread();
         }
 
-        missing_data_path = path.lexically_normal().generic_string();
+        missing_data_path = MikuPan_PathUtf8(path.lexically_normal());
         missing_data_dialog_requested = true;
         missing_data_dialog_selected = false;
     }
@@ -610,7 +619,7 @@ static bool MikuPan_RequestMissingDataFolderDialogAsync(
             return true;
         }
 
-        missing_data_path = path.lexically_normal().generic_string();
+        missing_data_path = MikuPan_PathUtf8(path.lexically_normal());
         missing_data_dialog_requested = true;
         missing_data_dialog_selected = false;
     }
@@ -623,7 +632,7 @@ extern "C" void MikuPan_RequestDataFolderSelection(const char *missing_path)
     const char *path = (missing_path != nullptr && missing_path[0] != '\0')
                            ? missing_path
                            : "IMG_HD.BIN";
-    MikuPan_RequestMissingDataFolderDialogAsync(std::filesystem::path(path));
+    MikuPan_RequestMissingDataFolderDialogAsync(std::filesystem::u8path(path));
 }
 
 static bool MikuPan_DataPathExistsNoPrompt(
@@ -636,12 +645,13 @@ static bool MikuPan_DataPathExistsNoPrompt(
     }
 
     std::error_code error;
-    if (!std::filesystem::is_regular_file(data_path, error) || error)
+    const auto native_path = std::filesystem::u8path(data_path);
+    if (!std::filesystem::is_regular_file(native_path, error) || error)
     {
         return false;
     }
 
-    const uintmax_t file_size = std::filesystem::file_size(data_path, error);
+    const uintmax_t file_size = std::filesystem::file_size(native_path, error);
     return !error && file_size > 0;
 }
 
@@ -754,27 +764,109 @@ extern "C" bool MikuPan_HasRequiredDataFiles(char *missing_file,
     return true;
 }
 
-static void SDLCALL MikuPan_MissingDataFolderSelected(
-    void *userdata, const char *const *filelist, int filter)
+static void MikuPan_FinishDataSelection(const std::string& folder)
 {
-    (void)userdata;
-    (void)filter;
-
-    std::string selected_folder;
-    if (filelist != nullptr && filelist[0] != nullptr
-        && filelist[0][0] != '\0')
-    {
-        selected_folder = filelist[0];
-        MikuPan_ApplySelectedDataFolder(selected_folder);
-    }
+    MikuPan_ApplySelectedDataFolder(folder);
 
     {
         std::lock_guard<std::mutex> lock(missing_data_dialog_mutex);
-        missing_data_dialog_selected = !selected_folder.empty();
+        missing_data_dialog_selected = !folder.empty();
         missing_data_dialog_open = false;
     }
     missing_data_dialog_cv.notify_all();
 }
+
+static void SDLCALL MikuPan_MissingDataFolderSelected(
+    void *, const char *const *filelist, int)
+{
+    MikuPan_FinishDataSelection(filelist && filelist[0] ? filelist[0] : "");
+}
+
+#ifdef _WIN32
+static void SDLCALL MikuPan_GameDataFileSelected(void *, const char *const *files, int)
+{
+    if (!files || !files[0] || !files[0][0])
+    {
+        MikuPan_FinishDataSelection("");
+        return;
+    }
+
+    const auto source = std::filesystem::u8path(files[0]);
+    if (MikuPan_ToLowerPathString(source.extension()) == ".iso")
+    {
+        const auto binary = MikuPan_GetApplicationBasePath() / "binary";
+        std::string error;
+        if (MikuPan_ImportDiscIso(source, binary, error))
+        {
+            MikuPan_FinishDataSelection(MikuPan_PathUtf8(binary));
+            return;
+        }
+        spdlog::error("ISO import failed: {}", error);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, MikuPan_Translate("ISO import failed"),
+                                 error.c_str(), nullptr);
+    }
+    else
+    {
+        std::error_code ec;
+        const auto folder = source.parent_path();
+        if (MikuPan_IsRequiredArchiveDataFile(source)
+            && std::filesystem::is_regular_file(folder / "IMG_HD.BIN", ec)
+            && std::filesystem::is_regular_file(folder / "IMG_BD.BIN", ec))
+        {
+            MikuPan_FinishDataSelection(MikuPan_PathUtf8(folder));
+            return;
+        }
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, MikuPan_Translate("Game data unavailable"),
+            MikuPan_Translate("Select IMG_HD.BIN or IMG_BD.BIN from a folder containing both files."), nullptr);
+    }
+    MikuPan_FinishDataSelection("");
+}
+
+static void MikuPan_ShowGameDataPicker(SDL_Window* window, const char* missing)
+{
+    const char* title = MikuPan_Translate("Select Game Data");
+    std::string message = MikuPan_Translate(
+        "Select a Japanese SLPS-25074 ISO to import into binary, or select the existing BIN files or folder.");
+    if (missing && *missing)
+        message += "\n\n" + std::string(MikuPan_Translate("Game data could not be opened."))
+            + "\n" + missing;
+    const SDL_MessageBoxButtonData buttons[] = {
+        {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, MikuPan_Translate("Choose ISO or BIN")},
+        {0, 2, MikuPan_Translate("Select Folder")},
+        {SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, MikuPan_Translate("Cancel")},
+    };
+    const SDL_MessageBoxData dialog = {
+        SDL_MESSAGEBOX_INFORMATION, window, title, message.c_str(),
+        SDL_arraysize(buttons), buttons, nullptr,
+    };
+    const char* start = mikupan_configuration.data_folder[0] ? mikupan_configuration.data_folder : nullptr;
+    int chosen = 0;
+    SDL_ShowMessageBox(&dialog, &chosen);
+    if (chosen == 1)
+    {
+        static const SDL_DialogFileFilter filters[] = {
+            {"ISO / BIN", "iso;bin"},
+        };
+        SDL_ShowOpenFileDialog(MikuPan_GameDataFileSelected, nullptr, window, filters,
+                               SDL_arraysize(filters), start, false);
+    }
+    else if (chosen == 2)
+        SDL_ShowOpenFolderDialog(MikuPan_MissingDataFolderSelected, nullptr, window, start, false);
+    else
+        MikuPan_FinishDataSelection("");
+}
+
+void MikuPan_BrowseGameData(SDL_Window* window)
+{
+    {
+        std::lock_guard<std::mutex> lock(missing_data_dialog_mutex);
+        if (missing_data_dialog_open || missing_data_dialog_requested)
+            return;
+        missing_data_dialog_open = true;
+    }
+    MikuPan_ShowGameDataPicker(window, nullptr);
+}
+#endif
 
 extern "C" void MikuPan_ServiceMissingDataFolderDialog()
 {
@@ -796,6 +888,9 @@ extern "C" void MikuPan_ServiceMissingDataFolderDialog()
         return;
     }
 
+#ifdef _WIN32
+    MikuPan_ShowGameDataPicker(nullptr, missing_path_to_show.c_str());
+#else
 #ifndef __ANDROID__
     const std::string message = std::string(MikuPan_Translate("Game data could not be opened."))
         + "\n\n" + missing_path_to_show + "\n\n"
@@ -822,6 +917,7 @@ extern "C" void MikuPan_ServiceMissingDataFolderDialog()
                              nullptr,
                              start,
                              false);
+#endif
 }
 
 void MikuPan_LoadImgHdFile()
@@ -854,7 +950,7 @@ void MikuPan_LoadImgHdFile()
         return;
     }
 
-    auto data_path = std::filesystem::path(data_path_string);
+    auto data_path = std::filesystem::u8path(data_path_string);
     if (!std::filesystem::exists(data_path))
     {
         const auto old_root = MikuPan_GetDataRoot();
@@ -876,7 +972,7 @@ void MikuPan_LoadImgHdFile()
         }
     }
 
-    const auto path = data_path.generic_string();
+    const auto path = MikuPan_PathUtf8(data_path);
     MikuPan_ReadFullFile(path.c_str(),
         static_cast<char *>(MikuPan_GetHostPointer(ImgHdAddress)));
 }
@@ -896,7 +992,7 @@ void MikuPan_ReadFullFile(const char *filename, char *buffer)
         return;
     }
 
-    std::filesystem::path path_filename(filename);
+    auto path_filename = std::filesystem::u8path(filename);
 
     if (!std::filesystem::exists(path_filename))
     {
@@ -967,7 +1063,7 @@ void MikuPan_ReadFileInArchive(int sector, int size, u_int *address)
         return;
     }
 
-    auto archive = std::filesystem::path(archive_string);
+    auto archive = std::filesystem::u8path(archive_string);
     if (!std::filesystem::exists(archive))
     {
         spdlog::critical("IMG_BD.BIN not found!");
@@ -1026,7 +1122,7 @@ u_int MikuPan_GetDataFileSize(const char *relative_name)
     }
 
     std::error_code ec;
-    const auto size = std::filesystem::file_size(path_string, ec);
+    const auto size = std::filesystem::file_size(std::filesystem::u8path(path_string), ec);
     if (ec)
     {
         return 0;
@@ -1064,7 +1160,7 @@ bool MikuPan_ReadDataFileRange(const char *relative_name, int64_t offset,
                                         size);
     }
 
-    std::ifstream infile(path_string, std::ios::binary);
+    std::ifstream infile(std::filesystem::u8path(path_string), std::ios::binary);
     if (!infile.is_open())
     {
         return false;
@@ -1164,7 +1260,7 @@ void MikuPan_BufferFile(int sector, int size, int64_t address)
         return;
     }
 
-    auto archive = std::filesystem::path(archive_string);
+    auto archive = std::filesystem::u8path(archive_string);
     if (!std::filesystem::exists(archive))
     {
         const auto old_root = MikuPan_GetDataRoot();
@@ -1369,7 +1465,7 @@ bool MikuPan_ResolveCdPath(const char* path, char* buffer, size_t buffer_size)
                 return false;
             }
         }
-        s = resolved_path.generic_string();
+        s = MikuPan_PathUtf8(resolved_path);
         }
     }
 
@@ -1419,7 +1515,7 @@ bool MikuPan_ResolveBasePath(const char* path, char* buffer, size_t buffer_size)
         return true;
     }
 
-    std::filesystem::path resolved_path(path);
+    auto resolved_path = std::filesystem::u8path(path);
     if (resolved_path.is_relative())
     {
         const char *base = SDL_GetBasePath();
@@ -1453,8 +1549,7 @@ bool MikuPan_ResolveBasePath(const char* path, char* buffer, size_t buffer_size)
             / resolved_path.relative_path();
     }
 
-    const std::string resolved =
-        resolved_path.lexically_normal().generic_string();
+    const std::string resolved = MikuPan_PathUtf8(resolved_path.lexically_normal());
     if (resolved.length() + 1 > buffer_size)
     {
         spdlog::error(

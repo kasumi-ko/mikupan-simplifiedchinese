@@ -76,4 +76,9 @@ int MikuPan_GetListFiles(const char *folder, MikuPan_McTblGetDir *table, int max
 
 std::string MikuPan_GetRelativePath(const char* path);
 
+#ifdef _WIN32
+struct SDL_Window;
+void MikuPan_BrowseGameData(SDL_Window* window);
+#endif
+
 #endif//MIKUPAN_FILE_LOADING_H

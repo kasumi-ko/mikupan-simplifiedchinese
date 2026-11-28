@@ -659,8 +659,21 @@ extern "C" void MikuPan_LoadConfiguration(const char *filename)
 #endif
         if (base != nullptr)
         {
+#ifdef _WIN32
+            const auto root = std::filesystem::u8path(base);
+            // A new installer keeps the original disc in binary. Also accept
+            // existing portable layouts with IMG_HD.BIN alongside the EXE.
+            const auto selected = (PathExistsNoThrow(root / "IMG_HD.BIN", "portable data")
+                && !PathExistsNoThrow(root / "binary" / "IMG_HD.BIN", "installed data"))
+                ? root : root / "binary";
+            const auto u8 = selected.generic_u8string();
+            const std::string folder(u8.begin(), u8.end());
+            std::strncpy(mikupan_configuration.data_folder, folder.c_str(),
+                         sizeof(mikupan_configuration.data_folder) - 1);
+#else
             std::strncpy(mikupan_configuration.data_folder, base,
                          sizeof(mikupan_configuration.data_folder) - 1);
+#endif
             mikupan_configuration.data_folder
                 [sizeof(mikupan_configuration.data_folder) - 1] = '\0';
         }

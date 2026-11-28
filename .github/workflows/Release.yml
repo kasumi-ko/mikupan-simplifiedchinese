@@ -3,14 +3,19 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      Version:
+      version:
         description: 'Version number e.g. 1.0'
         required: true
-        default: '0.0.1'
+        default: '0.1.0'
+      publish:
+        description: 'Publish the build to GitHub Releases'
+        type: boolean
+        default: false
 
 env:
   BUILD_TYPE: Release
   BUILD_STATIC: true
+  RELEASE_VERSION: ${{ inputs.version }}
 
 jobs:
   shaders:
@@ -133,32 +138,57 @@ jobs:
           cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_STATIC=${{env.BUILD_STATIC}} -DMIKUPAN_COMPILE_SHADERS=OFF
           cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j 12 --target MikuPan
 
-      - name: Zip Windows App
+      - name: Build Windows EXE installer
         if: ${{ matrix.sys.os == 'windows-latest' }}
-        working-directory: build
         shell: pwsh
         run: |
-          Compress-Archive -Path MikuPan/* -DestinationPath MikuPan_NTSC-J_${{ matrix.sys.name }}_v${{ github.event.inputs.version }}.zip
+          $nsis = Join-Path ${env:ProgramFiles(x86)} 'NSIS\makensis.exe'
+          if (!(Test-Path -LiteralPath $nsis -PathType Leaf)) {
+            choco install nsis --yes --no-progress
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          ./installer/build-installer.ps1 -BuildDirectory ./build -OutputFile ./build/MikuPan-SimplifiedChinese-Setup.exe -MakeNSIS $nsis
 
       - name: Zip OSX App
         if: ${{ matrix.sys.os == 'macos-latest' }}
         working-directory: build/
         shell: pwsh
         run: |
-          Get-ChildItem -Path MikuPan/* | Compress-Archive -DestinationPath MikuPan_NTSC-J_${{ matrix.sys.name }}_v${{ github.event.inputs.version }}.zip
+          Get-ChildItem -Path MikuPan/* | Compress-Archive -DestinationPath "MikuPan_NTSC-J_macos_v$env:RELEASE_VERSION.zip"
 
       - name: Zip Ubuntu App
         if: ${{ matrix.sys.os == 'ubuntu-latest' }}
         working-directory: build
         run: |
-          zip -r MikuPan_NTSC-J_${{ matrix.sys.name }}_v${{ github.event.inputs.version }}.zip MikuPan/*
+          zip -r "MikuPan_NTSC-J_linux_v$RELEASE_VERSION.zip" MikuPan/*
 
+      - name: Upload release package
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.sys.name }}
+          if-no-files-found: error
+          path: ${{ matrix.sys.os == 'windows-latest' && 'build/MikuPan-SimplifiedChinese-Setup.exe' || format('build/MikuPan_NTSC-J_{0}_v{1}.zip', matrix.sys.name, inputs.version) }}
+
+  publish:
+    if: inputs.publish
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: packages
+          merge-multiple: true
       - name: Release
         uses: ncipollo/release-action@a2e71bdd4e7dab70ca26a852f29600c98b33153e
         with:
           draft: false
           allowUpdates: true
           replacesArtifacts: false
-          name: "MikuPan v${{ github.event.inputs.version }}"
-          tag: "v${{ github.event.inputs.version }}"
-          artifacts: build/MikuPan_NTSC-J_${{ matrix.sys.name }}_v${{ github.event.inputs.version }}.zip
+          name: "MikuPan v${{ inputs.version }}"
+          tag: "v${{ inputs.version }}"
+          commit: ${{ github.sha }}
+          artifacts: packages/*
+          artifactErrorsFailBuild: true

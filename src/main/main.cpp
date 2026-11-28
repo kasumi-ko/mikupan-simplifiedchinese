@@ -28,6 +28,9 @@
 #include "mikupan/io/mikupan_file_c.h"
 #include "mikupan/ui/mikupan_ui.h"
 #include "os/eeiop/se_cmd.h"
+#ifdef _WIN32
+#include "mikupan/io/mikupan_disc_import.h"
+#endif
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -38,6 +41,9 @@
 static int mikupan_game_initialized = 0;
 static int mikupan_missing_data_prompted = 0;
 static char mikupan_missing_data_file[256] = "";
+#ifdef _WIN32
+static bool mikupan_import_only = false;
+#endif
 MikuPan_FrameLimiter frame_limiter;
 
 static int MikuPan_TryInitializeGame(void)
@@ -94,6 +100,23 @@ static int MikuPan_TryInitializeGame(void)
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 {
+#ifdef _WIN32
+    if (argc > 1 && SDL_strcmp(argv[1], "--import-iso") == 0)
+    {
+        mikupan_import_only = true;
+        const char *base = SDL_GetBasePath();
+        if (argc != 3 || !base)
+            return SDL_APP_FAILURE;
+        std::string error;
+        if (!MikuPan_ImportDiscIso(std::filesystem::u8path(argv[2]),
+                                   std::filesystem::u8path(base) / "binary", error))
+        {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", error.c_str());
+            return SDL_APP_FAILURE;
+        }
+        return SDL_APP_SUCCESS;
+    }
+#endif
     SDL_AppResult result = MikuPan_Init();
     if (result != SDL_APP_CONTINUE)
     {
@@ -211,6 +234,10 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 void SDL_AppQuit(void *appstate, SDL_AppResult result)
 {
+#ifdef _WIN32
+    if (mikupan_import_only)
+        return;
+#endif
     if (mikupan_game_initialized)
     {
         IopShutDown();

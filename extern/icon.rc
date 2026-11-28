@@ -1,1 +1,29 @@
+#include <winver.h>
+#include "mikupan_version.h"
+
 IDI_ICON1 ICON "./mikupan.ico"
+
+1 VERSIONINFO
+FILEVERSION MIKUPAN_FILE_VERSION
+PRODUCTVERSION MIKUPAN_FILE_VERSION
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080404B0"
+        BEGIN
+            VALUE "CompanyName", "kasumi-ko"
+            VALUE "FileDescription", L"\x96F6\xFF5Ezero\xFF5E [MikuPan-SimplifiedChinese]"
+            VALUE "FileVersion", MIKUPAN_DISPLAY_VERSION
+            VALUE "InternalName", MIKUPAN_PROJECT_NAME
+            VALUE "OriginalFilename", "MikuPan.exe"
+            VALUE "ProductName", L"\x96F6\xFF5Ezero\xFF5E [MikuPan-SimplifiedChinese]"
+            VALUE "ProductVersion", MIKUPAN_DISPLAY_VERSION
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0804, 1200
+    END
+END

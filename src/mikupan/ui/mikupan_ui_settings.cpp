@@ -7,6 +7,7 @@
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include "cimgui.h"
 #include "SDL3/SDL_dialog.h"
+#include "mikupan/io/mikupan_file.h"
 #include "SDL3/SDL_hints.h"
 #include "SDL3/SDL_platform.h"
 #include "SDL3/SDL_stdinc.h"
@@ -999,6 +1000,7 @@ static void MikuPan_UiDitherModeCombo(void)
     }
 }
 
+#ifndef _WIN32
 static void MikuPan_DataFolderSelected(void* userdata,
                                        const char* const * filelist, int filter)
 {
@@ -1015,6 +1017,7 @@ static void MikuPan_DataFolderSelected(void* userdata,
     mikupan_configuration
         .data_folder[sizeof(mikupan_configuration.data_folder) - 1] = '\0';
 }
+#endif
 
 void MikuPan_UiSettingsInit(void)
 {
@@ -1491,14 +1494,7 @@ void MikuPan_UiSettingsRender(void)
 
         if (igButton(MikuPan_Translate("Browse..."), ImVec2{0.0f, 0.0f}))
         {
-            const char *start = mikupan_configuration.data_folder[0] != '\0'
-                                    ? mikupan_configuration.data_folder
-                                    : NULL;
-#ifdef __ANDROID__
-            SDL_SetHint("SDL_ANDROID_ALLOW_PERSISTENT_FOLDER_ACCESS", "1");
-#endif
-            SDL_ShowOpenFolderDialog(MikuPan_DataFolderSelected, NULL,
-                                     MikuPan_GetUiWindow(), start, false);
+            MikuPan_BrowseDataFolderFromUi();
         }
 
         igSeparator();
@@ -2513,6 +2509,9 @@ void MikuPan_SetDataFolder(const char* folder)
 
 void MikuPan_BrowseDataFolderFromUi(void)
 {
+#ifdef _WIN32
+    MikuPan_BrowseGameData(MikuPan_GetUiWindow());
+#else
     const char* start = mikupan_configuration.data_folder[0] != '\0'
                             ? mikupan_configuration.data_folder
                             : NULL;
@@ -2521,6 +2520,7 @@ void MikuPan_BrowseDataFolderFromUi(void)
 #endif
     SDL_ShowOpenFolderDialog(MikuPan_DataFolderSelected, NULL,
                              MikuPan_GetUiWindow(), start, false);
+#endif
 }
 
 int MikuPan_SaveConfigurationFromUi(void)
