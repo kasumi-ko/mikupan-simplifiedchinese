@@ -1714,6 +1714,37 @@ static void CmnLineForWin(short int win_x, short int win_y, short int ofs_x, sho
 
 void CmnWindow(u_char win_no, short int pos_x, short int pos_y, u_char alp, u_char rgb)
 {
+#ifndef BUILD_EU_VERSION
+    if (win_no >= 33 && win_no <= 37 && MikuPan_IsJapaneseGameData())
+    {
+        static constexpr WIN_PTN camera_windows[] = {
+            {34, 271, 138, 59, 26, 8, 2, 2, 45, 1},
+            {182, 92, 186, 152, 26, 8, 2, 2, 45, 1},
+            {376, 92, 240, 152, 26, 8, 2, 2, 45, 1},
+            {182, 256, 212, 74, 26, 8, 2, 2, 45, 1},
+            {404, 256, 212, 74, 26, 8, 2, 2, 45, 1},
+        };
+        static constexpr PLS_LIN dividers[] = {
+            {184, 146, 182, 2, 34}, {184, 176, 182, 2, 34}, {184, 206, 182, 2, 34},
+            {378, 156, 236, 2, 35}, {378, 196, 236, 2, 35},
+            {224, 282, 2, 40, 36}, {266, 282, 2, 40, 36}, {308, 282, 2, 40, 36}, {350, 282, 2, 40, 36},
+            {446, 282, 2, 40, 37}, {488, 282, 2, 40, 37}, {530, 282, 2, 40, 37}, {572, 282, 2, 40, 37},
+        };
+        const auto& window = camera_windows[win_no - 33];
+        const short x = pos_x + window.pos_x;
+        const short y = pos_y + window.pos_y;
+        BehindTheMask2(x, y, window.siz_x, window.siz_y, alp, (window.pri - 1) << 12, 0);
+        CmnWakuForWin(x, y, window.siz_x, window.siz_y, window.u_hgh, window.d_hgh,
+                      window.l_wid, window.r_wid, window.pri, alp, rgb, window.bak);
+        for (const auto& line : dividers)
+        {
+            if (line.win_no == win_no)
+                CmnLineForWin(x, y, line.pos_x - window.pos_x, line.pos_y - window.pos_y,
+                              line.siz_x, line.siz_y, window.pri, alp, rgb);
+        }
+        return;
+    }
+#endif
     int i;
     #include "data/win_ptn.h" // WIN_PTN win_ptn[41];
     #include "data/msk_dat_top.h" // signed char msk_dat_top[41];

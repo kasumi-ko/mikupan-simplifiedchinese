@@ -1891,7 +1891,8 @@ void PutStringYW(u_char msg_knd, u_char msg_no, short int pos_x, short int pos_y
 }
 
 bool PutChineseChoiceMessageYW(u_char kind, u_char message, u_char selected,
-                              short x, short y, u_char alpha, int priority)
+                              short x, short y, u_char alpha, int priority,
+                              int two_choice_spacing)
 {
     if (!MikuPanFonts::UsesChineseGlyphGrid())
         return false;
@@ -1989,7 +1990,7 @@ bool PutChineseChoiceMessageYW(u_char kind, u_char message, u_char selected,
         SetMessageV2(&draw);
     }
 
-    const int spacing = count == 2 ? 176 : 160;
+    const int spacing = count == 2 ? two_choice_spacing : 160;
     MikuPan_BeginLate2DOverlayQueue();
     for (int label = 0; label < count; ++label)
     {

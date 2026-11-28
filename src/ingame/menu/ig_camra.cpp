@@ -10,9 +10,51 @@
 #include "ingame/menu/item.h"
 #include "main/glob.h"
 #include "mikupan/io/mikupan_controller.h"
+#include "mikupan/io/mikupan_file.h"
+#include "graphics/graph2d/tim2.h"
+#include "mikupan/rendering/mikupan_font_textures.h"
 #include "os/eeiop/eese.h"
 #include "outgame/mode_slct.h"
 
+namespace
+{
+struct CameraCell
+{
+    short x, y, w, h;
+};
+
+constexpr int camera_choice_y = 385;
+constexpr int japanese_choice_spacing = 120;
+
+CameraCell CameraCommandCell(int index, bool japanese)
+{
+    return japanese ? CameraCell{32, short(100 + index * 38), 122, 30}
+                    : CameraCell{32, short(120 + index * 50), 122, 42};
+}
+
+CameraCell CameraFilmCell(int index, bool japanese)
+{
+    return japanese ? CameraCell{184, short(118 + index * 30), 182, 28}
+                    : CameraCell{short(204 + (index / 2) * 205), short(129 + (index % 2) * 49), 197, 45};
+}
+
+CameraCell CameraAbilityCell(int index, bool special, bool japanese)
+{
+    return japanese ? CameraCell{short((special ? 406 : 184) + index * 42), 282, 40, 40}
+                    : CameraCell{short(204 + index * 46), 271, 44, 44};
+}
+
+CameraCell CameraChoiceCell(int index, bool japanese)
+{
+    if (japanese && MikuPanFonts::UsesChineseGlyphGrid())
+    {
+        return {short(320 - japanese_choice_spacing / 2 - 35 + index * japanese_choice_spacing),
+                camera_choice_y - 3, 70, 29};
+    }
+    return japanese ? CameraCell{short(212 + index * japanese_choice_spacing), 382, 90, 27}
+                    : CameraCell{short(178 + index * 132), 380, 120, 27};
+}
+}
 
 static void MikuPan_CameraMenuMouseInput(void)
 {
@@ -22,9 +64,11 @@ static void MikuPan_CameraMenuMouseInput(void)
         return;
     }
 
+    const bool japanese = MikuPan_IsJapaneseGameData();
     for (int i = 0; i < 4; i++)
     {
-        if (!MikuPan_LegacyMouseHit(32.0f, 120.0f + i * 50.0f, 122.0f, 42.0f))
+        const auto cell = CameraCommandCell(i, japanese);
+        if (!MikuPan_LegacyMouseHit(cell.x, cell.y, cell.w, cell.h))
         {
             continue;
         }
@@ -48,17 +92,17 @@ static void MikuPan_CameraMenuMouseInput(void)
 
 static void MikuPan_CameraFilmMouseInput(void)
 {
-    static const short x[4] = {204, 204, 409, 409};
-    static const short y[4] = {129, 178, 129, 178};
     MikuPan_LegacyMouseState mouse;
     if (!MikuPan_LegacyMouseGetState(&mouse))
     {
         return;
     }
 
+    const bool japanese = MikuPan_IsJapaneseGameData();
     for (int i = 0; i < 4; i++)
     {
-        if (!MikuPan_LegacyMouseHit(x[i], y[i], 197.0f, 45.0f))
+        const auto cell = CameraFilmCell(i, japanese);
+        if (!MikuPan_LegacyMouseHit(cell.x, cell.y, cell.w, cell.h))
         {
             continue;
         }
@@ -88,9 +132,11 @@ static void MikuPan_CameraYesNoMouseInput(void)
         return;
     }
 
+    const bool japanese = MikuPan_IsJapaneseGameData();
     for (int i = 0; i < 2; i++)
     {
-        if (!MikuPan_LegacyMouseHit(156.0f + i * 132.0f, 356.0f, 120.0f, 56.0f))
+        const auto cell = CameraChoiceCell(i, japanese);
+        if (!MikuPan_LegacyMouseHit(cell.x, cell.y, cell.w, cell.h))
         {
             continue;
         }
@@ -279,6 +325,7 @@ void CameraCustomMenuSlct(char *err)
 
 void CameraCustomFilm(char *err)
 {
+    const bool japanese = MikuPan_IsJapaneseGameData();
     if (yw2d.pad_lock == 0)
     {
         MikuPan_CameraFilmMouseInput();
@@ -341,35 +388,32 @@ void CameraCustomFilm(char *err)
                 (DPAD_DOWN_PRESSED() > 25 && (DPAD_DOWN_PRESSED() % 5) == 1) ||
                 Ana2PadDirCnt(2) == 1 ||
                 (Ana2PadDirCnt(2) > 25 && (Ana2PadDirCnt(2) % 5) == 1)
-            ) || (
+            ) || (!japanese && (
                 DPAD_UP_PRESSED() == 1 ||
                 (DPAD_UP_PRESSED() > 25 && (DPAD_UP_PRESSED() % 5) == 1) ||
                 Ana2PadDirCnt(0) == 1 ||
                 (Ana2PadDirCnt(0) > 25 && (Ana2PadDirCnt(0) % 5) == 1)
-            )
+            ))
         )
         {
             *err = 0;
 
-            switch (cmr_menu_wrk.csr[1])
-            {
-            case 0:
-                cmr_menu_wrk.csr[1] = 1;
-            break;
-            case 1:
-                cmr_menu_wrk.csr[1] = 0;
-            break;
-            case 2:
-                cmr_menu_wrk.csr[1] = 3;
-            break;
-            case 3:
-                cmr_menu_wrk.csr[1] = 2;
-            break;
-            }
+            cmr_menu_wrk.csr[1] = japanese ? (cmr_menu_wrk.csr[1] + 1) % 4
+                                          : cmr_menu_wrk.csr[1] ^ 1;
 
             SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 1);
         }
-        else if (
+        else if (japanese && (
+            DPAD_UP_PRESSED() == 1 ||
+            (DPAD_UP_PRESSED() > 25 && (DPAD_UP_PRESSED() % 5) == 1) ||
+            Ana2PadDirCnt(0) == 1 ||
+            (Ana2PadDirCnt(0) > 25 && (Ana2PadDirCnt(0) % 5) == 1)))
+        {
+            *err = 0;
+            cmr_menu_wrk.csr[1] = (cmr_menu_wrk.csr[1] + 3) % 4;
+            SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 1);
+        }
+        else if (!japanese && (
             (
                 DPAD_LEFT_PRESSED() == 1 ||
                 (DPAD_LEFT_PRESSED() > 25 && (DPAD_LEFT_PRESSED() % 5) == 1) ||
@@ -381,25 +425,11 @@ void CameraCustomFilm(char *err)
                 Ana2PadDirCnt(1) == 1 ||
                 (Ana2PadDirCnt(1) > 25 && (Ana2PadDirCnt(1) % 5) == 1)
             )
-        )
+        ))
         {
             *err = 0;
 
-            switch (cmr_menu_wrk.csr[1])
-            {
-            case 0:
-                cmr_menu_wrk.csr[1] = 2;
-            break;
-            case 1:
-                cmr_menu_wrk.csr[1] = 3;
-            break;
-            case 2:
-                cmr_menu_wrk.csr[1] = 0;
-            break;
-            case 3:
-                cmr_menu_wrk.csr[1] = 1;
-            break;
-            }
+            cmr_menu_wrk.csr[1] ^= 2;
 
             SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 1);
         }
@@ -1165,6 +1195,7 @@ void CameraDspCtrl(u_char err)
 
 void CameraDsp(short int pos_x, short int pos_y, u_char alp, u_char msg)
 {
+    const bool japanese = MikuPan_IsJapaneseGameData();
     int i;
     int j;
     int cost;
@@ -1175,8 +1206,7 @@ void CameraDsp(short int pos_x, short int pos_y, u_char alp, u_char msg)
         &cam_custom_wrk.charge_range, &cam_custom_wrk.charge_speed, &cam_custom_wrk.charge_max,
     };
     int cst_rgb;
-    short int flm_ax[4] = { 0, 0, 205, 205 };
-    short int flm_ay[4] = { 0, 49, 0, 49 };
+    const int power_row_step = japanese ? 40 : 32;
     float arw_alp;
 
     PutSpriteYW(CAM_BACK_TEX, CAM_BACK_TEX, pos_x, pos_y, 0.0f, 0x404040, alp, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
@@ -1264,28 +1294,39 @@ void CameraDsp(short int pos_x, short int pos_y, u_char alp, u_char msg)
         {
             flsh_alp[5] = flsh2.alpha;
 
-            PutNumberYW(3, cost, 521, 289, 1.0f, 1.0f, 0x808080, alp, 0x5000, 5, 0);
+            PutNumberYW(3, cost, japanese ? 34 : 521, japanese ? 296 : 289, 1.0f, 1.0f, 0x808080, alp, 0x5000, 5, 0);
         }
         else
         {
-            PutNumberYW(3, cost, 521, 289, 1.0f, 1.0f, 0x808080, alp * 0.5f, 0x5000, 5, 0);
+            PutNumberYW(3, cost, japanese ? 34 : 521, japanese ? 296 : 289, 1.0f, 1.0f, 0x808080, alp * 0.5f, 0x5000, 5, 0);
         }
     }
 
-    WakuWaku2(-15, 0, alp, 4, 0x37);
+    if (japanese)
+        WakuWaku(pos_x - 16, pos_y + 68, alp, 4, 0x2d);
+    else
+        WakuWaku2(pos_x - 15, pos_y, alp, 4, 0x37);
 
-    PutSpriteYW(CAM_CMND_00, CAM_CMND_03, pos_x - 15, pos_y, 0.0f, 0x808080, alp, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
+    PutSpriteYW(CAM_CMND_00, CAM_CMND_03, pos_x - (japanese ? 10 : 15), pos_y, 0.0f, 0x808080, alp, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
 
     DspMenuTitle(pos_x, pos_y, alp, 50, 7);
 
-    CmnWindow(33, pos_x, pos_y, alp, flsh_alp[5]);
+    CmnWindow(33, pos_x - (japanese ? 9 : 0), pos_y, alp, flsh_alp[5]);
 
     CLRtoRGB(&cst_rgb, flsh_alp[5], flsh_alp[5], flsh_alp[5]);
 
-    PutSpriteYW(CAM_FONT_NXT, CAM_FONT_NXT, pos_x, pos_y, 0.0f, cst_rgb, alp, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
-    PutSpriteYW(CAM_WTTL_04, CAM_WTTL_04, pos_x, pos_y, 0.0f, 0x808080, alp, 1.0f, 1.0f, 0, 0xff, 0, 0, 0);
+    PutSpriteYW(CAM_FONT_NXT, CAM_FONT_NXT, pos_x, pos_y, 0.0f, japanese ? 0x808080 : cst_rgb, alp, 1.0f, 1.0f, 0, 0xff, japanese ? 0 : 1, 0, 0);
+    if (japanese)
+    {
+        const u_char cost_alpha = cost == -1 || cam_custom_wrk.point >= cost ? alp : alp / 2;
+        PutStringYW(IGMSG_CAME_MSG, 1, 118, 300, 0x808080, cost_alpha, 0x5000, 0);
+    }
+    else
+    {
+        PutSpriteYW(CAM_WTTL_04, CAM_WTTL_04, pos_x, pos_y, 0.0f, 0x808080, alp, 1.0f, 1.0f, 0, 0xff, 0, 0, 0);
+    }
 
-    if (cam_dsp.film_or_perform == 0)
+    if (japanese || cam_dsp.film_or_perform == 0)
     {
         rgb = cmr_menu_wrk.csr[0] == 0 ? 0x80 : 0x40;
 
@@ -1293,7 +1334,7 @@ void CameraDsp(short int pos_x, short int pos_y, u_char alp, u_char msg)
 
         PutSpriteYW(CAM_WTTL_00, CAM_WTTL_00, pos_x, pos_y, 0.0f, 0x808080, alp, 1.0f, 1.0f, 0, 0xff, 0, 0, 0);
     }
-    else
+    if (japanese || cam_dsp.film_or_perform != 0)
     {
         rgb = cmr_menu_wrk.csr[0] == 1 ? 0x80 : 0x40;
 
@@ -1302,7 +1343,7 @@ void CameraDsp(short int pos_x, short int pos_y, u_char alp, u_char msg)
         PutSpriteYW(CAM_WTTL_01, CAM_WTTL_01, pos_x, pos_y, 0.0f, 0x808080, alp, 1.0f, 1.0f, 0, 0xff, 0, 0, 0);
     }
 
-    if (cam_dsp.bonus_or_special == 0)
+    if (japanese || cam_dsp.bonus_or_special == 0)
     {
         rgb = cmr_menu_wrk.csr[0] == 2 ? 0x80 : 0x40;
 
@@ -1310,7 +1351,7 @@ void CameraDsp(short int pos_x, short int pos_y, u_char alp, u_char msg)
 
         PutSpriteYW(CAM_WTTL_02, CAM_WTTL_02, pos_x, pos_y, 0.0f, 0x808080, alp, 1.0f, 1.0f, 0, 0xff, 0, 0, 0);
     }
-    else
+    if (japanese || cam_dsp.bonus_or_special != 0)
     {
         rgb = cmr_menu_wrk.csr[0] == 3 ? 0x80 : 0x40;
 
@@ -1319,34 +1360,47 @@ void CameraDsp(short int pos_x, short int pos_y, u_char alp, u_char msg)
         PutSpriteYW(CAM_WTTL_03, CAM_WTTL_03, pos_x, pos_y, 0.0f, 0x808080, alp, 1.0f, 1.0f, 0, 0xff, 0, 0, 0);
     }
 
-    if (cam_dsp.film_or_perform == 0)
+    if (japanese || cam_dsp.film_or_perform == 0)
     {
         for (i = 0; i < 4; i++)
         {
-            if (poss_item[i+1] != 0)
+            const int count = poss_item[i + 1];
+            if (!count && !flm_exp_flg[i + 1])
+                continue;
+
+            const auto cell = CameraFilmCell(i, japanese);
+            const int color = count || japanese ? 0x808080 : 0x404040;
+            PutSpriteYW(CAM_FILM_00 + i, CAM_FILM_00 + i, pos_x, pos_y, 0.0f, japanese ? 0x808080 : 0x404040, alp, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
+            PutStringYW(IGMSG_ITEM_NAME, i + 1, pos_x + cell.x + (japanese ? 40 : 2),
+                        pos_y + cell.y + 2, color, alp, 0x2000, 0);
+            if (count || !japanese)
             {
-                PutSpriteYW(CAM_FILM_00 + i, CAM_FILM_00 + i, pos_x, pos_y, 0.0f, 0x404040, alp, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
-                PutStringYW(IGMSG_CAME_MSG, 0, flm_ax[i] + 351, flm_ay[i] + 155, 0x808080, alp, 0x2000, 0);
-                PutStringYW(IGMSG_ITEM_NAME, i+1, flm_ax[i] + 206, flm_ay[i] + 131, 0x808080, alp, 0x2000, 0);
-
-                PutNumberYW(3, poss_item[i+1], pos_x + 0x16f + flm_ax[i], pos_y + 0x97 + flm_ay[i], 1.0f, 1.0f, 0x808080, alp, 0x2000, 2, 1);
+                PutStringYW(IGMSG_CAME_MSG, 0, pos_x + cell.x + (japanese ? 132 : 147),
+                            pos_y + cell.y + (japanese ? 5 : 26), color, alp, 0x2000, 0);
+                PutNumberYW(3, count, pos_x + cell.x + (japanese ? 148 : 163),
+                            pos_y + cell.y + (japanese ? 1 : 22), japanese ? 0.92f : 1.0f,
+                            1.0f, color, alp, 0x2000, 2, 1);
             }
-            else if (flm_exp_flg[i+1] != 0)
-            {
-                PutSpriteYW(CAM_FILM_00 + i, CAM_FILM_00 + i, pos_x, pos_y, 0.0f, 0x404040, alp, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
-                PutStringYW(IGMSG_CAME_MSG, 0, flm_ax[i] + 351, flm_ay[i] + 155, 0x404040, alp, 0x2000, 0);
-                PutStringYW(IGMSG_ITEM_NAME, i+1, flm_ax[i] + 206, flm_ay[i] + 131, 0x404040, alp, 0x2000, 0);
-
-                PutNumberYW(3, poss_item[i+1], pos_x + 0x16f + flm_ax[i], pos_y + 0x97 + flm_ay[i], 1.0f, 1.0f, 0x404040, alp, 0x2000, 2, 1);
-
-                PolySquareYW(flm_ax[i] + 204, flm_ay[i] + 129, 197, 45, 0, (int)(alp / 2), 1.0f, 1.0f, 0x2000, 0, 0, 0);
-            }
+            if (!count)
+                PolySquareYW(pos_x + cell.x, pos_y + cell.y, cell.w, cell.h, 0,
+                             alp / 2, 1.0f, 1.0f, japanese ? 0x3000 : 0x2000, 0, 0, 0);
         }
     }
-    else
+    if (japanese || cam_dsp.film_or_perform != 0)
     {
         for (i = 0; i < 3; i++)
         {
+            if (japanese)
+            {
+                // The equivalent US sprite IDs also belong to other menus.
+                SPRT_DAT label = {0x2005b8a625422cc5, 1, u_short(111 + i * 38), 105, 38,
+                                  380 + pos_x, 118 + pos_y + i * power_row_step, 0x19000, alp};
+                DISP_SPRT display;
+                CopySprDToSpr(&display, &label);
+                DispSprD(&display);
+                continue;
+            }
+
             PutSpriteYW(CAM_FONT2_00 + i, CAM_FONT2_00 + i, pos_x, pos_y, 0.0f, 0x808080, alp, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
 
             if (*pow[i] == 3)
@@ -1377,17 +1431,17 @@ void CameraDsp(short int pos_x, short int pos_y, u_char alp, u_char msg)
 
         for (i = 0; i < 3; i++)
         {
-            PutSpriteYW(CAM_FONT_LV, CAM_FONT_LV, pos_x, pos_y + i * 32, 0.0f, 0x808080, alp, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
+            PutSpriteYW(CAM_FONT_LV, CAM_FONT_LV, pos_x, pos_y + i * power_row_step, 0.0f, 0x808080, alp, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
 
             for (j = 0; j < 4; j++)
             {
                 if (j < *pow[i] + 1)
                 {
-                    PutSpriteYW(CAM_BALL_ONN, CAM_BALL_ONN, pos_x + j * 22, pos_y + i * 32, 0.0f, 0x808080, alp, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
+                    PutSpriteYW(CAM_BALL_ONN, CAM_BALL_ONN, pos_x + j * 22, pos_y + i * power_row_step, 0.0f, 0x808080, alp, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
                 }
                 else
                 {
-                    PutSpriteYW(CAM_BALL_OFF, CAM_BALL_OFF, pos_x + j * 22, pos_y + i * 32, 0.0f, 0x808080, alp, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
+                    PutSpriteYW(CAM_BALL_OFF, CAM_BALL_OFF, pos_x + j * 22, pos_y + i * power_row_step, 0.0f, 0x808080, alp, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
                 }
             }
         }
@@ -1410,14 +1464,14 @@ void CameraDsp(short int pos_x, short int pos_y, u_char alp, u_char msg)
 
                     alpha = alp * SgSinf((cam_dsp.pow_flr[i][j] * 3.1415927f) / 20.0f);
 
-                    PutSpriteYW(CAM_BALL_ONN, CAM_BALL_ONN, pos_x + j * 22, pos_y + i * 32, 0.0f, 0x808080, alpha, 1.0f, 1.0f, 0, 0xff, 1, 1, 0);
-                    PutSpriteYW(CAM_BALL_FLR, CAM_BALL_FLR, pos_x + j * 22, pos_y + i * 32, 0.0f, 0x808080, alpha, 1.0f, 1.0f, 0, 0xff, 1, 1, 0);
+                    PutSpriteYW(CAM_BALL_ONN, CAM_BALL_ONN, pos_x + j * 22, pos_y + i * power_row_step, 0.0f, 0x808080, alpha, 1.0f, 1.0f, 0, 0xff, 1, 1, 0);
+                    PutSpriteYW(CAM_BALL_FLR, CAM_BALL_FLR, pos_x + j * 22, pos_y + i * power_row_step, 0.0f, 0x808080, alpha, 1.0f, 1.0f, 0, 0xff, 1, 1, 0);
                 }
             }
         }
     }
 
-    if (cam_dsp.bonus_or_special == 0)
+    if (japanese || cam_dsp.bonus_or_special == 0)
     {
         for (i = 0; i < 5; i++)
         {
@@ -1427,8 +1481,11 @@ void CameraDsp(short int pos_x, short int pos_y, u_char alp, u_char msg)
                 // do nothing ...
             break;
             case 1:
+            {
+                const auto cell = CameraAbilityCell(i, false, japanese);
                 PutSpriteYW(CAM_FONT_00 + i, CAM_FONT_00 + i, pos_x, pos_y, 0.0f, 0x404040, alp, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
-                PolySquareYW(i * 46 + 204, 271.0f, 44, 44, 0, (int)(alp / 2), 1.0f, 1.0f, 0xf000, 0, 0, 0);
+                PolySquareYW(pos_x + cell.x, pos_y + cell.y, cell.w, cell.h, 0, alp / 2, 1.0f, 1.0f, 0xf000, 0, 0, 0);
+            }
             break;
             case 2:
                 PutSpriteYW(CAM_FONT_00 + i, CAM_FONT_00 + i, pos_x, pos_y, 0.0f, 0x808080, flsh2.alpha, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
@@ -1454,7 +1511,7 @@ void CameraDsp(short int pos_x, short int pos_y, u_char alp, u_char msg)
             }
         }
     }
-    else
+    if (japanese || cam_dsp.bonus_or_special != 0)
     {
         for (i = 0; i < 5; i++)
         {
@@ -1464,9 +1521,11 @@ void CameraDsp(short int pos_x, short int pos_y, u_char alp, u_char msg)
                 // do nothing ...
             break;
             case 1:
+            {
+                const auto cell = CameraAbilityCell(i, true, japanese);
                 PutSpriteYW(CAM_FONT_05 + i, CAM_FONT_05 + i, pos_x, pos_y, 0.0f, 0x404040, alp, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
-
-                PolySquareYW(i * 46 + 204, 271.0f, 44, 44, 0, (int)(alp / 2), 1.0f, 1.0f, 0xa000, 0, 0, 0);
+                PolySquareYW(pos_x + cell.x, pos_y + cell.y, cell.w, cell.h, 0, alp / 2, 1.0f, 1.0f, 0xa000, 0, 0, 0);
+            }
             break;
             case 2:
                 PutSpriteYW(CAM_FONT_05 + i, CAM_FONT_05 + i, pos_x, pos_y, 0.0f, 0x808080, flsh2.alpha, 1.0f, 1.0f, 0, 0xff, 1, 0, 0);
@@ -1493,11 +1552,16 @@ void CameraDsp(short int pos_x, short int pos_y, u_char alp, u_char msg)
         }
     }
 
-    CmnCursol(32, cmr_menu_wrk.csr[0] * 50 + 120, 122, 42, flsh_alp[0], alp, 0xa000);
-    CmnCursol(flm_ax[cmr_menu_wrk.csr[1]] + 204, flm_ay[cmr_menu_wrk.csr[1]] + 129, 197, 45, flsh_alp[1], alp, 0x2000);
-    CmnCursol(204, cmr_menu_wrk.csr[2] * 32 + 129, 402, 30, flsh_alp[2], alp, 0xa000);
-    CmnCursol(cmr_menu_wrk.csr[3] * 46 + 204, 271, 44, 44, flsh_alp[3], alp, 0xa000);
-    CmnCursol(cmr_menu_wrk.csr[4] * 46 + 204, 271, 44, 44, flsh_alp[4], alp, 0xa000);
+    const auto cursor = [&](CameraCell cell, int index, int priority)
+    {
+        CmnCursol(pos_x + cell.x, pos_y + cell.y, cell.w, cell.h, flsh_alp[index], alp, priority);
+    };
+    cursor(CameraCommandCell(cmr_menu_wrk.csr[0], japanese), 0, 0xa000);
+    cursor(CameraFilmCell(cmr_menu_wrk.csr[1], japanese), 1, japanese ? 0x3000 : 0x2000);
+    cursor(japanese ? CameraCell{378, short(118 + cmr_menu_wrk.csr[2] * power_row_step), 236, 38}
+                    : CameraCell{204, short(129 + cmr_menu_wrk.csr[2] * power_row_step), 402, 30}, 2, 0xa000);
+    cursor(CameraAbilityCell(cmr_menu_wrk.csr[3], false, japanese), 3, 0xa000);
+    cursor(CameraAbilityCell(cmr_menu_wrk.csr[4], true, japanese), 4, 0xa000);
 
     DrawMessageBox(0x19000, pos_x + 23, pos_y + 340, 594.0f, 84.0f, alp);
 
@@ -1506,9 +1570,13 @@ void CameraDsp(short int pos_x, short int pos_y, u_char alp, u_char msg)
         if (msg != 0xff)
         {
             PutStringYW(IGMSG_CAME_MSG, msg, 318, 356, 0x808080, alp, 0x5000, 1);
-            PutStringYW(IGMSG_CAME_MSG, 2, 48, 385, 0x808080, alp, 0x5000, 0);
-
-            YesNoCrslOKR(0x14000, cmr_menu_wrk.csr[5] * 132 + 178, 380.0f, 0x808080, alp, 2.0f);
+            if (!japanese || !PutChineseChoiceMessageYW(IGMSG_CAME_MSG, 2, cmr_menu_wrk.csr[5],
+                                                       48, camera_choice_y, alp, 0x5000, japanese_choice_spacing))
+            {
+                const auto choice = CameraChoiceCell(cmr_menu_wrk.csr[5], japanese);
+                PutStringYW(IGMSG_CAME_MSG, 2, japanese ? 318 : 48, camera_choice_y, 0x808080, alp, 0x5000, japanese ? 1 : 0);
+                YesNoCrslOKR(0x14000, choice.x, choice.y, 0x808080, alp, japanese ? 1.5f : 2.0f);
+            }
         }
     }
     else

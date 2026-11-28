@@ -85,7 +85,7 @@ static char KanKinoSyogai(short int pos_x, short int pos_y);
 void MikuPan_ApplyJapaneseMenuSpriteLayout()
 {
 #ifndef BUILD_EU_VERSION
-    // The album and map assets in SLPS-25074 use these texture regions.
+    // Localized SLPS-25074 atlases use different texture regions.
     static const struct
     {
         int label;
@@ -111,6 +111,7 @@ void MikuPan_ApplyJapaneseMenuSpriteLayout()
         {SV_LNZ_SLT2, {0x2004f686213126b4, 1, 207, 116, 24, 0, 0, 61440, 128}, 0},
         {SV_LNZ_HDD3, {0x2004f686213126b4, 1, 231, 116, 24, 0, 0, 61440, 128}, 0},
         {OA_LD_FNT2_NEW, {0x2005a925e1412d09, 1, 76, 106, 26, 241, 49, 40960, 128}, 0},
+#include "japanese_menu_sprites.inc"
     };
     for (const auto& entry : layout)
     {

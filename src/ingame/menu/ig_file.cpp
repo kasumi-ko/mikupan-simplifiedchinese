@@ -12,11 +12,17 @@
 #include "ingame/menu/ig_menu.h"
 #include "ingame/menu/item.h"
 #include "main/glob.h"
+#include "mikupan/io/mikupan_file.h"
 #include "mikupan/mikupan_memory.h"
+#include "mikupan/rendering/mikupan_font_textures.h"
+#include "mikupan/rendering/mikupan_gpu.h"
 #include "os/eeiop/cdvd/eecdvd.h"
 #include "os/eeiop/eese.h"
 #include "os/pad.h"
 
+#include <algorithm>
+#include <SDL3/SDL.h>
+#include <span>
 #include <string.h>
 
 static void FileCntInit();
@@ -69,8 +75,81 @@ u_char file_kind[] = { 0,  2,  1, 0xff };
 #include "data/rel_dat.h" // RELATION_DAT rel_dat[];
 #include "data/rel_yaj.h" // RELATION_YAJI rel_yaj[];
 #include "data/caption_list.h" // CAPTION_LIST caption_list[];
-#include "mikupan/rendering/mikupan_font_textures.h"
 #include "data/caption_data.h" // CAPTION_DATA caption_data[];
+
+#ifndef BUILD_EU_VERSION
+#include "japanese_relationship_layout.inc"
+#endif
+
+static std::span<RELATION_COM> RelationshipComments()
+{
+#ifndef BUILD_EU_VERSION
+    if (MikuPan_IsJapaneseGameData())
+        return japanese_comments;
+#endif
+    return rel_com;
+}
+
+static std::span<RELATION_YAJI> RelationshipArrows()
+{
+#ifndef BUILD_EU_VERSION
+    if (MikuPan_IsJapaneseGameData())
+        return japanese_arrows;
+#endif
+    return rel_yaj;
+}
+
+static void DispRelationshipLabel(DISP_SPRT& sprite)
+{
+#ifndef BUILD_EU_VERSION
+    if (MikuPan_IsJapaneseGameData() && MikuPanFonts::UsesChineseGlyphGrid())
+    {
+        // Each section keeps the original sprite UVs within the Chinese sheet.
+        struct AtlasRegion { u_long tex0; int u, v; };
+        static constexpr AtlasRegion regions[] = {
+            {0x2004d405dd40a680, 384, 256}, // controls
+            {0x2004e426214126a1, 0,   256}, // relationship lines
+            {0x2004e845dd40a722, 256, 256}, // group names
+            {0x200530c62541a886, 0,     0}, // character statuses
+            {0x20053925a14129a9, 256, 384}, // chart title
+        };
+        const auto* region = std::find_if(std::begin(regions), std::end(regions),
+            [&](const AtlasRegion& candidate) { return candidate.tex0 == sprite.tex0; });
+        if (region != std::end(regions))
+        {
+            constexpr int texture_size = 1024;
+            // The renderer releases its registered textures at shutdown.
+            static const auto atlas = [] {
+                MikuPan_TextureInfo texture{};
+                char path[4096];
+                if (MikuPan_ResolveBasePath("resources/text/relationship-chart-zh-Hans.png",
+                                            path, sizeof(path)))
+                {
+                    SDL_Surface* surface = SDL_LoadPNG(path);
+                    if (surface && surface->w == texture_size && surface->h == texture_size)
+                        texture.id = MikuPan_GPUCreateTextureFromSurface(surface);
+                    SDL_DestroySurface(surface);
+                }
+                if (!texture.id)
+                    SDL_Log("MikuPan: could not load Simplified Chinese relationship chart labels");
+                return texture;
+            }();
+            if (atlas.id)
+            {
+                auto translated = sprite;
+                translated.u += region->u;
+                translated.v += region->v;
+                translated.tex0 = SCE_GS_SET_TEX0_1(0, 8, SCE_GS_PSMCT32, 9, 9, 1,
+                    SCE_GS_MODULATE, 0, SCE_GS_PSMCT32, 0, 0, 0);
+                translated.tex1 = SCE_GS_SET_TEX1_1(1, 0, SCE_GS_LINEAR, SCE_GS_LINEAR_MIPMAP_LINEAR, 0, 0, 0);
+                DispSprDTextureInfo(&translated, &atlas);
+                return;
+            }
+        }
+    }
+#endif
+    DispSprD(&sprite);
+}
 
 RELATION_CSR rel_csr = {0};
 static FILE_REL file_rel;
@@ -1793,17 +1872,15 @@ static char TateizFreeSpace()
         RelationDispDat(&rel_dat[i]);
     }
 
-    if (rel_csr.attribute & 0x1)
+    for (auto& arrow : RelationshipArrows())
     {
-        RelationDispMsg(rel_csr.now_dat);
-    }
-
-    for (i = 0; i < 81; i++)
-    {
-        RelDspYajirusi(&rel_yaj[i]);
+        RelDspYajirusi(&arrow);
     }
 
     RelDspComment();
+
+    if (rel_csr.attribute & 0x1)
+        RelationDispMsg(rel_csr.now_dat);
 
     if (ret_num == 1)
     {
@@ -1815,17 +1892,21 @@ static char TateizFreeSpace()
 
 void RelationMapInit()
 {
-    u_int i; // STAB say it's int but to make it work as an int the 29 and 32 must be made unsigned, so changing the type here is cleaner
-
-    for (i = 0; i < 29; i++)
+#ifndef BUILD_EU_VERSION
+    if (MikuPan_IsJapaneseGameData())
     {
-        rel_com[i].attribute = 0x2;
+        static_assert(std::size(japanese_people) == std::size(rel_dat));
+        static_assert(std::size(japanese_groups) == std::size(rel_prt));
+        std::copy(std::begin(japanese_people), std::end(japanese_people), rel_dat);
+        std::copy(std::begin(japanese_groups), std::end(japanese_groups), rel_prt);
     }
+#endif
 
-    for (i = 0; i < 32; i++)
-    {
-        rel_dat[i].attribute = 0x2;
-    }
+    for (auto& comment : RelationshipComments())
+        comment.attribute = 0x2;
+
+    for (auto& person : rel_dat)
+        person.attribute = 0x2;
 
     rel_csr.now_dat = rel_dat;
     rel_csr.now_prt = rel_dat[0].parent_p;
@@ -1840,6 +1921,7 @@ void RelationMapInit()
 
 void RelAtributeChg()
 {
+    const bool japanese = MikuPan_IsJapaneseGameData();
     u_int i; // STAB say int but for loop has unsigned logic => index literal is probably unsigned, but making the variable unsigned is cleaner
     u_int j; // STAB say int but for loop has unsigned logic => index literal is probably unsigned, but making the variable unsigned is cleaner
     int k;
@@ -1891,7 +1973,8 @@ void RelAtributeChg()
                     break;
                 }
             }
-            else if (poss_file[exp_table[i][j][0]][exp_table[i][j][1]] == 3)
+            // SLPS-25074 unlocks the assistant's second entry with file 1/31.
+            else if (poss_file[japanese && i == 5 && j == 0 ? 1 : exp_table[i][j][0]][exp_table[i][j][1]] == 3)
             {
                 rel_dat[i].attribute = 0;
                 rel_dat[rel_dat[i].dat_idx].msg_idx = rel_dat[i].msg_idx;
@@ -1914,67 +1997,75 @@ void RelAtributeChg()
 
 void RelComAtributeChg()
 {
-    u_int i; // STAB say int but for loop has unsigned logic => index literal is probably unsigned, but making the variable unsigned is cleaner
+    const auto comments = RelationshipComments();
+    const auto* requirements = hum_table;
+#ifndef BUILD_EU_VERSION
+    if (MikuPan_IsJapaneseGameData())
+    {
+        static_assert(std::size(japanese_comment_requirements) == std::size(japanese_comments));
+        requirements = japanese_comment_requirements;
+    }
+#endif
     u_int j; // STAB say int but for loop has unsigned logic => index literal is probably unsigned, but making the variable unsigned is cleaner
     int k;
 
-    for (i = 0; i < 29; i++)
+    for (size_t i = 0; i < comments.size(); ++i)
     {
         for (j = 0; j < 8; j++)
         {
-            if (hum_table[i][j][0] == -1)
+            if (requirements[i][j][0] == -1)
             {
                 break;
             }
 
-            if (hum_table[i][j][0] == -2)
+            if (requirements[i][j][0] == -2)
             {
-                rel_com[i].attribute = 0;
+                comments[i].attribute = 0;
 
-                while (hum_table[i][j][0] != -1)
+                while (requirements[i][j][0] != -1)
                 {
                     j++;
                 }
 
-                for (k = hum_table[i][j][1]; k > 0; k--)
+                for (k = requirements[i][j][1]; k > 0; k--)
                 {
-                    rel_com[i - k].attribute = 1;
+                    comments[i - k].attribute = 1;
                 }
 
                 break;
             }
 
-            if (hum_table[i][j][0] == -4)
+            if (requirements[i][j][0] == -4)
             {
-                if (hum_table[i][j][1] <= ingame_wrk.msn_no || ingame_wrk.clear_count != 0)
+                if (requirements[i][j][1] <= ingame_wrk.msn_no || ingame_wrk.clear_count != 0)
                 {
-                    rel_com[i].attribute = 0;
+                    comments[i].attribute = 0;
 
-                    while (hum_table[i][j][0] != -1)
+                    while (requirements[i][j][0] != -1)
                     {
                         j++;
                     }
 
-                    for (k = hum_table[i][j][1]; k > 0; k--)
+                    for (k = requirements[i][j][1]; k > 0; k--)
                     {
-                        rel_com[i - k].attribute = 1;
+                        comments[i - k].attribute = 1;
                     }
 
                     break;
                 }
             }
-            else if (poss_file[hum_table[i][j][0]][hum_table[i][j][1]] == 3)
+            else if (poss_file[requirements[i][j][0]][requirements[i][j][1]] == 3)
             {
-                rel_com[i].attribute = 0;
+                comments[i].attribute = 0;
 
-                while (hum_table[i][j][0] != -1)
+                while (requirements[i][j][0] != -1)
                 {
                     j++;
                 }
 
-                for (k = hum_table[i][j][1]; k > 0; k--)
+                for (k = requirements[i][j][1]; k > 0; k--)
                 {
-                    rel_com[i - k].attribute = 1;
+                    comments[i - k].attribute = 1;
                 }
 
                 break;
@@ -2312,19 +2403,12 @@ void RelationDispDat(RELATION_DAT *r_dat)
         DispSprD(&ds);
 
         ssd = spr_dat[r_dat->plate_p->tbl_no];
-
-        ssd.x += r_dat->plate_p->x;
-        ssd.y += r_dat->plate_p->y;
-
+        ssd.x += r_dat->plate_p->x + rel_csr.offx;
+        ssd.y += r_dat->plate_p->y + rel_csr.offy;
         ssd.u = r_dat->plate_p->exp_u;
         ssd.v = r_dat->plate_p->exp_v;
-
-        ssd.x += rel_csr.offx;
-        ssd.y += rel_csr.offy;
-
         CopySprDToSpr(&ds, &ssd);
-
-        DispSprD(&ds);
+        DispRelationshipLabel(ds);
     }
 }
 
@@ -2341,14 +2425,15 @@ void RelDspYajirusi(RELATION_YAJI *r_yaj)
     float f14;
     float f15;
 
-    if (rel_com[r_yaj->com_idx].attribute == 0x2)
+    const auto& comment = RelationshipComments()[r_yaj->com_idx];
+    if (comment.attribute == 0x2)
     {
         return;
     }
 
     if (
-        rel_csr.now_dat == rel_dat + rel_com[r_yaj->com_idx].dat_idx[0] ||
-        rel_csr.now_dat == rel_dat + rel_com[r_yaj->com_idx].dat_idx[1]
+        (comment.dat_idx[0] >= 0 && rel_csr.now_dat == rel_dat + comment.dat_idx[0]) ||
+        (comment.dat_idx[1] >= 0 && rel_csr.now_dat == rel_dat + comment.dat_idx[1])
     )
     {
         yaj_r = 0x80;
@@ -2442,114 +2527,39 @@ void RelDspYajirusi(RELATION_YAJI *r_yaj)
 
 void RelDspComment()
 {
-    int i;
-    int j;
-    int l;
-    int disp_flg;
-    SPRT_DAT ssd;
-    DISP_SPRT ds;
-
-    l = 0;
-
-    disp_flg = 0;
-
-    for (i = 0; i < 29U; i++)
+    const bool japanese = MikuPan_IsJapaneseGameData();
+    const auto comments = RelationshipComments();
+    for (size_t i = 0; i < comments.size(); ++i)
     {
-        if (rel_com[i].attribute != 1 && rel_com[i].attribute != 2)
+        const auto& comment = comments[i];
+        if (comment.attribute == 1 || comment.attribute == 2)
+            continue;
+
+        const bool selected = std::any_of(std::begin(comment.dat_idx), std::end(comment.dat_idx),
+            [](int person) { return person >= 0 && rel_csr.now_dat == rel_dat + person; });
+        for (size_t label = 0; label < std::size(comment.ssd_p) && comment.ssd_p[label]; ++label)
         {
-            for (j = 0; j < 2; j++)
-            {
-                if (rel_com[i].dat_idx[j] != -1 && rel_csr.now_dat == rel_dat + rel_com[i].dat_idx[j])
-                {
-                    disp_flg = 1;
-                }
-            }
-
-            if (disp_flg == 1)
-            {
-                while (rel_com[i].ssd_p[l] != NULL)
-                {
-                    ssd = *rel_com[i].ssd_p[l];
-
+            auto sprite = *comment.ssd_p[label];
 #ifdef BUILD_EU_VERSION
-                    ssd.x += rel_csr.offx + rel_com_pos_adj[i][sys_wrk.language][0];
-                    ssd.y += rel_csr.offy + rel_com_pos_adj[i][sys_wrk.language][1];
+            sprite.x += rel_csr.offx + rel_com_pos_adj[i][sys_wrk.language][0];
+            sprite.y += rel_csr.offy + rel_com_pos_adj[i][sys_wrk.language][1];
 #else
-                    ssd.x += rel_csr.offx;
-                    ssd.y += rel_csr.offy;
+            sprite.x += rel_csr.offx;
+            sprite.y += rel_csr.offy;
 #endif
-
-                    ssd.alpha = 0x80;
-
-                    ssd.pri = 0x18000;
-
-                    CopySprDToSpr(&ds, &ssd);
-
-                    if (flip_table[rel_com[i].flp_num[l]] != 0)
-                    {
-                        ds.crx = ssd.x;
-                        ds.cry = ssd.y;
-                        ds.rot = 90.0f;
-                    }
-
-                    DispSprD(&ds);
-
-                    l++;
-
-                    if (l >= 4U)
-                    {
-                        break;
-                    }
-                }
-
-                l = 0;
-            }
-            else
+            sprite.alpha = selected ? 0x80 : 0x30;
+            sprite.pri = selected ? 0x18000 : 0x19000;
+            DISP_SPRT display;
+            CopySprDToSpr(&display, &sprite);
+            if (!selected)
+                display.r = display.g = display.b = 0xff;
+            if (!japanese && flip_table[comment.flp_num[label]] != 0)
             {
-
-                while (rel_com[i].ssd_p[l] != NULL)
-                {
-                    ssd = *rel_com[i].ssd_p[l];
-
-#ifdef BUILD_EU_VERSION
-                    ssd.x += rel_csr.offx + rel_com_pos_adj[i][sys_wrk.language][0];
-                    ssd.y += rel_csr.offy + rel_com_pos_adj[i][sys_wrk.language][1];
-#else
-                    ssd.x += rel_csr.offx;
-                    ssd.y += rel_csr.offy;
-#endif
-
-                    ssd.alpha = 0x30;
-
-                    ssd.pri = 0x19000;
-
-                    CopySprDToSpr(&ds, &ssd);
-
-                    ds.r = 0xff;
-                    ds.g = 0xff;
-                    ds.b = 0xff;
-
-                    if (flip_table[rel_com[i].flp_num[l]] != 0)
-                    {
-                        ds.crx = ssd.x;
-                        ds.cry = ssd.y;
-                        ds.rot = 90.0f;
-                    }
-
-                    DispSprD(&ds);
-
-                    l++;
-
-                    if (l >= 4U)
-                    {
-                        break;
-                    }
-                }
-
-                l = 0;
+                display.crx = sprite.x;
+                display.cry = sprite.y;
+                display.rot = 90.0f;
             }
-
-            disp_flg = 0;
+            DispRelationshipLabel(display);
         }
     }
 }
@@ -2655,9 +2665,10 @@ void RelDspPrt(RELATION_PRT *r_prt)
 
 void RelDspBackGrd()
 {
+    const bool japanese = MikuPan_IsJapaneseGameData();
+    const bool show_controls = !japanese || !(rel_csr.attribute & 0x1);
     int i;
     int j;
-    u_char alp_rate;
     SPRT_DAT ssd;
     SPRT_DAT ssd_fnt = {
         .tex0 = SCE_GS_SET_TEX0_1(0x2944, 4, SCE_GS_PSMT4, 8, 7, 1, SCE_GS_MODULATE, 0x2984, SCE_GS_PSMCT32, 0, 0, 1),
@@ -2719,21 +2730,31 @@ void RelDspBackGrd()
 
     alpha = 0x64;
 
-    ssd = spr_dat[REL_TITLE_00];
-
-    ssd.y += rel_csr.offy;
-
-    CopySprDToSpr(&ds, &ssd);
-
-    DispSprD(&ds);
-
-    ssd = spr_dat[REL_TITLE_01];
-
-    ssd.y += rel_csr.offy;
-
-    CopySprDToSpr(&ds, &ssd);
-
-    DispSprD(&ds);
+    if (japanese)
+    {
+        constexpr auto heading = SCE_GS_SET_TEX0_1(0x29a9, 4, SCE_GS_PSMT4, 8, 6, 1, SCE_GS_MODULATE, 0x29c9, SCE_GS_PSMCT32, 0, 0, 1);
+        constexpr auto instructions = SCE_GS_SET_TEX0_1(0x2680, 2, SCE_GS_PSMT4, 7, 7, 1, SCE_GS_MODULATE, 0x26a0, SCE_GS_PSMCT32, 0, 0, 1);
+        constexpr auto group_names = SCE_GS_SET_TEX0_1(0x2722, 2, SCE_GS_PSMT4, 7, 7, 1, SCE_GS_MODULATE, 0x2742, SCE_GS_PSMCT32, 0, 0, 1);
+        ssd = {heading, 1, 11, 246, 50, 190, 32 + rel_csr.offy, 0x1e000, 0x80};
+        CopySprDToSpr(&ds, &ssd);
+        DispRelationshipLabel(ds);
+        ssd_fnt = {instructions, 1, 1, 126, 95, 500, 122, 0x1e000, 0x80};
+        ssd_sakka = {group_names, 1, 1, 87, 25, 25, 97, 0x1e000, 0x80};
+        ssd_himuro = {group_names, 1, 26, 87, 25, 26, 337, 0x1e000, 0x80};
+        ssd_hina = {group_names, 1, 51, 87, 25, 512, 375, 0x1e000, 0x80};
+        ssd_muna = {group_names, 1, 76, 87, 25, 27, 664, 0x1e000, 0x80};
+    }
+    else
+    {
+        ssd = spr_dat[REL_TITLE_00];
+        ssd.y += rel_csr.offy;
+        CopySprDToSpr(&ds, &ssd);
+        DispSprD(&ds);
+        ssd = spr_dat[REL_TITLE_01];
+        ssd.y += rel_csr.offy;
+        CopySprDToSpr(&ds, &ssd);
+        DispSprD(&ds);
+    }
 
     SetSprFile(MikuPan_GetHostAddress(EVENT_ADDRESS));
 
@@ -2749,6 +2770,20 @@ void RelDspBackGrd()
             ssd.y = ssd.h * i;
             ssd.y += rel_csr.offy - 50;
 
+            if (japanese)
+            {
+                if (ssd.x >= 640 || ssd.y >= 448 || ssd.y + ssd.h <= 0)
+                    continue;
+                if (ssd.y < 0)
+                {
+                    ssd.v -= ssd.y;
+                    ssd.h += ssd.y;
+                    ssd.y = 0;
+                }
+                ssd.w = std::min<int>(ssd.w, 640 - ssd.x);
+                ssd.h = std::min<int>(ssd.h, 448 - ssd.y);
+            }
+
             CopySprDToSpr(&ds, &ssd);
 
             DispSprD(&ds);
@@ -2757,107 +2792,57 @@ void RelDspBackGrd()
 
     PutSpriteYW(MAP_BACK_MASK1, MAP_BACK_MASK4, 0.0f, 0.0f, 0.0f, 0x808080, 80.0f, 2.6890757f, 2.698795f, 1, 0xff, 1, 0, 0);
 
-    ssd = ssd_sakka;
-
-    ssd.y += rel_csr.offy;
-
-    CopySprDToSpr(&ds, &ssd);
-
-    ds.tex1 = SCE_GS_SET_TEX1_1(1, 0, SCE_GS_LINEAR, SCE_GS_LINEAR_MIPMAP_LINEAR, 0, 0, 0);
-
-    DispSprD(&ds);
-
-    if (ingame_wrk.msn_no > 1)
-    {
-        ssd = ssd_muna;
-
-        ssd.y += rel_csr.offy;
-
-        CopySprDToSpr(&ds, &ssd);
-
+    const auto label = [&](SPRT_DAT sprite) {
+        sprite.y += rel_csr.offy;
+        CopySprDToSpr(&ds, &sprite);
         ds.tex1 = SCE_GS_SET_TEX1_1(1, 0, SCE_GS_LINEAR, SCE_GS_LINEAR_MIPMAP_LINEAR, 0, 0, 0);
+        DispRelationshipLabel(ds);
+    };
+    label(ssd_sakka);
+    if (ingame_wrk.msn_no > 1 || (japanese && ingame_wrk.clear_count != 0))
+        label(ssd_muna);
+    label(ssd_himuro);
+    label(ssd_hina);
 
-        DispSprD(&ds);
-    }
-
-    ssd = ssd_himuro;
-
-    ssd.y += rel_csr.offy;
-
-    CopySprDToSpr(&ds, &ssd);
-
-    ds.tex1 = SCE_GS_SET_TEX1_1(1, 0, SCE_GS_LINEAR, SCE_GS_LINEAR_MIPMAP_LINEAR, 0, 0, 0);
-
-    DispSprD(&ds);
-
-    ssd = ssd_hina;
-
-    ssd.y += rel_csr.offy;
-
-    CopySprDToSpr(&ds, &ssd);
-
-    ds.tex1 = SCE_GS_SET_TEX1_1(1, 0, SCE_GS_LINEAR, SCE_GS_LINEAR_MIPMAP_LINEAR, 0, 0, 0);
-
-    DispSprD(&ds);
-
+    if (show_controls)
+    {
 #ifdef BUILD_EU_VERSION
-    SetSquareS(0x1e000, 100.0f, rel_csr.offy - 0x80, 310.0f, rel_csr.offy - 13, 0x40, 0x40, 0x40, 0x40);
+        SetSquareS(0x1e000, 100.0f, rel_csr.offy - 0x80, 310.0f, rel_csr.offy - 13, 0x40, 0x40, 0x40, 0x40);
 #else
-    SetSquareS(0x1e000, 100.0f, rel_csr.offy - 0x80, 300.0f, rel_csr.offy - 13, 0x40, 0x40, 0x40, 0x40);
+        SetSquareS(0x1e000, 100.0f, rel_csr.offy - (japanese ? 0x63 : 0x80), 300.0f, rel_csr.offy - 13, 0x40, 0x40, 0x40, 0x40);
 #endif
 
-    ssd_fnt.w += 30;
+        SetSprFile(MikuPan_GetHostAddress(SPRT_ADDRESS));
+        if (!japanese)
+        {
+            ssd_fnt.w += 30;
+            ssd_fnt.x -= 18;
+        }
+        label(ssd_fnt);
+        SetSprFile(MikuPan_GetHostAddress(SPRT_ADDRESS_2));
 
-    ssd_fnt.x += -18;
-    ssd_fnt.y += rel_csr.offy;
+        const auto control_icon = [&](int id) {
+            auto sprite = spr_dat[id];
+            sprite.x -= 45;
+            sprite.y += japanese ? 100 : 97;
+            sprite.pri = 0x14000;
+            label(sprite);
+        };
+        DrawButtonTex(0x14000, 3, spr_dat[MAP_DIRECTION].x - 45,
+                      spr_dat[MAP_DIRECTION].y + rel_csr.offy + (japanese ? 75 : 69), 0x64);
+        control_icon(MAP_DIRECTION);
+        control_icon(MAP_FNT_L1R1);
 
-    CopySprDToSpr(&ds, &ssd_fnt);
-
-    DispSprD(&ds);
-
-    SetSprFile(MikuPan_GetHostAddress(SPRT_ADDRESS_2));
-
-    DrawButtonTex(0x14000, 3, spr_dat[MAP_DIRECTION].x - 45, spr_dat[MAP_DIRECTION].y + rel_csr.offy + 69, 0x64);
-
-    ssd = spr_dat[MAP_DIRECTION];
-
-    ssd.x += -45;
-    ssd.y += rel_csr.offy + 97;
-
-    ssd.pri = 0x14000;
-
-    CopySprDToSpr(&ds, &ssd);
-
-    DispSprD(&ds);
-
-    ssd = spr_dat[MAP_FNT_L1R1];
-
-    ssd.x += -45;
-    ssd.y += rel_csr.offy + 97;
-
-    ssd.pri = 0x14000;
-
-    CopySprDToSpr(&ds, &ssd);
-
-    DispSprD(&ds);
-
-    if (!MikuPanFonts::UsesChineseGlyphGrid())
-    {
-        DrawButtonTex(0x14000, 1, spr_dat[MAP_DIRECTION].x - 45, spr_dat[MAP_DIRECTION].y + rel_csr.offy + 43, 0x64);
-
-        ssd = spr_dat[MNU_GRB_CAP_EXIT];
-
-        CopySprDToSpr(&ds, &ssd);
-
-        ds.pri = 0x14000;
-        ds.z = 0xfffffff - ds.pri;
-
-        ds.alpha = alpha;
-
-        ds.x = 474.0f;
-        ds.y = rel_csr.offy + 96;
-
-        DispSprD(&ds);
+        if (!japanese)
+        {
+            DrawButtonTex(0x14000, 1, spr_dat[MAP_DIRECTION].x - 45, spr_dat[MAP_DIRECTION].y + rel_csr.offy + 43, 0x64);
+            ssd = spr_dat[MNU_GRB_CAP_EXIT];
+            ssd.pri = 0x14000;
+            ssd.alpha = alpha;
+            ssd.x = 474;
+            ssd.y = 96;
+            label(ssd);
+        }
     }
 
     DspMenuTitle(yw2d.io_x[1], yw2d.io_y[1] + rel_csr.offy - 22.0f, 128.0f, 30, 4);
@@ -2867,13 +2852,18 @@ void RelDspBackGrd()
 
 void RelationDispMsg(RELATION_DAT *r_dat)
 {
+    const auto* character_messages = name_rbl;
+#ifndef BUILD_EU_VERSION
+    if (MikuPan_IsJapaneseGameData())
+        character_messages = japanese_character_messages;
+#endif
     SPRT_SDAT ssd;
     SPRT_SDAT ssd2;
     SPRT_SDAT ssd3;
     SPRT_SDAT ssd4;
     DISP_SQAR dsq;
     DISP_STR ds;
-    STR_DAT spev_str;
+    STR_DAT spev_str{};
     short int dsp_offy;
 
     if (r_dat->dsp_pos != 1)
@@ -2885,7 +2875,7 @@ void RelationDispMsg(RELATION_DAT *r_dat)
         dsp_offy = 230;
     }
 
-    spev_str.str = (u_char *)GetIngameMSGAddr(HUMAN_NAME_TBL, name_rbl[r_dat->msg_idx][0]);
+    spev_str.str = (u_char *)GetIngameMSGAddr(HUMAN_NAME_TBL, character_messages[r_dat->msg_idx][0]);
     spev_str.pos_x = 80;
     spev_str.pos_y = dsp_offy + 30;
     spev_str.r = 0;
@@ -2898,7 +2888,7 @@ void RelationDispMsg(RELATION_DAT *r_dat)
 
     SetMessageV2(&ds);
 
-    spev_str.str = (u_char *)GetIngameMSGAddr(HUMAN_MSG_TBL, name_rbl[r_dat->msg_idx][1]);
+    spev_str.str = (u_char *)GetIngameMSGAddr(HUMAN_MSG_TBL, character_messages[r_dat->msg_idx][1]);
     spev_str.pos_x = 240;
     spev_str.pos_y = dsp_offy + 50;
     spev_str.r = 0;
@@ -2917,7 +2907,8 @@ void RelationDispMsg(RELATION_DAT *r_dat)
         if (r_dat->tm2_id != -1)
         {
             rel_csr.load_id = LoadReq(r_dat->tm2_id, LOAD_ADDRESS);
-            rel_csr.mode = 1;
+            if (rel_csr.load_id >= 0)
+                rel_csr.mode = 1;
         }
     break;
     case 1:
@@ -2943,8 +2934,8 @@ void RelationDispMsg(RELATION_DAT *r_dat)
     Sheet(814, 20, dsp_offy + 20, 600, 180, 0xf, 0x80);
     Fuchidori(816, 20, dsp_offy + 20, 600, 180, 0xe, 0x80);
 #else
-    Sheet(813, 20, dsp_offy + 20, 600, 180, 0xf, 0x80);
-    Fuchidori(815, 20, dsp_offy + 20, 600, 180, 0xe, 0x80);
+    Sheet(GLST_PHT_DAI, 20, dsp_offy + 20, 600, 180, 0xf, 0x80);
+    Fuchidori(GLST_FUTI1, 20, dsp_offy + 20, 600, 180, 0xe, 0x80);
 #endif
 
     SetSprFile(MikuPan_GetHostAddress(SPRT_ADDRESS));
