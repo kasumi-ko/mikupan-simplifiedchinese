@@ -8,6 +8,7 @@
 #include "mikupan/io/mikupan_controller.h"
 #include "mikupan/rendering/mikupan_font_textures.h"
 
+#include <algorithm>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -52,6 +53,8 @@ int *mes_ex_nums[] = { &mc_ctrl.port_mes };
 static MES_DAT msdat;
 static MESV22 mesv22;
 static int message_font_bank = -1;
+static constexpr float message_screen_bottom = 448.0f;
+static float lower_message_box_top = message_screen_bottom;
 
 // The Chinese atlas keeps the first four rows of bank 1 at 24 pixels.
 // Its Han character rows use 25 cells of 20 pixels, including banks 2-5.
@@ -100,7 +103,7 @@ static int MessageGlyphWidth(int bank, int glyph)
     return glyph >= 0 && glyph < 210 ? widths[bank - 1][glyph] : latin_cell_size;
 }
 
-void DrawNativeVoiceCaptionLine(const char* line, int y)
+void DrawNativeVoiceCaptionLine(const char* line, float y)
 {
     struct Glyph
     {
@@ -135,7 +138,7 @@ void DrawNativeVoiceCaptionLine(const char* line, int y)
         glyphs[count++] = {
             {float(glyph % columns * cell), float(atlas_y + glyph / columns * cell),
                 float(cell), float(cell)},
-            {width, float(y), size, size},
+            {width, y, size, size},
             MikuPan_GetCurrentFontTexture()
         };
         width += advance;
@@ -153,12 +156,23 @@ void DrawNativeVoiceCaptionLine(const char* line, int y)
             MikuPan_RenderSprite(glyph.source, target, color, color, color, 0x80, glyph.texture);
         }
     };
-    draw(2, 2, 0);
-    draw(-1, 0, 0);
-    draw(1, 0, 0);
-    draw(0, -1, 0);
-    draw(0, 1, 0);
+    draw(2, 3, 0);
+    draw(-1.5f, 0, 0);
+    draw(1.5f, 0, 0);
+    draw(0, -1.5f, 0);
+    draw(0, 1.5f, 0);
     draw(0, 0, 0xff);
+}
+
+float GetLowerMessageBoxTop()
+{
+    return lower_message_box_top;
+}
+
+static void NoteMessageBox(float top, float bottom)
+{
+    if (sys_wrk.game_mode == GAME_MODE_INGAME && bottom > 320.0f)
+        lower_message_box_top = std::min(lower_message_box_top, top);
 }
 
 static void SetMesFrame2(int pri, float bx, float by, float sw, float sh);
@@ -240,6 +254,7 @@ void InitMessage()
 
 void InitMessageEF()
 {
+    lower_message_box_top = message_screen_bottom;
     if (mesv22.pass != 0)
     {
         mesv22.pass = 0;
@@ -313,6 +328,7 @@ static void SetMesFrame2(int pri, float bx, float by, float sw, float sh)
 
     xx = bx - 320.0f;
     yy = by - 224.0f;
+    NoteMessageBox(by, by + sh + 35.0f);
 
     SetSquareS(pri, xx       , yy       , xx + sw + 14.0f, yy + sh + 35.0f, 0x00, 0x00, 0x00, 0x80);
     SetSquareS(pri, xx + 1.0f, yy + 1.0f, xx + sw + 13.0f, yy + sh + 33.0f, 0x40, 0x40, 0x40, 0x80);
@@ -2654,6 +2670,8 @@ void DrawMessageBox(u_int pri, float x, float y, float sizew, float sizeh, u_cha
     p1h = 14.0f;
 
     ReqPlayerStop(10);
+    if (alp != 0)
+        NoteMessageBox(y, y + sizeh);
 
     px[0] = x;
     py[0] = y;

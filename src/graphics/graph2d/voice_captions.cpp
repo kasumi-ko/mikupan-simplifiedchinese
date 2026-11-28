@@ -70,9 +70,10 @@ void DrawVoiceCaption()
         ? FindVoiceCaption(file, int64_t{count} * 3584 * 1000 / 48000) : nullptr;
 
     const bool tape = caption && file >= AVT000_OGATA0_STR && file <= AVT007_TAKAMINE1_STR;
-    const int dialogue_baseline = MesStatusCheck() != 0 ? 315 : 400;
-    int y = tape ? (caption->second ? 382 : 372) : dialogue_baseline;
-    constexpr int line_height = 23;
+    const float preferred_y = tape ? (caption->second ? 382.0f : 372.0f) : 400.0f;
+    // Reserve room for a 24-pixel glyph, the shadow and a gap above the native box.
+    float y = std::min(preferred_y, GetLowerMessageBoxTop() - 33.0f);
+    constexpr float line_height = 28.0f;
     MikuPan_BeginLate2DOverlayQueue();
     if (caption)
     {

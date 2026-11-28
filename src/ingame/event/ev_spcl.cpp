@@ -7,6 +7,12 @@
 #include "mikupan/mikupan_rng.h"
 #include "mikupan/mikupan_config.h"
 #include "mikupan/io/mikupan_controller.h"
+#include "mikupan/io/mikupan_file_c.h"
+#include "mikupan/rendering/mikupan_font_textures.h"
+#include "mikupan/rendering/mikupan_gpu.h"
+#include "mikupan/rendering/mikupan_renderer.h"
+
+#include <SDL3/SDL.h>
 
 #include <cstdio>
 
@@ -846,6 +852,72 @@ void SimpleDispSprtLNR(SPRT_SDAT *ssd, int64_t addr, int sp_no, SPRT_SROT *srot,
     }
 
     DispSprD(&ds);
+}
+
+enum class PuzzleLabelSheet { Star, StarMoves, Dial, Doll, Statue, Candle, Shrine };
+
+static void DispPuzzleLabel(SPRT_SDAT* sprite, int tex_index, u_char fade, PuzzleLabelSheet sheet)
+{
+    if (MikuPan_IsJapaneseGameData() && MikuPanFonts::UsesChineseGlyphGrid())
+    {
+        static const auto atlas = [] {
+            MikuPan_TextureInfo texture{};
+            char path[4096];
+            if (MikuPan_ResolveBasePath("resources/text/puzzle-labels-zh-Hans.png", path, sizeof(path)))
+            {
+                SDL_Surface* surface = SDL_LoadPNG(path);
+                if (surface && surface->w == 512 && surface->h == 512)
+                    texture.id = MikuPan_GPUCreateTextureFromSurface(surface);
+                SDL_DestroySurface(surface);
+            }
+            if (!texture.id)
+                SDL_Log("MikuPan: could not load Simplified Chinese puzzle labels");
+            return texture;
+        }();
+        if (atlas.id)
+        {
+            // The doll sprite contains controller artwork to the left of its text.
+            struct Offset { int u, v, icon_width; };
+            static constexpr Offset offsets[] = {
+                {  0,   0,  0}, // Star
+                {  0, 132,  0}, // StarMoves
+                {256,   0,  0}, // Dial
+                {255, -46, 43}, // Doll
+                {256, 216,  0}, // Statue
+                {-322, 97,  0}, // Candle
+                {  0, 380,  0}, // Shrine
+            };
+            const auto& offset = offsets[static_cast<int>(sheet)];
+            if (offset.icon_width)
+            {
+                auto icons = *sprite;
+                icons.w = offset.icon_width;
+                icons.h = 32;
+                SimpleDispSprt(&icons, MikuPan_GetHostAddress(EVENT_ADDRESS), tex_index,
+                               nullptr, nullptr, fade);
+            }
+            SPRT_DAT data{};
+            data.tex0 = SCE_GS_SET_TEX0_1(0, 8, SCE_GS_PSMCT32, 9, 9, 1,
+                SCE_GS_MODULATE, 0, SCE_GS_PSMCT32, 0, 0, 0);
+            data.u = sprite->u + offset.u + offset.icon_width;
+            data.v = sprite->v + offset.v;
+            data.w = sprite->w - offset.icon_width;
+            data.h = sprite->h;
+            data.x = sprite->x + offset.icon_width;
+            data.y = sprite->y;
+            data.pri = sprite->pri << 12;
+            data.alpha = sprite->alp * fade / 100;
+            DISP_SPRT draw{};
+            CopyEffectSprDToSpr(&draw, &data);
+            draw.tex1 = SCE_GS_SET_TEX1_1(1, 0, SCE_GS_LINEAR, SCE_GS_LINEAR_MIPMAP_LINEAR, 0, 0, 0);
+            DispSprDTextureInfo(&draw, &atlas);
+            return;
+        }
+    }
+    if (sheet == PuzzleLabelSheet::Shrine)
+        SimpleDispSprtLNR(sprite, MikuPan_GetHostAddress(EVENT_ADDRESS), tex_index, nullptr, nullptr, fade, 0);
+    else
+        SimpleDispSprt(sprite, MikuPan_GetHostAddress(EVENT_ADDRESS), tex_index, nullptr, nullptr, fade);
 }
 
 void SimpleDispSprtDatCopy(SPRT_SDAT *org, SPRT_SDAT *cpy)
@@ -2344,33 +2416,25 @@ void StarPuzzleDisp()
         alp_rate = 0;
     }
 
-    SimpleDispSprt(&spev00_sp_cpf[0], MikuPan_GetHostAddress(EVENT_ADDRESS), 18, NULL, NULL, alp_rate);
-    SimpleDispSprt(&spev00_sp_cpf[2], MikuPan_GetHostAddress(EVENT_ADDRESS), 18, NULL, NULL, alp_rate);
+    DispPuzzleLabel(&spev00_sp_cpf[0], 18, alp_rate, PuzzleLabelSheet::Star);
+    DispPuzzleLabel(&spev00_sp_cpf[2], 18, alp_rate, PuzzleLabelSheet::Star);
 #ifdef BUILD_EU_VERSION
     SimpleDispSprt(&spev00_sp_cpf[4], MikuPan_GetHostAddress(EVENT_ADDRESS), 18, NULL, NULL, alp_rate);
 #endif
 
     if (star_pzl_wrk.count < star_pzl_dat[star_pzl_wrk.pzl_no].move_num)
     {
-        SimpleDispSprt(&spev00_sp_cpf[1], MikuPan_GetHostAddress(EVENT_ADDRESS), 18, NULL, NULL, alp_rate);
+        DispPuzzleLabel(&spev00_sp_cpf[1], 18, alp_rate, PuzzleLabelSheet::Star);
     }
     else
     {
-        SimpleDispSprt(&spev00_sp_cpf[3], MikuPan_GetHostAddress(EVENT_ADDRESS), 18, NULL, NULL, alp_rate);
+        DispPuzzleLabel(&spev00_sp_cpf[3], 18, alp_rate, PuzzleLabelSheet::Star);
     }
 
-    if (star_pzl_wrk.count != 0)
-    {
-        SimpleDispSprt(&spev00_sp_cpf2[8], MikuPan_GetHostAddress(EVENT_ADDRESS), 20, NULL, NULL, alp_rate);
-        SimpleDispSprt(&spev00_sp_cpf2[0], MikuPan_GetHostAddress(EVENT_ADDRESS), 20, NULL, NULL, alp_rate);
-        SimpleDispSprt(&spev00_sp_cpf2[star_pzl_wrk.count], MikuPan_GetHostAddress(EVENT_ADDRESS), 20, NULL, NULL, alp_rate);
-    }
-    else
-    {
-        SimpleDispSprt(&spev00_sp_cpf2[8], MikuPan_GetHostAddress(EVENT_ADDRESS), 20, NULL, NULL, alp_rate);
-        SimpleDispSprt(&spev00_sp_cpf2[0], MikuPan_GetHostAddress(EVENT_ADDRESS), 20, NULL, NULL, alp_rate);
-        SimpleDispSprt(&spev00_sp_cpf2[1], MikuPan_GetHostAddress(EVENT_ADDRESS), 20, NULL, NULL, alp_rate);
-    }
+    const int moves = star_pzl_wrk.count != 0 ? star_pzl_wrk.count : 1;
+    DispPuzzleLabel(&spev00_sp_cpf2[8], 20, alp_rate, PuzzleLabelSheet::StarMoves);
+    DispPuzzleLabel(&spev00_sp_cpf2[0], 20, alp_rate, PuzzleLabelSheet::StarMoves);
+    DispPuzzleLabel(&spev00_sp_cpf2[moves], 20, alp_rate, PuzzleLabelSheet::StarMoves);
 
     SimpleDispSprt(spev00_sp_cap, MikuPan_GetHostAddress(EVENT_ADDRESS), 19, NULL, NULL, alp_rate);
 
@@ -3166,7 +3230,7 @@ void DialKeyDoorDisp()
 
     ssd.alp = spev_wrk.csr[1];
 
-    SimpleDispSprt(&ssd, MikuPan_GetHostAddress(EVENT_ADDRESS), 18, NULL, NULL, alp_rate);
+    DispPuzzleLabel(&ssd, 18, alp_rate, PuzzleLabelSheet::Dial);
 
     if (dkey_wrk.count == 0)
     {
@@ -3175,7 +3239,7 @@ void DialKeyDoorDisp()
         ssd.h = spev01_sp_cpf[1].h / 2;
         ssd.alp = spev_wrk.csr[1];
 
-        SimpleDispSprt(&ssd, MikuPan_GetHostAddress(EVENT_ADDRESS), 18, NULL, NULL, alp_rate);
+        DispPuzzleLabel(&ssd, 18, alp_rate, PuzzleLabelSheet::Dial);
     }
     else
     {
@@ -3184,7 +3248,7 @@ void DialKeyDoorDisp()
         ssd.y = spev01_sp_cpf[1].y;
         ssd.alp = spev_wrk.csr[1];
 
-        SimpleDispSprt(&ssd, MikuPan_GetHostAddress(EVENT_ADDRESS), 18, NULL, NULL, alp_rate);
+        DispPuzzleLabel(&ssd, 18, alp_rate, PuzzleLabelSheet::Dial);
     }
 
     SimpleDispSprtDatCopy(&spev01_sp_cpf[1], &ssd);
@@ -3194,7 +3258,7 @@ void DialKeyDoorDisp()
     ssd.y = spev01_sp_cpf[1].y + ssd.h;
     ssd.alp = spev_wrk.csr[1];
 
-    SimpleDispSprt(&ssd, MikuPan_GetHostAddress(EVENT_ADDRESS), 18, NULL, NULL, alp_rate);
+    DispPuzzleLabel(&ssd, 18, alp_rate, PuzzleLabelSheet::Dial);
 
     SimpleDispSprtDatCopy(spev01_sp_cap, &ssd);
 
@@ -4712,7 +4776,7 @@ void SpecialEventDisp003(int no)
         next_count = 0;
     }
 
-    SimpleDispSprt(&spev03_sp_cap[0], MikuPan_GetHostAddress(EVENT_ADDRESS), 11, NULL, NULL, 0x64);
+    DispPuzzleLabel(&spev03_sp_cap[0], 11, 100, PuzzleLabelSheet::Doll);
 #ifdef BUILD_EU_VERSION
     SimpleDispSprt(&spev03_sp_cap[1], MikuPan_GetHostAddress(EVENT_ADDRESS), 11, NULL, NULL, 0x64);
     SimpleDispSprt(&spev03_sp_cap[2], MikuPan_GetHostAddress(EVENT_ADDRESS), 11, NULL, NULL, 0x64);
@@ -5515,7 +5579,7 @@ void SpecialEventDisp004()
     ssd.y = 343;
 
 #endif
-    SimpleDispSprt(&ssd, MikuPan_GetHostAddress(EVENT_ADDRESS), 11, NULL, NULL, 0x64);
+    DispPuzzleLabel(&ssd, 11, 100, PuzzleLabelSheet::Statue);
 
     if (spev_wrk.mode == BTZ_PZL_MODE_SLCT)
     {
@@ -5530,7 +5594,7 @@ void SpecialEventDisp004()
         ssd.y = 368;
 
 #endif
-        SimpleDispSprt(&ssd, MikuPan_GetHostAddress(EVENT_ADDRESS), 11, NULL, NULL, 0x64);
+        DispPuzzleLabel(&ssd, 11, 100, PuzzleLabelSheet::Statue);
     }
     else
     {
@@ -5545,7 +5609,7 @@ void SpecialEventDisp004()
         ssd.y = 363;
 
 #endif
-        SimpleDispSprt(&ssd, MikuPan_GetHostAddress(EVENT_ADDRESS), 11, NULL, NULL, 0x64);
+        DispPuzzleLabel(&ssd, 11, 100, PuzzleLabelSheet::Statue);
     }
 
     if (order_no == 0)
@@ -5561,7 +5625,7 @@ void SpecialEventDisp004()
         ssd.y = 393;
 
 #endif
-        SimpleDispSprt(&ssd, MikuPan_GetHostAddress(EVENT_ADDRESS), 11, NULL, NULL, 0x64);
+        DispPuzzleLabel(&ssd, 11, 100, PuzzleLabelSheet::Statue);
     }
     else
     {
@@ -5576,7 +5640,7 @@ void SpecialEventDisp004()
         ssd.y = 395;
 
 #endif
-        SimpleDispSprt(&ssd, MikuPan_GetHostAddress(EVENT_ADDRESS), 11, NULL, NULL, 0x64);
+        DispPuzzleLabel(&ssd, 11, 100, PuzzleLabelSheet::Statue);
     }
 
     DrawButtonTex(0xa000, 3, spev04_cbt_pos[0][0], spev04_cbt_pos[0][1], 0x64);
@@ -6512,7 +6576,7 @@ void SpecialEventDisp014(int no)
         SetMessageV2(&ds);
     }
 
-    SimpleDispSprt(&spev20_sp_cpf[0], MikuPan_GetHostAddress(EVENT_ADDRESS), 11, NULL, NULL, 0x64);
+    DispPuzzleLabel(&spev20_sp_cpf[0], 11, 100, PuzzleLabelSheet::Candle);
     SimpleDispSprt(&spev20_sp_cdl5[0], MikuPan_GetHostAddress(EVENT_ADDRESS), 15, NULL, NULL, 0x64);
 
     DrawButtonTex(0xa000, 3, spev20_cbt_pos[0][0], spev20_cbt_pos[0][1], 0x64);
@@ -10460,7 +10524,7 @@ void ZushiBonjiDisp(int bonji_no)
 
     for (i = 0; i < 1; i++)
     {
-        SimpleDispSprtLNR(&spev21_sp_cpf[i], MikuPan_GetHostAddress(EVENT_ADDRESS), 17, NULL, NULL, 0x64, 0);
+        DispPuzzleLabel(&spev21_sp_cpf[i], 17, 100, PuzzleLabelSheet::Shrine);
     }
 
     SimpleDispSprtLNR(spev21_sp_cap, MikuPan_GetHostAddress(EVENT_ADDRESS), 18, NULL, NULL, 0x64, 0);

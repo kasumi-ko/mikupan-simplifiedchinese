@@ -4,6 +4,10 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
 
+#ifdef _WIN32
+#include <SDL3/SDL_log.h>
+#endif
+
 #ifdef __ANDROID__
 #include "spdlog/sinks/android_sink.h"
 #endif
@@ -89,6 +93,20 @@ std::shared_ptr<spdlog::logger> CreateLogger()
     logger->flush_on(spdlog::level::warn);
     return logger;
 }
+
+#ifdef _WIN32
+void SDLCALL LogSdlMessage(void*, int, SDL_LogPriority priority, const char* message)
+{
+    using namespace spdlog::level;
+    constexpr std::array<level_enum, SDL_LOG_PRIORITY_COUNT> levels{
+        info, trace, trace, debug, info, warn, err, critical,
+    };
+    const auto level = priority > SDL_LOG_PRIORITY_INVALID && priority < SDL_LOG_PRIORITY_COUNT
+        ? levels[priority] : info;
+    if (const auto logger = spdlog::default_logger())
+        logger->log(level, "{}", message);
+}
+#endif
 
 void LogWithArgs(MikuPan_LogLevel level, const char* fmt, va_list args)
 {
@@ -181,6 +199,10 @@ spdlog::logger& Logger()
 void MikuPan_InitLogging(void)
 {
     (void)MikuPan::Logging::GetLogger();
+#ifdef _WIN32
+    // SDL's default Windows log output attaches to the parent console.
+    SDL_SetLogOutputFunction(LogSdlMessage, nullptr);
+#endif
 }
 
 void MikuPan_ShutdownLogging(void)
