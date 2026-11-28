@@ -1899,7 +1899,8 @@ void MikuPan_UiDebugMenuRender(void)
             bool first_person_enabled = MikuPan_FirstPersonEnabled() != 0;
             bool first_person_r3_toggle =
                 mikupan_first_person_r3_toggle_enabled != 0;
-            bool third_person_enabled = camera_third_person_enabled != 0;
+            auto& shoulder = mikupan_configuration.third_person_camera;
+            bool third_person_enabled = shoulder.enabled != 0;
 
             igCheckbox(MikuPan_Translate("Show Camera World Info"), &show_camera_debug);
 
@@ -1946,21 +1947,25 @@ void MikuPan_UiDebugMenuRender(void)
 
             if (igCheckbox(MikuPan_Translate("Third Person Camera"), &third_person_enabled))
             {
-                camera_third_person_enabled = third_person_enabled ? 1 : 0;
+                shoulder.enabled = third_person_enabled ? 1 : 0;
+                if (third_person_enabled)
+                {
+                    MikuPan_FirstPersonSetEnabled(0);
+                }
             }
 
-            igSliderFloat(MikuPan_Translate("TP Distance"), &camera_third_person_distance, 100.0f,
+            igSliderFloat(MikuPan_Translate("TP Distance"), &shoulder.distance, 100.0f,
                           2500.0f, "%.0f", 0);
-            igSliderFloat(MikuPan_Translate("TP Height"), &camera_third_person_height, 0.0f,
+            igSliderFloat(MikuPan_Translate("TP Height"), &shoulder.height, 0.0f,
                           1400.0f, "%.0f", 0);
-            igSliderFloat(MikuPan_Translate("TP Side"), &camera_third_person_side, -600.0f, 600.0f,
+            igSliderFloat(MikuPan_Translate("TP Side"), &shoulder.side, 0.0f, 600.0f,
                           "%.0f", 0);
-            igSliderFloat(MikuPan_Translate("TP Look Ahead"), &camera_third_person_look_ahead,
+            igSliderFloat(MikuPan_Translate("TP Look Ahead"), &shoulder.look_ahead,
                           100.0f, 2500.0f, "%.0f", 0);
             igSliderFloat(MikuPan_Translate("TP Interest Height"),
-                          &camera_third_person_interest_height, -400.0f,
+                          &shoulder.interest_height, -400.0f,
                           1200.0f, "%.0f", 0);
-            igSliderFloat(MikuPan_Translate("TP FOV"), &camera_third_person_fov_deg, 20.0f, 90.0f,
+            igSliderFloat(MikuPan_Translate("TP FOV"), &shoulder.fov_deg, 20.0f, 90.0f,
                           "%.1f deg", 0);
 
             igEndMenu();

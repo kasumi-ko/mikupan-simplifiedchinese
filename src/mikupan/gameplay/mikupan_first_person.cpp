@@ -8,6 +8,7 @@
 #include "graphics/graph3d/sglib.h"
 #include "mikupan/io/mikupan_controller.h"
 #include "mikupan/gameplay/mikupan_first_person.h"
+#include "mikupan/mikupan_config.h"
 #include "os/key_cnf.h"
 #include "sce/libvu0.h"
 
@@ -357,7 +358,7 @@ int MikuPan_FirstPersonActive(void)
 
 void MikuPan_FirstPersonSetEnabled(int enabled)
 {
-    enabled = enabled ? 1 : 0;
+    enabled = enabled && !mikupan_configuration.third_person_camera.enabled;
 
     if (enabled && !mikupan_first_person_enabled)
     {
@@ -386,7 +387,7 @@ void MikuPan_FirstPersonBeginFrame(void)
 
 void MikuPan_FirstPersonUpdateToggle(void)
 {
-    if (!mikupan_first_person_r3_toggle_enabled)
+    if (!mikupan_first_person_r3_toggle_enabled || mikupan_configuration.third_person_camera.enabled)
     {
         return;
     }

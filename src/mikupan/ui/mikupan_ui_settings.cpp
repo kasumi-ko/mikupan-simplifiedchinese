@@ -204,21 +204,6 @@ static void MikuPan_UiSyncSettingsFromConfiguration(void)
     crt_settings = mikupan_configuration.crt;
 }
 
-static void MikuPan_ApplyThirdPersonCameraConfiguration(void)
-{
-    MikuPan_ConfigThirdPersonCamera* tps =
-        &mikupan_configuration.third_person_camera;
-
-    MikuPan_ConfigurationValidate();
-    camera_third_person_enabled = tps->enabled;
-    camera_third_person_distance = tps->distance;
-    camera_third_person_height = tps->height;
-    camera_third_person_side = tps->side;
-    camera_third_person_look_ahead = tps->look_ahead;
-    camera_third_person_interest_height = tps->interest_height;
-    camera_third_person_fov_deg = tps->fov_deg;
-}
-
 static void MikuPan_ApplyFirstPersonCameraConfiguration(void)
 {
     MikuPan_ConfigFirstPersonCamera* fps =
@@ -260,19 +245,6 @@ static void MikuPan_UiStoreRuntimeConfiguration(void)
     mikupan_configuration.renderer.hdr_paper_white = hdr_paper_white;
     mikupan_configuration.renderer.hdr_peak_luminance = hdr_peak_luminance;
     mikupan_configuration.crt = crt_settings;
-    mikupan_configuration.third_person_camera.enabled =
-        camera_third_person_enabled ? 1 : 0;
-    mikupan_configuration.third_person_camera.distance =
-        camera_third_person_distance;
-    mikupan_configuration.third_person_camera.height =
-        camera_third_person_height;
-    mikupan_configuration.third_person_camera.side = camera_third_person_side;
-    mikupan_configuration.third_person_camera.look_ahead =
-        camera_third_person_look_ahead;
-    mikupan_configuration.third_person_camera.interest_height =
-        camera_third_person_interest_height;
-    mikupan_configuration.third_person_camera.fov_deg =
-        camera_third_person_fov_deg;
     mikupan_configuration.first_person_camera.enabled =
         MikuPan_FirstPersonEnabled() ? 1 : 0;
     mikupan_configuration.first_person_camera.r3_toggle_enabled =
@@ -1034,7 +1006,6 @@ void MikuPan_UiSettingsInit(void)
     MikuPan_PopulateGpuDriverList();
 
     MikuPan_SetShadowResolution(mikupan_configuration.renderer.shadow_resolution);
-    MikuPan_ApplyThirdPersonCameraConfiguration();
     MikuPan_ApplyFirstPersonCameraConfiguration();
     MikuPan_ControllerSetPreferredGamepadIndex(mikupan_configuration.input.selected_gamepad_index);
     mikupan_configuration.input.selected_gamepad_index = MikuPan_ControllerGetPreferredGamepadIndex();

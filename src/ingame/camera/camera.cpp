@@ -24,10 +24,15 @@
 #include "camera.h"
 #include "enums.h"
 #include "main/glob.h"
+#include "mikupan/mikupan_config.h"
 #include "mikupan/io/mikupan_controller.h"
 #include "mikupan/io/mikupan_finder_gyro.h"
 #include "mikupan/gameplay/mikupan_first_person.h"
 #include "os/key_cnf.h"
+#include "os/pad.h"
+
+#include <algorithm>
+#include <cmath>
 
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include "cimgui.h"
@@ -53,62 +58,264 @@ u_char cam_info_disp = 1;
 #include "camera.h"
 
 sceVu0FVECTOR adj_cam_pos = {100.0f, -1400.0f, -1200.0f, 0.0f};
-int camera_third_person_enabled = 0;
-float camera_third_person_distance = 900.0f;
-float camera_third_person_height = 520.0f;
-float camera_third_person_side = 120.0f;
-float camera_third_person_look_ahead = 1100.0f;
-float camera_third_person_interest_height = 360.0f;
-float camera_third_person_fov_deg = 51.0f;
 int camera_photo_mode_enabled = 0;
 static CAMERA_DEBUG_PATH camera_debug_path = {0};
 
-static int CameraThirdPersonCanOverride(void)
+struct CameraPose
 {
-    switch (plyr_wrk.mode)
-    {
-        case PMODE_FINDER_IN:
-        case PMODE_FINDER:
-        case PMODE_FINDER_END:
-        case PMODE_FIN_CAM:
-            return 0;
-        default:
-            return 1;
-    }
+    sceVu0FVECTOR p;
+    sceVu0FVECTOR i;
+    float roll;
+    float fov;
+};
+
+static struct
+{
+    CameraPose native;
+    CameraPose displayed;
+    sceVu0FVECTOR pivot;
+    float yaw;
+    float pitch;
+    float move_yaw;
+    float guide_yaw;
+    float guide_pitch;
+    float clearance;
+    int idle_ticks;
+    int event_no;
+    bool active;
+    bool guiding;
+} shoulder_camera;
+
+static CameraPose CameraReadPose()
+{
+    CameraPose pose;
+    sceVu0CopyVector(pose.p, camera.p);
+    sceVu0CopyVector(pose.i, camera.i);
+    pose.roll = camera.roll;
+    pose.fov = camera.fov;
+    return pose;
 }
 
-static void CameraThirdPersonFollowCtrl(void)
+static void CameraThirdPersonBeginFrame()
 {
-    MOVE_BOX *mb = &plyr_wrk.move_box;
-    sceVu0FVECTOR cam_offset = {
-        camera_third_person_side,
-        -camera_third_person_height,
-        -camera_third_person_distance,
-        0.0f
-    };
-    sceVu0FVECTOR interest_offset = {
-        camera_third_person_side * 0.35f,
-        -camera_third_person_interest_height,
-        camera_third_person_look_ahead,
-        0.0f
-    };
-    sceVu0FVECTOR yaw_rot = {
-        0.0f,
-        mb->rot[1],
-        0.0f,
-        0.0f
-    };
+    const auto& shown = shoulder_camera.displayed;
+    if (!shoulder_camera.active || camera.fov != shown.fov || camera.roll != shown.roll
+        || !std::equal(camera.p, camera.p + 4, shown.p)
+        || !std::equal(camera.i, camera.i + 4, shown.i))
+    {
+        shoulder_camera.active = false;
+        return;
+    }
 
-    RotFvector(yaw_rot, cam_offset);
-    RotFvector(yaw_rot, interest_offset);
+    // Stock camera interpolation expects its own previous pose.
+    const auto& stock = shoulder_camera.native;
+    sceVu0CopyVector(camera.p, stock.p);
+    sceVu0CopyVector(camera.i, stock.i);
+    camera.roll = stock.roll;
+    camera.fov = stock.fov;
+}
 
-    sceVu0AddVector(camera.p, mb->pos, cam_offset);
-    sceVu0AddVector(camera.i, mb->pos, interest_offset);
+static bool CameraThirdPersonCanControl()
+{
+    return mikupan_configuration.third_person_camera.enabled
+        && ingame_wrk.mode == INGAME_MODE_NOMAL && !(ingame_wrk.stts & 0x98)
+        && plyr_wrk.mode == PMODE_NORMAL && plyr_wrk.cond != 1 && plyr_wrk.cond != 2
+        && !(plyr_wrk.sta & 0x8) && plyr_wrk.ap_timer == 0 && dbg_wrk.cam_mode == 0;
+}
 
+bool CameraThirdPersonMoveYaw(float* yaw)
+{
+    if (!shoulder_camera.active || !CameraThirdPersonCanControl())
+    {
+        return false;
+    }
+    if (yaw)
+    {
+        *yaw = shoulder_camera.move_yaw;
+    }
+    return true;
+}
+
+bool CameraThirdPersonFinderAim(float* yaw, float* pitch)
+{
+    if (!shoulder_camera.active || !mikupan_configuration.third_person_camera.enabled)
+    {
+        return false;
+    }
+    sceVu0FVECTOR aim;
+    GetTrgtRot(camera.p, camera.i, aim, 3);
+    *yaw = aim[1];
+    *pitch = aim[0];
+    return true;
+}
+
+static float ShoulderStickAxis(u_char value)
+{
+    const float axis = static_cast<float>(value) - 128.0f;
+    const float amount = std::clamp((std::abs(axis) - 24.0f) / 103.0f, 0.0f, 1.0f);
+    return std::copysign(amount, axis);
+}
+
+static float CameraThirdPersonClearance(const float* from, const float* to)
+{
+    if (map_wrk.dat_adr == 0 || plyr_wrk.pr_info.room_no == 0xff)
+    {
+        return 1.0f;
+    }
+    const float length = std::hypot(to[0] - from[0], to[2] - from[2]);
+    const int samples = std::max(1, static_cast<int>(std::ceil(length / 25.0f)));
+    const u_char room = plyr_wrk.pr_info.room_no;
+    // The native hit checker caches the current room's collision-record count.
+    const int room_index = GetDataRoom(MAP_ROOM_DAT, room);
+    for (int step = 1; step <= samples; ++step)
+    {
+        const float t = static_cast<float>(step) / samples;
+        const float x = std::lerp(from[0], to[0], t);
+        const float z = std::lerp(from[2], to[2], t);
+        if (x < 0.0f || x > 65535.0f || z < 0.0f || z > 65535.0f
+            || room_index == 0xff
+            || GetPointRoomNo(static_cast<u_short>(x), static_cast<u_short>(z)) != room_index
+            || MapHitCheckAll(static_cast<u_short>(z), static_cast<u_short>(x), room))
+        {
+            return static_cast<float>(std::max(0, step - 2)) / samples;
+        }
+    }
+    return 1.0f;
+}
+
+static void CameraThirdPersonFollowCtrl()
+{
+    auto& state = shoulder_camera;
+    const auto& settings = mikupan_configuration.third_person_camera;
+    const auto& player = plyr_wrk.move_box;
+    const auto kind = plyr_wrk.pr_info.cam_type;
+    if (!CameraThirdPersonCanControl() || (kind != 0 && kind != 1 && kind != 2)
+        || (kind == 2 && settings.event_camera == MIKUPAN_SHOULDER_EVENT_ORIGINAL))
+    {
+        state.active = false;
+        return;
+    }
+
+    const bool starting = !state.active;
+    if (starting || GetDistV(player.pos, state.pivot) > 1800.0f)
+    {
+        sceVu0CopyVector(state.pivot, player.pos);
+        state.yaw = player.rot[1];
+        state.pitch = 0.0f;
+        state.clearance = 1.0f;
+        state.idle_ticks = 0;
+        state.event_no = -1;
+        state.guiding = false;
+    }
+    state.active = true;
+    state.native = CameraReadPose();
+
+    const int event_no = kind == 2 ? plyr_wrk.pr_info.camera_drm : -1;
+    if (state.event_no != event_no)
+    {
+        state.event_no = event_no;
+        state.guiding = event_no >= 0 && settings.event_camera == MIKUPAN_SHOULDER_EVENT_GUIDED;
+        if (state.guiding)
+        {
+            sceVu0FVECTOR from = {player.pos[0], player.pos[1] - settings.height, player.pos[2], 1.0f};
+            sceVu0FVECTOR aim;
+            GetTrgtRot(from, camera.i, aim, 3);
+            state.guide_yaw = aim[1];
+            state.guide_pitch = aim[0];
+        }
+    }
+
+    const bool moving = pad[0].an_dir[0] != 0xff || DPAD_UP_PRESSED()
+        || DPAD_DOWN_PRESSED() || DPAD_LEFT_PRESSED() || DPAD_RIGHT_PRESSED();
+    const float mouse_speed = MikuPan_FinderMouseSensitivity() * 0.004f;
+    float dx = 0.0f;
+    float dy = 0.0f;
+    MikuPan_FinderMouseRequest();
+    MikuPan_FinderMouseConsume(&dx, &dy);
+    float yaw_delta = dx * mouse_speed;
+    float pitch_delta = -dy * mouse_speed;
+    if (pad[0].id == 0x79)
+    {
+        yaw_delta += ShoulderStickAxis(pad[0].analog[0]) * DEG2RAD(3.4f);
+        pitch_delta -= ShoulderStickAxis(pad[0].analog[1]) * DEG2RAD(2.5f);
+    }
+
+    const bool recenter = R3_PRESSED() == 1;
+    const bool steering = recenter || yaw_delta != 0.0f || pitch_delta != 0.0f;
+    const bool guiding = state.guiding && settings.event_camera == MIKUPAN_SHOULDER_EVENT_GUIDED;
+    if (steering)
+    {
+        state.idle_ticks = 0;
+        state.guiding = false;
+        if (recenter)
+        {
+            state.yaw = player.rot[1];
+            state.pitch = 0.0f;
+        }
+        else
+        {
+            const bool invert = (settings.invert_y != 0) != (MikuPan_KeyProfileUsesFinderReverseY() != 0);
+            state.yaw += settings.look_speed * yaw_delta;
+            state.pitch += (invert ? -1.0f : 1.0f) * settings.look_speed * pitch_delta;
+        }
+    }
+    else if (guiding)
+    {
+        const float delta = std::remainder(state.guide_yaw - state.yaw, 2.0f * PI);
+        state.yaw += delta * 0.08f;
+        state.pitch = std::lerp(state.pitch, state.guide_pitch, 0.08f);
+        if (std::abs(delta) < DEG2RAD(2.0f))
+        {
+            state.guiding = false;
+        }
+    }
+    else if (settings.auto_follow && moving && state.idle_ticks >= 45)
+    {
+        const float delta = std::remainder(player.rot[1] - state.yaw, 2.0f * PI);
+        state.yaw += delta * 0.035f;
+    }
+    else
+    {
+        state.idle_ticks = std::min(state.idle_ticks + 1, 45);
+    }
+    state.yaw = std::remainder(state.yaw, 2.0f * PI);
+    state.pitch = std::clamp(state.pitch, DEG2RAD(-55.0f), DEG2RAD(55.0f));
+
+    const float response = 1.0f - settings.smoothing;
+    for (int axis = 0; axis < 3; ++axis)
+    {
+        state.pivot[axis] = std::lerp(state.pivot[axis], player.pos[axis], response);
+    }
+
+    const float side = settings.left_shoulder ? -settings.side : settings.side;
+    sceVu0FVECTOR position = {side, -settings.height, -settings.distance, 0.0f};
+    sceVu0FVECTOR target = {side * 0.35f, -settings.interest_height, settings.look_ahead, 0.0f};
+    sceVu0FVECTOR rotation = {state.pitch, state.yaw, 0.0f, 0.0f};
+    RotFvector(rotation, position);
+    RotFvector(rotation, target);
+    sceVu0AddVector(camera.p, state.pivot, position);
+    sceVu0AddVector(camera.i, state.pivot, target);
+    camera.p[1] = std::min(camera.p[1], player.pos[1]);
+
+    if (settings.collision)
+    {
+        const float clear = CameraThirdPersonClearance(player.pos, camera.p);
+        state.clearance = std::min(clear, std::lerp(state.clearance, clear, 0.20f));
+        camera.p[0] = std::lerp(player.pos[0], camera.p[0], state.clearance);
+        camera.p[2] = std::lerp(player.pos[2], camera.p[2], state.clearance);
+    }
+    else
+    {
+        state.clearance = 1.0f;
+    }
+    if (starting || !moving || steering || guiding || !settings.auto_follow)
+    {
+        state.move_yaw = GetTrgtRotY(camera.p, camera.i);
+    }
     camera.p[3] = 1.0f;
     camera.i[3] = 1.0f;
     camera.roll = PI;
-    camera.fov = DEG2RAD(camera_third_person_fov_deg);
+    camera.fov = DEG2RAD(settings.fov_deg);
 }
 
 static void CameraDebugClear(void)
@@ -1186,6 +1393,7 @@ void CameraMain()
 
     CameraDebugClear();
 
+    CameraThirdPersonBeginFrame();
     MikuPan_FirstPersonBeginFrame();
 
     if (dbg_wrk.cam_mode == 1 && DBG_cam_id_move_chk == 0)
@@ -1232,6 +1440,7 @@ void CameraMain()
 
     if (DBG_cam_id_move_chk)
     {
+        shoulder_camera.active = false;
         CameraIdMoveCtrl();
         return;
     }
@@ -1243,6 +1452,7 @@ void CameraMain()
     if (plyr_wrk.ap_timer != 0 || SaveCamChk() != 0
         || SoulTellingCameraInCtrl() != 0)
     {
+        shoulder_camera.active = false;
         return;
     }
 
@@ -1295,14 +1505,19 @@ void CameraMain()
 
     if (MikuPan_FirstPersonCameraCtrl())
     {
+        shoulder_camera.active = false;
     }
-    else if (camera_third_person_enabled && CameraThirdPersonCanOverride())
+    else
     {
         CameraThirdPersonFollowCtrl();
     }
 
     FinderInOverRapCtrl();
     QuakeCamera();
+    if (shoulder_camera.active)
+    {
+        shoulder_camera.displayed = CameraReadPose();
+    }
 }
 
 void KonwakuCamCtrl()

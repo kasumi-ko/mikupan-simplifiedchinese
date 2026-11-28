@@ -1630,6 +1630,72 @@ msgstr "当前服装"
 msgid "Camera"
 msgstr "相机"
 
+msgid "Camera Settings"
+msgstr "镜头"
+
+msgid "Camera Mode"
+msgstr "镜头模式"
+
+msgid "Fixed Camera"
+msgstr "固定镜头"
+
+msgid "Over-the-Shoulder Camera"
+msgstr "越肩镜头"
+
+msgid "Shoulder"
+msgstr "越肩方向"
+
+msgid "Camera Collision"
+msgstr "镜头防穿墙"
+
+msgid "Event Camera"
+msgstr "事件镜头"
+
+msgid "Guided"
+msgstr "引导转向"
+
+msgid "Original"
+msgstr "原版镜头"
+
+msgid "Follow Behind"
+msgstr "自动跟随身后"
+
+msgid "Vertical Look"
+msgstr "垂直视角"
+
+msgid "Inverted"
+msgstr "反转"
+
+msgid "Framing"
+msgstr "取景"
+
+msgid "Camera Distance"
+msgstr "镜头距离"
+
+msgid "Camera Height"
+msgstr "镜头高度"
+
+msgid "Shoulder Offset"
+msgstr "横向偏移"
+
+msgid "Look Ahead"
+msgstr "前视距离"
+
+msgid "Target Height"
+msgstr "注视高度"
+
+msgid "Field of View"
+msgstr "视野角度"
+
+msgid "Look Speed"
+msgstr "转向速度"
+
+msgid "Camera Smoothing"
+msgstr "跟随平滑度"
+
+msgid "Reset Camera Settings"
+msgstr "重置镜头设置"
+
 msgid "Unlock Camera Menu"
 msgstr "解锁射影机菜单"
 

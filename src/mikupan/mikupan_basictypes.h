@@ -237,6 +237,13 @@ typedef struct
     int camera_activation_mode;
 } MikuPan_ConfigInput;
 
+enum
+{
+    MIKUPAN_SHOULDER_EVENT_GUIDED,
+    MIKUPAN_SHOULDER_EVENT_ORIGINAL,
+    MIKUPAN_SHOULDER_EVENT_OFF
+};
+
 typedef struct
 {
     int enabled;
@@ -246,6 +253,13 @@ typedef struct
     float look_ahead;
     float interest_height;
     float fov_deg;
+    int left_shoulder;
+    int collision;
+    int auto_follow;
+    int invert_y;
+    int event_camera;
+    float look_speed;
+    float smoothing;
 } MikuPan_ConfigThirdPersonCamera;
 
 typedef struct

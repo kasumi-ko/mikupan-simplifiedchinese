@@ -20,6 +20,7 @@ enum
 };
 
 void MikuPan_ConfigurationValidate(void);
+void MikuPan_ResetThirdPersonCameraConfiguration(void);
 void MikuPan_LoadConfiguration(const char *filename);
 int MikuPan_SaveConfiguration(const char *filename);
 int MikuPan_ResolveUserPath(const char *path, char *buffer,

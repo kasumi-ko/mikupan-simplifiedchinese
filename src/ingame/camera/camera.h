@@ -202,13 +202,6 @@ extern u_char cd_edit_end;
 // extern u_short cdcopy[2];
 // extern u_char cam_info_disp;
 extern sceVu0FVECTOR adj_cam_pos;
-extern int camera_third_person_enabled;
-extern float camera_third_person_distance;
-extern float camera_third_person_height;
-extern float camera_third_person_side;
-extern float camera_third_person_look_ahead;
-extern float camera_third_person_interest_height;
-extern float camera_third_person_fov_deg;
 extern int camera_photo_mode_enabled;
 // extern u_short fior_tm;
 extern CAM_ID_MOVE cam_id_move;
@@ -227,6 +220,8 @@ typedef enum  {
 } CamKind;
 
 void CameraMain();
+bool CameraThirdPersonMoveYaw(float* yaw);
+bool CameraThirdPersonFinderAim(float* yaw, float* pitch);
 const CAMERA_DEBUG_PATH *CameraGetDebugPath(void);
 void KonwakuCamCtrl();
 void FinderInCameraCtrl();

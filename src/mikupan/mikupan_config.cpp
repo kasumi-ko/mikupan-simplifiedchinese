@@ -2,11 +2,31 @@
 #include "mikupan_utils.h"
 #include "mikupan/io/mikupan_finder_gyro.h"
 
+#include <algorithm>
+#include <cmath>
+
 #define MIKUPAN_CONFIG_THEME_COUNT 7
 #define MIKUPAN_CONFIG_DEFAULT_WINDOW_WIDTH 1280
 #define MIKUPAN_CONFIG_DEFAULT_WINDOW_HEIGHT 720
 #define MIKUPAN_CONFIG_MSAA_COUNT 4
 #define MIKUPAN_CONFIG_DEFAULT_MSAA_INDEX 3
+
+static constexpr MikuPan_ConfigThirdPersonCamera default_third_person_camera{
+    .enabled = 0,
+    .distance = 900.0f,
+    .height = 520.0f,
+    .side = 120.0f,
+    .look_ahead = 1100.0f,
+    .interest_height = 360.0f,
+    .fov_deg = 51.0f,
+    .left_shoulder = 0,
+    .collision = 1,
+    .auto_follow = 1,
+    .invert_y = 0,
+    .event_camera = MIKUPAN_SHOULDER_EVENT_GUIDED,
+    .look_speed = 1.0f,
+    .smoothing = 0.25f,
+};
 
 MikuPan_Config mikupan_configuration = {
     {
@@ -76,15 +96,7 @@ MikuPan_Config mikupan_configuration = {
     1,
     1,
     0,
-    {
-        0,
-        900.0f,
-        520.0f,
-        120.0f,
-        1100.0f,
-        360.0f,
-        51.0f
-    },
+    default_third_person_camera,
     {
         0,
         1,
@@ -289,14 +301,42 @@ static void MikuPan_ConfigurationValidateAudio(MikuPan_ConfigAudio* audio)
 static void MikuPan_ConfigurationValidateThirdPersonCamera(
     MikuPan_ConfigThirdPersonCamera* tps)
 {
+    const auto bounded = [&](float MikuPan_ConfigThirdPersonCamera::*field,
+                             float min, float max) {
+        auto& value = tps->*field;
+        value = std::isfinite(value)
+            ? std::clamp(value, min, max) : default_third_person_camera.*field;
+    };
     tps->enabled = tps->enabled ? 1 : 0;
-    tps->distance = MikuPan_ClampFloat(tps->distance, 100.0f, 2500.0f);
-    tps->height = MikuPan_ClampFloat(tps->height, 0.0f, 1400.0f);
-    tps->side = MikuPan_ClampFloat(tps->side, -600.0f, 600.0f);
-    tps->look_ahead = MikuPan_ClampFloat(tps->look_ahead, 100.0f, 2500.0f);
-    tps->interest_height =
-        MikuPan_ClampFloat(tps->interest_height, -400.0f, 1200.0f);
-    tps->fov_deg = MikuPan_ClampFloat(tps->fov_deg, 20.0f, 90.0f);
+    // Older INIs represented the left shoulder with a negative offset.
+    if (tps->side < 0.0f)
+    {
+        tps->left_shoulder = 1;
+        tps->side = -tps->side;
+    }
+    tps->left_shoulder = tps->left_shoulder ? 1 : 0;
+    tps->collision = tps->collision ? 1 : 0;
+    tps->auto_follow = tps->auto_follow ? 1 : 0;
+    tps->invert_y = tps->invert_y ? 1 : 0;
+    tps->event_camera = std::clamp(tps->event_camera,
+                                   int(MIKUPAN_SHOULDER_EVENT_GUIDED),
+                                   int(MIKUPAN_SHOULDER_EVENT_OFF));
+    bounded(&MikuPan_ConfigThirdPersonCamera::distance, 100.0f, 2500.0f);
+    bounded(&MikuPan_ConfigThirdPersonCamera::height, 0.0f, 1400.0f);
+    bounded(&MikuPan_ConfigThirdPersonCamera::side, 0.0f, 600.0f);
+    bounded(&MikuPan_ConfigThirdPersonCamera::look_ahead, 100.0f, 2500.0f);
+    bounded(&MikuPan_ConfigThirdPersonCamera::interest_height, -400.0f, 1200.0f);
+    bounded(&MikuPan_ConfigThirdPersonCamera::fov_deg, 20.0f, 90.0f);
+    bounded(&MikuPan_ConfigThirdPersonCamera::look_speed, 0.25f, 3.0f);
+    bounded(&MikuPan_ConfigThirdPersonCamera::smoothing, 0.0f, 0.8f);
+}
+
+void MikuPan_ResetThirdPersonCameraConfiguration(void)
+{
+    auto& settings = mikupan_configuration.third_person_camera;
+    const int enabled = settings.enabled;
+    settings = default_third_person_camera;
+    settings.enabled = enabled;
 }
 
 static void MikuPan_ConfigurationValidateFirstPersonCamera(

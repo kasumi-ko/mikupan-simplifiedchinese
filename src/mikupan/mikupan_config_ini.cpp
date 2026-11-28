@@ -259,6 +259,20 @@ bool TryLoadConfigurationFile(const std::filesystem::path& path)
                mikupan_configuration.third_person_camera.interest_height);
     ApplyValue(ini, "third_person_camera", "fov_deg",
                mikupan_configuration.third_person_camera.fov_deg);
+    ApplyValue(ini, "third_person_camera", "left_shoulder",
+               mikupan_configuration.third_person_camera.left_shoulder);
+    ApplyValue(ini, "third_person_camera", "collision",
+               mikupan_configuration.third_person_camera.collision);
+    ApplyValue(ini, "third_person_camera", "auto_follow",
+               mikupan_configuration.third_person_camera.auto_follow);
+    ApplyValue(ini, "third_person_camera", "invert_y",
+               mikupan_configuration.third_person_camera.invert_y);
+    ApplyValue(ini, "third_person_camera", "event_camera",
+               mikupan_configuration.third_person_camera.event_camera);
+    ApplyValue(ini, "third_person_camera", "look_speed",
+               mikupan_configuration.third_person_camera.look_speed);
+    ApplyValue(ini, "third_person_camera", "smoothing",
+               mikupan_configuration.third_person_camera.smoothing);
     ApplyValue(ini, "first_person_camera", "enabled",
                mikupan_configuration.first_person_camera.enabled);
     ApplyValue(ini, "first_person_camera", "r3_toggle_enabled",
@@ -483,6 +497,20 @@ bool TrySaveConfigurationFile(const std::filesystem::path& path)
              mikupan_configuration.third_person_camera.interest_height);
     SetValue(ini, "third_person_camera", "fov_deg",
              mikupan_configuration.third_person_camera.fov_deg);
+    SetValue(ini, "third_person_camera", "left_shoulder",
+             mikupan_configuration.third_person_camera.left_shoulder);
+    SetValue(ini, "third_person_camera", "collision",
+             mikupan_configuration.third_person_camera.collision);
+    SetValue(ini, "third_person_camera", "auto_follow",
+             mikupan_configuration.third_person_camera.auto_follow);
+    SetValue(ini, "third_person_camera", "invert_y",
+             mikupan_configuration.third_person_camera.invert_y);
+    SetValue(ini, "third_person_camera", "event_camera",
+             mikupan_configuration.third_person_camera.event_camera);
+    SetValue(ini, "third_person_camera", "look_speed",
+             mikupan_configuration.third_person_camera.look_speed);
+    SetValue(ini, "third_person_camera", "smoothing",
+             mikupan_configuration.third_person_camera.smoothing);
     SetValue(ini, "first_person_camera", "enabled",
              mikupan_configuration.first_person_camera.enabled);
     SetValue(ini, "first_person_camera", "r3_toggle_enabled",

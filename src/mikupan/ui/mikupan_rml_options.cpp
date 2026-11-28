@@ -9,6 +9,7 @@
 #include "mikupan/io/mikupan_file.h"
 #include "mikupan/io/mikupan_controller.h"
 #include "mikupan/io/mikupan_finder_gyro.h"
+#include "mikupan/gameplay/mikupan_first_person.h"
 #include "mikupan/gameplay/mikupan_item_icon_hud.h"
 #include "mikupan/mikupan_i18n.h"
 #include "os/key_cnf.h"
@@ -1680,6 +1681,61 @@ Row KeyboardStickRow(const char* label, int stick, bool positive)
         });
 }
 
+Page CameraPage(void)
+{
+    Page page{"camera", "Camera Settings", {}};
+    auto& rows = page.rows;
+    using Settings = MikuPan_ConfigThirdPersonCamera;
+    const auto settings = []() -> Settings& {
+        return mikupan_configuration.third_person_camera;
+    };
+    const auto shoulder_on = [settings] { return settings().enabled != 0; };
+    const auto choice = [settings, shoulder_on](
+        const char* label, std::vector<std::string> names, int Settings::*field) {
+        return When(Choice(label, {}, std::move(names),
+                           [settings, field] { return settings().*field; },
+                           [settings, field](int value) { settings().*field = value; }),
+                    shoulder_on);
+    };
+    const auto slider = [settings, shoulder_on](
+        const char* label, float min, float max, float step,
+        float Settings::*field, const char* format) {
+        return When(Slider(label, {}, min, max, step,
+                           [settings, field] { return settings().*field; },
+                           [settings, field](float value) { settings().*field = value; },
+                           Format(format)),
+                    shoulder_on);
+    };
+
+    rows.push_back(Choice("Camera Mode", {}, {"Fixed Camera", "Over-the-Shoulder Camera"},
+                          [settings] { return settings().enabled; },
+                          [settings](int mode) {
+                              MikuPan_FirstPersonSetEnabled(0);
+                              settings().enabled = mode;
+                          }));
+    rows.push_back(choice("Shoulder", {"Right", "Left"}, &Settings::left_shoulder));
+    rows.push_back(choice("Camera Collision", {"Off", "On"}, &Settings::collision));
+    rows.push_back(choice("Event Camera", {"Guided", "Original", "Off"},
+                          &Settings::event_camera));
+    rows.push_back(choice("Follow Behind", {"Off", "On"}, &Settings::auto_follow));
+    rows.push_back(choice("Vertical Look", {"Normal", "Inverted"}, &Settings::invert_y));
+
+    rows.push_back(Heading("Framing"));
+    rows.push_back(slider("Camera Distance", 100.0f, 2500.0f, 25.0f, &Settings::distance, "%.0f"));
+    rows.push_back(slider("Camera Height", 0.0f, 1400.0f, 25.0f, &Settings::height, "%.0f"));
+    rows.push_back(slider("Shoulder Offset", 0.0f, 600.0f, 10.0f, &Settings::side, "%.0f"));
+    rows.push_back(slider("Look Ahead", 100.0f, 2500.0f, 25.0f, &Settings::look_ahead, "%.0f"));
+    rows.push_back(slider("Target Height", -400.0f, 1200.0f, 25.0f, &Settings::interest_height, "%.0f"));
+    rows.push_back(slider("Field of View", 20.0f, 90.0f, 1.0f, &Settings::fov_deg, "%.0f°"));
+    rows.push_back(slider("Look Speed", 0.25f, 3.0f, 0.05f, &Settings::look_speed, "%.2fx"));
+    rows.push_back(slider("Camera Smoothing", 0.0f, 0.8f, 0.05f, &Settings::smoothing, "%.2f"));
+    rows.push_back(When(Action("Reset Camera Settings", {}, "Reset",
+                               MikuPan_ResetThirdPersonCameraConfiguration),
+                        shoulder_on));
+
+    return page;
+}
+
 Page KeyboardPage(void)
 {
     Page page{"keyboard", "Keyboard", {}};
@@ -1955,6 +2011,7 @@ void BuildPages(void)
     g_opt.pages.push_back(ControlsPage());
     g_opt.pages.push_back(KeyboardPage());
     g_opt.pages.push_back(ControllerPage());
+    g_opt.pages.push_back(CameraPage());
 
     g_opt.panels.clear();
     g_opt.panels.push_back(CalibrationPanel());

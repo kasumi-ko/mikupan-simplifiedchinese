@@ -494,9 +494,15 @@ void FinderInSet()
     else
     {
         plyr_wrk.move_box.rspd[0] = 0.0f;
-        plyr_wrk.move_box.rspd[1] = 0.0f,
+        plyr_wrk.move_box.rspd[1] = 0.0f;
         plyr_wrk.move_box.rspd[2] = 0.0f;
         plyr_wrk.move_box.rspd[3] = 0.0f;
+        float yaw = 0.0f;
+        if (CameraThirdPersonFinderAim(&yaw, &plyr_wrk.frot_x))
+        {
+            plyr_wrk.move_box.rspd[1] = yaw - plyr_wrk.move_box.rot[1];
+            RotLimitChk(&plyr_wrk.move_box.rspd[1]);
+        }
     }
 
     for(i = 0; i < 4; i++)
@@ -3042,7 +3048,7 @@ void PlyrNModeMoveCtrl()
         else if (MikuPan_FirstPersonMoveCtrl(mb, tv))
         {
         }
-        else if (MikuPan_KeyProfileUsesSubjectiveMove())
+        else if (MikuPan_KeyProfileUsesSubjectiveMove() && !CameraThirdPersonMoveYaw(nullptr))
         {
             PlyrMovePadV(mb, tv);
         }
@@ -4066,6 +4072,8 @@ void PlyrMovePad(MOVE_BOX *mb, sceVu0FVECTOR tv)
     static float rs[2] = { 0.0f, 0.0f };
     static u_char ds[5] = { 0, 0, 0, 0, 0 };
 
+    float move_yaw = plyr_wrk.prot;
+    const bool shoulder_move = CameraThirdPersonMoveYaw(&move_yaw);
     r = GetMovePad(0);
 
     run_chk = PlyrMoveStaChk(r);
@@ -4081,7 +4089,13 @@ void PlyrMovePad(MOVE_BOX *mb, sceVu0FVECTOR tv)
 
     rcng = __builtin_fabsf(rcng);
 
-    if (plyr_cam_no_save != plyr_wrk.pr_info.camera_no)
+    if (shoulder_move)
+    {
+        plyr_wrk.mvsta &= ~0x400000;
+        cam_cng_tm = 0;
+        no_rot_cng2 = 0;
+    }
+    else if (plyr_cam_no_save != plyr_wrk.pr_info.camera_no)
     {
         cam_cng_tm = 10;
 
@@ -4163,7 +4177,8 @@ void PlyrMovePad(MOVE_BOX *mb, sceVu0FVECTOR tv)
             return;
         }
 
-        if ((rs[1] == r && (plyr_wrk.mvsta & 0x800000) == 0) || run_chk != 0 || plyr_wrk.mvsta & 0x200000)
+        if ((!shoulder_move && rs[1] == r && (plyr_wrk.mvsta & 0x800000) == 0)
+            || run_chk != 0 || plyr_wrk.mvsta & 0x200000)
         {
             RotFvector(mb->rot,tv);
 
@@ -4201,7 +4216,7 @@ void PlyrMovePad(MOVE_BOX *mb, sceVu0FVECTOR tv)
 
     if (r != 10.0f)
     {
-        fr[1] = r + plyr_wrk.prot;
+        fr[1] = r + move_yaw;
 
         RotLimitChk(&fr[1]);
         RotFvector(fr, tv);
