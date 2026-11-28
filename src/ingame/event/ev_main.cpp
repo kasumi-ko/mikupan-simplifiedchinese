@@ -1097,6 +1097,45 @@ int PhotoEventOpenJudge(u_char pht_2d, u_char pht_furn)
     return 0;
 }
 
+bool IsPhotoClueComplete(u_char trigger, unsigned subject)
+{
+#ifndef BUILD_EU_VERSION
+    if (ingame_wrk.game != 0 || ingame_wrk.msn_no >= 5 || subject >= 0xff)
+        return false;
+
+    // Use the same Japanese condition records that PhotoEventOpenJudge dispatches.
+    const auto* entry = GetImgArrangementP(M0_EVENT_OBJ + ingame_wrk.msn_no);
+    const auto* script = static_cast<const u_char*>(MikuPan_GetHostPointer(MSN_TITLE_DAT_ADDRESS));
+    if (!entry || !script || entry->size < 8)
+        return false;
+
+    u_int table;
+    memcpy(&table, script, sizeof(table));
+    constexpr unsigned event_count = 0xff;
+    if (table < 8 || table > entry->size || entry->size - table < event_count * sizeof(u_int))
+        return false;
+
+    bool completed = false;
+    for (unsigned event = 0; event < event_count; ++event)
+    {
+        u_int condition;
+        memcpy(&condition, script + table + event * sizeof(condition), sizeof(condition));
+        if (condition < 8 || condition > entry->size - 8)
+            continue;
+        if (script[condition + 2] == subject && script[condition + 3] == trigger)
+        {
+            // A later event can ask for the same subject again.
+            if (!event_stts[event])
+                return false;
+            completed = true;
+        }
+    }
+    return completed;
+#else
+    return false;
+#endif
+}
+
 float SetRot360(short int rot360)
 {
     float rot;

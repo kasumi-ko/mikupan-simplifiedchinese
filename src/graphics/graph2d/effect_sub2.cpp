@@ -21,6 +21,7 @@
 #include "mikupan/gameplay/mikupan_effect_compat.h"
 
 #include <string.h>
+#include <vector>
 
 #include "graphics/graph2d/effect.h"
 #include "graphics/graph2d/effect_obj.h"
@@ -439,6 +440,28 @@ void FallenObjectsDraw()
 /* sdata 356400 */ ANM_WRK anm_wrk = {0};
 /* sdata 356408 */ static short int anm_no_keep = -1;
 /* sdata 35640a */ static short int anm_load_id = 0;
+
+#ifndef BUILD_EU_VERSION
+static std::vector<u_char> battle_animation_sprites;
+
+static bool LoadBattleAnimationSprites(int file)
+{
+    const auto* entry = GetImgArrangementP(file);
+    if (!entry || !entry->size)
+        return false;
+    battle_animation_sprites.resize(entry->size);
+    return LoadReqToHostPointer(file, battle_animation_sprites.data()) >= 0;
+}
+#endif
+
+static int64_t BattleAnimationSprites()
+{
+#ifdef BUILD_EU_VERSION
+    return MikuPan_GetHostAddress(MISSION_TITLE_CARD_ADDRESS);
+#else
+    return reinterpret_cast<int64_t>(battle_animation_sprites.data());
+#endif
+}
 /* sdata 35640c */ static u_char anm_init = 0;
 /* sdata 35640d */ static u_char clear_end = 0;
 /* sdata 35640e */ static u_char clear_end2 = 0;
@@ -2535,9 +2558,9 @@ int CallMissionClear()
         
         alpha_res[now_pos] = 80;
         
-        DispSprt2(&btl_rslt[10], MISSION_TITLE_CARD_ADDRESS, 1, NULL, NULL, alpha_res[0]);
-        DispSprt2(&btl_rslt[11], MISSION_TITLE_CARD_ADDRESS, 1, NULL, NULL, alpha_res[1]);
-        DispSprt2(&btl_rslt[12], MISSION_TITLE_CARD_ADDRESS, 1, NULL, NULL, alpha_res[2]);
+        DispSprt2(&btl_rslt[10], BattleAnimationSprites(), 1, NULL, NULL, alpha_res[0]);
+        DispSprt2(&btl_rslt[11], BattleAnimationSprites(), 1, NULL, NULL, alpha_res[1]);
+        DispSprt2(&btl_rslt[12], BattleAnimationSprites(), 1, NULL, NULL, alpha_res[2]);
         
         if (btl_clear_disp == 2)
         {
@@ -2666,9 +2689,9 @@ uint64_t CallMissionFailed()
         
         alpha_res[now_pos] = 100;
         
-        DispSprt2(&btl_rslt[10], MISSION_TITLE_CARD_ADDRESS, 1, NULL, NULL, alpha_res[0]);
-        DispSprt2(&btl_rslt[11], MISSION_TITLE_CARD_ADDRESS, 1, NULL, NULL, alpha_res[1]);
-        DispSprt2(&btl_rslt[12], MISSION_TITLE_CARD_ADDRESS, 1, NULL, NULL, alpha_res[2]);
+        DispSprt2(&btl_rslt[10], BattleAnimationSprites(), 1, NULL, NULL, alpha_res[0]);
+        DispSprt2(&btl_rslt[11], BattleAnimationSprites(), 1, NULL, NULL, alpha_res[1]);
+        DispSprt2(&btl_rslt[12], BattleAnimationSprites(), 1, NULL, NULL, alpha_res[2]);
     break;
     case 6:
         if (IsEndAdpcmBtlmode())
@@ -2805,8 +2828,8 @@ int CallMissionAllClear()
         
         alpha_res[now_pos] = 100;
         
-        DispSprt2(&btl_rslt[11], MISSION_TITLE_CARD_ADDRESS, 1, NULL, NULL, alpha_res[0]);
-        DispSprt2(&btl_rslt[12], MISSION_TITLE_CARD_ADDRESS, 1, NULL, NULL, alpha_res[1]);
+        DispSprt2(&btl_rslt[11], BattleAnimationSprites(), 1, NULL, NULL, alpha_res[0]);
+        DispSprt2(&btl_rslt[12], BattleAnimationSprites(), 1, NULL, NULL, alpha_res[1]);
 
         if (clear_anime_timer != 0)
         {
@@ -3056,7 +3079,8 @@ int BtlAnmInit(/* s0 16 */ int anm_no)
 #ifdef BUILD_EU_VERSION
             LoadReqLanguage(M_SLCT_STY_DMY_E_PK2, EVENT_ADDRESS);
 #else
-            LoadReq(M_SLCT_STY_DMY_PK2, MISSION_TITLE_CARD_ADDRESS);
+            if (!LoadBattleAnimationSprites(M_SLCT_STY_DMY_PK2))
+                return 0;
 #endif
             anm_load_id = 1;
             break;
@@ -3064,7 +3088,8 @@ int BtlAnmInit(/* s0 16 */ int anm_no)
 #ifdef BUILD_EU_VERSION
             LoadReqLanguage(TX_BTL_DMY_E_PK2, EVENT_ADDRESS);
 #else
-            LoadReq(TX_BTL_DMY_PK2, MISSION_TITLE_CARD_ADDRESS);
+            if (!LoadBattleAnimationSprites(TX_BTL_DMY_PK2))
+                return 0;
 #endif
             LoadReq(TX_BTL_RES_PK2, TX_BTL_RES_PK2_ADDRESS);
             anm_load_id = 1;
@@ -3074,7 +3099,8 @@ int BtlAnmInit(/* s0 16 */ int anm_no)
 #ifdef BUILD_EU_VERSION
             LoadReqLanguage(M_SLCT_BTL_CHR_E_PK2, EVENT_ADDRESS);
 #else
-            LoadReq(M_SLCT_BTL_CHR_PK2, MISSION_TITLE_CARD_ADDRESS);
+            if (!LoadBattleAnimationSprites(M_SLCT_BTL_CHR_PK2))
+                return 0;
 #endif
             anm_load_id = 1;
             break;
@@ -3082,7 +3108,8 @@ int BtlAnmInit(/* s0 16 */ int anm_no)
 #ifdef BUILD_EU_VERSION
             LoadReqLanguage(M_SLCT_STY_DMY_E_PK2, EVENT_ADDRESS);
 #else
-            LoadReq(M_SLCT_STY_DMY_PK2, MISSION_TITLE_CARD_ADDRESS);
+            if (!LoadBattleAnimationSprites(M_SLCT_STY_DMY_PK2))
+                return 0;
 #endif
             LoadReq(S_MODE_CLEARBG_PK2, MPEG_WORK_ADDRESS);
             anm_load_id = 1;
@@ -3092,7 +3119,8 @@ int BtlAnmInit(/* s0 16 */ int anm_no)
 #ifdef BUILD_EU_VERSION
             LoadReqLanguage(TX_BTL_DMY_E_PK2, EVENT_ADDRESS);
 #else
-            LoadReq(TX_BTL_DMY_PK2, MISSION_TITLE_CARD_ADDRESS);
+            if (!LoadBattleAnimationSprites(TX_BTL_DMY_PK2))
+                return 0;
 #endif
             do { anm_load_id = 1; } while (0); // HACK: fixes a reg-swap
             break;
@@ -3104,15 +3132,15 @@ int BtlAnmInit(/* s0 16 */ int anm_no)
         switch (anm_no)
         {
         case 3:
-            SetSprFile(MikuPan_GetHostAddress(MISSION_TITLE_CARD_ADDRESS));
+            SetSprFile(BattleAnimationSprites());
             SetSprFile(MikuPan_GetHostAddress(EFFECT_ANIMATION_ADDRESS));
         break;
         case 5:
-            SetSprFile(MikuPan_GetHostAddress(MISSION_TITLE_CARD_ADDRESS));
+            SetSprFile(BattleAnimationSprites());
             SetSprFile(MikuPan_GetHostAddress(MPEG_WORK_ADDRESS));
         break;
         default:
-            SetSprFile(MikuPan_GetHostAddress(MISSION_TITLE_CARD_ADDRESS));
+            SetSprFile(BattleAnimationSprites());
         }
 
         i = anm_wrk.start_num;
@@ -3505,9 +3533,11 @@ void ZanzouEffect(/* a2 6 */ ANM2D_WRK_TABLE *w_table, /* a1 5 */ SPRT_SDAT *ssd
 void BtlReadyDisp(/* s0 16 */ ANM2D_WRK_TABLE *w_table)
 {
     /* s1 17 */ int i;
-    int64_t addr = EFFECT_ADDRESS; // workaround to make the last for loop match
+    const int64_t addr = BattleAnimationSprites();
 
-    SetSprFile(MikuPan_GetHostAddress(addr));
+    if (!addr)
+        return;
+    SetSprFile(addr);
 
     if (ANM2D_DAT_TABLE_P(w_table->table_p)->attribute & 0x10000)
     {
@@ -3571,7 +3601,6 @@ void DispSprt2(/* s0 16 */ SPRT_SDAT *ssd, /* a1 5 */ int64_t addr, /* a2 6 */ i
 {
 	/* 0x0(sp) */ DISP_SPRT ds;
 	/* 0x90(sp) */ SPRT_DAT sd;
-    addr = MikuPan_GetHostAddress((int)addr);
 
     sd.tex0 = GetTex0Reg(addr, sp_no, 0);
     sd.u = ssd->u;
@@ -3618,8 +3647,6 @@ void DispSprt3(/* s0 16 */ SPRT_SDAT *ssd, /* a1 5 */ int64_t addr, /* a2 6 */ i
 {
 	/* 0x0(sp) */ DISP_SPRT ds;
 	/* 0x90(sp) */ SPRT_DAT sd;
-
-    addr = MikuPan_GetHostAddress((int)addr);
 
     sd.tex0 = GetTex0Reg(addr, sp_no, 0);
     sd.u = ssd->u;

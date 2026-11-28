@@ -94,6 +94,44 @@ static u_char step_direction = 0;
 static u_char no_photo_tm = 0;
 static u_char dmg_step = 0;
 
+namespace {
+constexpr u_int kShutterHit = 0x400;
+constexpr u_int kShutterChance = 0x20000;
+constexpr u_int kShutterAimFlags = 0x20 | 0x40 | 0x100 | 0x200 | kShutterHit;
+
+struct ShutterTarget
+{
+    u_int flags;
+    u_char type;
+    u_char id;
+};
+
+ShutterTarget displayed_shutter_targets[EWRK_GHOST2 + 1]{};
+u_long displayed_shutter_frame;
+
+bool CanTakePhoto()
+{
+    return photo_wrk.mode == PHOTO_MODE_NO_REQ && plyr_wrk.cond != 1
+        && (poss_item[plyr_wrk.film_no] != 0 || cam_custom_wrk.set_spe == 3);
+}
+
+bool IsShutterTarget(const ENE_WRK& enemy)
+{
+    return (enemy.sta & 1) && enemy.hp != 0 && !(enemy.sta & 0x80000)
+        && enemy.tr_rate != 0;
+}
+
+u_int FurnPhotoAttributes(FURN_WRK* furniture)
+{
+    u_int attributes = GetFurnAttrF(furniture, ingame_wrk.msn_no);
+    if ((attributes & 0x20) && IsPhotoClueComplete(PHT_2D, furn_dat[furniture->id].fp_mak))
+        attributes &= ~0x20;
+    if ((attributes & 0x40) && IsPhotoClueComplete(PHT_FURN, furniture->id))
+        attributes &= ~0x40;
+    return attributes;
+}
+} // namespace
+
 static u_char avoid_chk;
 static u_short hp_down_deg;
 static u_char plyr_spot_light_applied = 0;
@@ -1954,14 +1992,34 @@ void PlyrPhotoChk()
         return;
     }
 
-    if (
-        (photo_wrk.mode == 0 && plyr_wrk.cond != 1) &&
-        (poss_item[plyr_wrk.film_no] != 0 || cam_custom_wrk.set_spe == 3)
-    )
+    if (CanTakePhoto())
     {
+        // The shot can use the last presented chance while the next simulation
+        // frame updates the enemy or the deferred visibility query.
+        u_int restored_flags[EWRK_GHOST2 + 1]{};
+        const u_long elapsed = sys_wrk.count - displayed_shutter_frame;
+        if (elapsed <= 2)
+        {
+            for (int i = 0; i <= EWRK_GHOST2; ++i)
+            {
+                auto& enemy = ene_wrk[i];
+                const auto& target = displayed_shutter_targets[i];
+                if (target.flags && IsShutterTarget(enemy)
+                    && target.type == enemy.type && target.id == enemy.dat_no)
+                {
+                    restored_flags[i] = target.flags & ~enemy.sta;
+                    enemy.sta |= restored_flags[i];
+                }
+            }
+        }
+        memset(displayed_shutter_targets, 0, sizeof(displayed_shutter_targets));
         PhotoFlyChk();
         PhotoDmgChk();
         PhotoPointSet();
+        for (int i = 0; i <= EWRK_GHOST2; ++i)
+        {
+            ene_wrk[i].sta &= ~restored_flags[i];
+        }
 
         if (plyr_wrk.sta & 0x8000000)
         {
@@ -2565,15 +2623,16 @@ void PhotoPointChkFurn()
         fw = &furn_wrk[plyr_wrk.fh_no];
 
         dist = GetDistV(fw->pos, plyr_wrk.move_box.pos);
-        sta = GetFurnAttrF(fw, ingame_wrk.msn_no);
-        PhotoPointCulcFurn(fw, pw, dist, plyr_wrk.fh_deg, sta);
+        sta = FurnPhotoAttributes(fw);
+        if (sta & 0x60)
+            PhotoPointCulcFurn(fw, pw, dist, plyr_wrk.fh_deg, sta);
     }
 
     for (i = 0, fw = furn_wrk; i < 60; i++, fw++)
     {
         if (GetFurnHintPos(fw, tv, &sta) == 0)
         {
-            sta = GetFurnAttrF(fw, ingame_wrk.msn_no);
+            sta = FurnPhotoAttributes(fw);
 
             if (sta & 0x80 && (fw->furn_no < 1000 != 0 || fw->furn_no == 0xffff))
             {
@@ -5451,7 +5510,7 @@ int GetFurnHintPos(FURN_WRK *fw, sceVu0FVECTOR tv, u_int *fsta)
         return 0;
     }
 
-    furn_attr = GetFurnAttrF(fw,ingame_wrk.msn_no);
+    furn_attr = FurnPhotoAttributes(fw);
 
     if ((furn_attr & 0x8) == 0)
     {
@@ -5821,23 +5880,27 @@ void PlayerWarpRoomLoadReq()
 
 int ShutterChanceChk()
 {
-    ENE_WRK *ew;
-    u_char i;
-    int result;
-
-    result = 0;
-
-    for (i = 0, ew = ene_wrk; i <= EWRK_GHOST2; i++, ew++)
+    memset(displayed_shutter_targets, 0, sizeof(displayed_shutter_targets));
+    if (plyr_wrk.mode != PMODE_FINDER || (plyr_wrk.sta & 0x1000)
+        || no_photo_tm != 0 || !CanTakePhoto())
     {
-        if (ew->sta & 0x1 && ew->hp != 0 && (ew->sta & 0x80000) == 0 && ew->sta & 0x400 && ew->sta & 0x30000)
-        {
-            result = 1;
-
-            break;
-        }
+        return 0;
     }
 
-    return result;
+    displayed_shutter_frame = sys_wrk.count;
+    int visible = 0;
+    for (int i = 0; i <= EWRK_GHOST2; ++i)
+    {
+        const auto& enemy = ene_wrk[i];
+        if (IsShutterTarget(enemy)
+            && (enemy.sta & (kShutterHit | kShutterChance)) == (kShutterHit | kShutterChance))
+        {
+            displayed_shutter_targets[i] = {enemy.sta & (kShutterAimFlags | kShutterChance),
+                                             enemy.type, enemy.dat_no};
+            visible = 1;
+        }
+    }
+    return visible;
 }
 
 void PlayerWarpReq2(u_char dat_no)

@@ -310,7 +310,11 @@ void SpdOptMain()
     if (yw2d.io_a[4] != 0.0f)
     {
         SetSprFile(MikuPan_GetHostAddress(SP_SPRITES_ADDRESS));
-        SetSprFile(MikuPan_GetHostAddress(EVENT_ADDRESS));
+        // Only the legacy options screen loads a sprite pack into this shared buffer.
+        if (sopt_uses_rml == 0 && sopt_load_id == -1)
+        {
+            SetSprFile(MikuPan_GetHostAddress(EVENT_ADDRESS));
+        }
     }
 
     if (spd_mnu.sopt != 0x0)

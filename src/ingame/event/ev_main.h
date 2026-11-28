@@ -46,6 +46,7 @@ int64_t GetEventMessageAddr(short int msg_no);
 void EventEnemySet(u_char *addr);
 int BattleEndEventOpenJudge(u_char ene_no);
 int PhotoEventOpenJudge(u_char pht_2d, u_char pht_furn);
+bool IsPhotoClueComplete(u_char trigger, unsigned subject);
 float SetRot360(short int rot360);
 int EventSceneCtrl(short int scene_no);
 int SceneFadeOut();
