@@ -2506,20 +2506,8 @@ msgstr "请选择存放游戏数据的文件夹。所选路径会保存到设置
 msgid "Game data unavailable"
 msgstr "无法读取游戏数据"
 
-msgid "Select Game Data"
-msgstr "选择游戏数据"
-
-msgid "Choose ISO or BIN"
-msgstr "选择 ISO 或 BIN"
-
-msgid "Select a Japanese SLPS-25074 ISO to import into binary, or select the existing BIN files or folder."
-msgstr "选择日版简中 SLPS-25074 ISO 并导入 binary，或选择已有的 BIN 文件或目录。"
-
-msgid "Select IMG_HD.BIN or IMG_BD.BIN from a folder containing both files."
-msgstr "请选择同一目录中的 IMG_HD.BIN 或 IMG_BD.BIN。该目录需要包含这两个文件。"
-
-msgid "ISO import failed"
-msgstr "ISO 导入失败"
+msgid "Place the extracted Japanese SLPS-25074 game files in the binary folder next to MikuPan.exe."
+msgstr "将解包后的日版 SLPS-25074 游戏文件放到 MikuPan.exe 同级的 binary 文件夹。"
 
 msgid "Resolution"
 msgstr "分辨率"

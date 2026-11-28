@@ -116,9 +116,11 @@ int MikuPan_KeepFinderRaisedForApparitionsEnabled(void);
 void MikuPan_SetKeepFinderRaisedForApparitionsEnabled(int enabled);
 float MikuPan_GetUiFontScale(void);
 void MikuPan_SetUiFontScale(float scale);
+#ifndef _WIN32
 const char *MikuPan_GetDataFolder(void);
 void MikuPan_SetDataFolder(const char *folder);
 void MikuPan_BrowseDataFolderFromUi(void);
+#endif
 int MikuPan_SaveConfigurationFromUi(void);
 const char *MikuPan_GetConfigSaveStatus(void);
 

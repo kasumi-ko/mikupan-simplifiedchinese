@@ -29,8 +29,10 @@ TYPEDEF_ALIGNED(64, struct
 
 extern "C" {
 void MikuPan_LoadImgHdFile();
+#ifndef _WIN32
 void MikuPan_ServiceMissingDataFolderDialog();
 void MikuPan_RequestDataFolderSelection(const char *missing_path);
+#endif
 bool MikuPan_HasRequiredDataFiles(char *missing_file, size_t missing_file_size);
 bool MikuPan_IsJapaneseGameData();
 void MikuPan_ReadFullFile(const char *filename, char *buffer);
@@ -76,9 +78,5 @@ int MikuPan_GetListFiles(const char *folder, MikuPan_McTblGetDir *table, int max
 
 std::string MikuPan_GetRelativePath(const char* path);
 
-#ifdef _WIN32
-struct SDL_Window;
-void MikuPan_BrowseGameData(SDL_Window* window);
-#endif
 
 #endif//MIKUPAN_FILE_LOADING_H

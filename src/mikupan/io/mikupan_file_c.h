@@ -29,8 +29,10 @@ extern "C" {
 #endif
 
 void MikuPan_LoadImgHdFile();
+#ifndef _WIN32
 void MikuPan_ServiceMissingDataFolderDialog();
 void MikuPan_RequestDataFolderSelection(const char *missing_path);
+#endif
 bool MikuPan_HasRequiredDataFiles(char *missing_file, size_t missing_file_size);
 bool MikuPan_IsJapaneseGameData(void);
 /* Records that file data was loaded at a PS2 main-memory offset; requests a

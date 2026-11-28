@@ -7,7 +7,6 @@
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include "cimgui.h"
 #include "SDL3/SDL_dialog.h"
-#include "mikupan/io/mikupan_file.h"
 #include "SDL3/SDL_hints.h"
 #include "SDL3/SDL_platform.h"
 #include "SDL3/SDL_stdinc.h"
@@ -1489,6 +1488,7 @@ void MikuPan_UiSettingsRender(void)
         igSeparator();
         MikuPanUiSaves::MenuItem();
 
+#ifndef _WIN32
         igSeparatorText(MikuPan_Translate("Game Data Folder"));
         igInputText(MikuPan_Translate("Folder"), mikupan_configuration.data_folder, sizeof(mikupan_configuration.data_folder), 0, NULL, NULL);
 
@@ -1496,6 +1496,7 @@ void MikuPan_UiSettingsRender(void)
         {
             MikuPan_BrowseDataFolderFromUi();
         }
+#endif
 
         igSeparator();
 
@@ -2489,6 +2490,7 @@ void MikuPan_SetUiFontScale(float scale)
     MikuPan_ApplyUiFontScale();
 }
 
+#ifndef _WIN32
 const char* MikuPan_GetDataFolder(void)
 {
     return mikupan_configuration.data_folder;
@@ -2509,9 +2511,6 @@ void MikuPan_SetDataFolder(const char* folder)
 
 void MikuPan_BrowseDataFolderFromUi(void)
 {
-#ifdef _WIN32
-    MikuPan_BrowseGameData(MikuPan_GetUiWindow());
-#else
     const char* start = mikupan_configuration.data_folder[0] != '\0'
                             ? mikupan_configuration.data_folder
                             : NULL;
@@ -2520,8 +2519,8 @@ void MikuPan_BrowseDataFolderFromUi(void)
 #endif
     SDL_ShowOpenFolderDialog(MikuPan_DataFolderSelected, NULL,
                              MikuPan_GetUiWindow(), start, false);
-#endif
 }
+#endif
 
 int MikuPan_SaveConfigurationFromUi(void)
 {

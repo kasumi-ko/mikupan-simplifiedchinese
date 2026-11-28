@@ -39,7 +39,9 @@
 #include <mikupan/mikupan_framelimiter.h>
 
 static int mikupan_game_initialized = 0;
+#ifndef _WIN32
 static int mikupan_missing_data_prompted = 0;
+#endif
 static char mikupan_missing_data_file[256] = "";
 #ifdef _WIN32
 static bool mikupan_import_only = false;
@@ -63,20 +65,26 @@ static int MikuPan_TryInitializeGame(void)
                     sizeof(mikupan_missing_data_file) - 1);
             mikupan_missing_data_file[sizeof(mikupan_missing_data_file) - 1] =
                 '\0';
+#ifndef _WIN32
             mikupan_missing_data_prompted = 0;
+#endif
         }
 
+#ifndef _WIN32
         if (!mikupan_missing_data_prompted)
         {
             MikuPan_RequestDataFolderSelection(mikupan_missing_data_file);
             mikupan_missing_data_prompted = 1;
         }
+#endif
 
         return 0;
     }
 
     mikupan_missing_data_file[0] = '\0';
+#ifndef _WIN32
     mikupan_missing_data_prompted = 0;
+#endif
 
     /// Model and 2D textures come from the texture pack, baked from the
     /// user's data on first launch.
@@ -168,7 +176,9 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 
 SDL_AppResult SDL_AppIterate(void *appstate)
 {
+#ifndef _WIN32
     MikuPan_ServiceMissingDataFolderDialog();
+#endif
 
     MikuPan_Clear();
     MikuPan_StartFrameUi();

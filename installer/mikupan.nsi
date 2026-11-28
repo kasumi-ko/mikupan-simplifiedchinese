@@ -54,7 +54,7 @@ Page custom ShowIsoPage LeaveIsoPage
 !define MUI_FINISHPAGE_RUN_FUNCTION CreateGameShortcut
 !define MUI_FINISHPAGE_RUN_TEXT "创建桌面快捷方式"
 !define MUI_FINISHPAGE_RUN_NOTCHECKED
-!define MUI_FINISHPAGE_TEXT "安装完成。游戏启动后可导入 ISO，或选择已经解包的 BIN。"
+!define MUI_FINISHPAGE_TEXT "安装完成。游戏读取安装目录中的 binary 文件夹。若安装时跳过 ISO，请将解包后的完整游戏文件放到该文件夹。"
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
@@ -81,7 +81,7 @@ Function ShowIsoPage
     ${NSD_CreateBrowseButton} 77% 35u 23% 15u "浏览…"
     Pop $0
     ${NSD_OnClick} $0 BrowseIso
-    ${NSD_CreateLabel} 0 60u 100% 34u "也可以留空并继续。启动游戏后可导入 ISO，或选择已经解包的 IMG_HD.BIN / IMG_BD.BIN。"
+    ${NSD_CreateLabel} 0 60u 100% 34u "也可以留空并继续。启动游戏前，请将解包后的完整游戏文件放到安装目录的 binary 文件夹。"
     Pop $0
     nsDialogs::Show
 FunctionEnd
@@ -127,17 +127,16 @@ Section "MikuPan" Main
         ${OrIf} $0 != 0
             SetErrorLevel 2
             IfSilent +2
-            MessageBox MB_OK|MB_ICONEXCLAMATION "ISO 导入未完成。请检查日版镜像和 binary 文件夹，也可以在游戏内选择已解包的 BIN。"
+            MessageBox MB_OK|MB_ICONEXCLAMATION "ISO 导入未完成。请检查日版镜像，或将解包后的游戏文件放到安装目录的 binary 文件夹。"
         ${EndIf}
     ${EndIf}
 !ifndef PREVIEW_INSTALLER
-    ; Standard users can import later. Executables and resources keep
-    ; the default access inherited from Program Files.
+    ; Allow standard users to copy extracted game data into binary.
     nsExec::ExecToLog '"$SYSDIR\icacls.exe" "$INSTDIR\binary" /grant "*S-1-5-32-545:(OI)(CI)M"'
     Pop $0
     ${If} $0 != 0
         IfSilent +2
-        MessageBox MB_OK|MB_ICONEXCLAMATION "无法设置 binary 的写入权限。可以在游戏内选择其他目录中已经解包的 BIN。"
+        MessageBox MB_OK|MB_ICONEXCLAMATION "无法设置 binary 的写入权限。可以在安装时选 ISO，或使用管理员权限将游戏文件复制到 binary。"
     ${EndIf}
 !endif
 SectionEnd

@@ -128,18 +128,17 @@ void MikuPan_DrawMissingDataUi(const char *missing_file)
     igSpacing();
 #ifdef _WIN32
     igTextWrapped("%s", MikuPan_Translate(
-        "Select a Japanese SLPS-25074 ISO to import into binary, or select the existing BIN files or folder."));
-    const char *choose_data = MikuPan_Translate("Select Game Data");
+        "Place the extracted Japanese SLPS-25074 game files in the binary folder next to MikuPan.exe."));
 #else
     igTextWrapped("%s", MikuPan_Translate("Select the folder that contains IMG_HD.BIN and IMG_BD.BIN."));
     const char *choose_data = MikuPan_Translate("Select Folder");
-#endif
     igSpacing();
 
     if (igButton(choose_data, ImVec2{160.0f * scale, 0.0f}))
     {
         MikuPan_RequestDataFolderSelection(file);
     }
+#endif
 
     igEnd();
 }

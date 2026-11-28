@@ -1459,6 +1459,7 @@ Page GamePage(void)
         [] { return mikupan_configuration.album_photo_png_export_enabled != 0; },
         [](bool on) { mikupan_configuration.album_photo_png_export_enabled = on ? 1 : 0; }));
 
+#ifndef _WIN32
     rows.push_back(Heading("Files"));
     {
         Row folder = Action(
@@ -1486,6 +1487,7 @@ Page GamePage(void)
         };
         rows.push_back(std::move(folder));
     }
+#endif
     return page;
 }
 
